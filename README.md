@@ -1,4 +1,4 @@
-# akaoutlaw · Pokémon Card Prices
+# outlaw · Pokémon Card Prices
 
 Stream overlay + control room for showing Pokémon card prices on stream.
 
