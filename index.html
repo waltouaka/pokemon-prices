@@ -657,7 +657,7 @@ else {
   /* =================== OVERLAY EDITOR =================== */
   const ST = styleOf(S); S.style = ST; saveS();
   let edBuilt=false, edReady=false, edLive = localStorage.getItem('pkmn_ed_live')==='1';
-  const DEMO_ID = 'swsh3-136';   // Charizard (Darkness Ablaze) — used when no card is picked
+  const DEMO_ID = 'base1-4';   // Base Set Charizard — used when no card is picked
   const edFrame = ()=>$('#edFrame');
   const edState = (force)=>({cardId: current?.id || DEMO_ID, visible:true, settings:{...S, style:{...ST}},
       psa10: current ? (psaMap[current.id] ?? 4250) : 4250, ts: Date.now()});
