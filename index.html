@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>akaoutlaw · Pokémon Card Prices v15</title>
+<title>akaoutlaw · Pokémon Card Prices v16</title>
 <style>
   :root{
     --gold:#ffcb05; --blue:#3d7dca; --ink:#0d0d10; --panel:#17171c; --line:#2a2a32;
@@ -77,54 +77,78 @@
 
   /* ================= OVERLAY ================= */
   @font-face{font-family:'Pokemon Solid';src:local('Pokemon Solid'),local('PokemonSolid'),local('Pokemon Solid Normal'),url('pokemon-solid.ttf') format('truetype'),url('Pokemon%20Solid.ttf') format('truetype'),url('PokemonSolid.ttf') format('truetype'),url('Pokemon_Solid.ttf') format('truetype');font-display:block}
-  body.overlay{background:transparent;overflow:hidden;width:100vw;height:100vh}
-  .ov{position:absolute;left:60px;bottom:60px;display:flex;align-items:center}
-  .ov.pos-br{left:auto;right:60px}
-  .ov.pos-tl{bottom:auto;top:60px}
-  .ov.pos-tr{bottom:auto;top:60px;left:auto;right:60px}
+  body.overlay{background:transparent;overflow:hidden;width:100vw;height:100vh;margin:0}
+  /* every look setting is a CSS variable the Overlay Editor controls */
+  .ov{--card-w:300px;--lab:26px;--val:58px;--o-lab:2px;--o-val:4.5px;--txt:#fff;--ink:#000;--border:#fff;--panel:#16161a;
+      --gap:0px;--edge:60px;--line:6px;
+      position:absolute;left:var(--edge);bottom:var(--edge);display:flex;align-items:center}
+  .ov.pos-br{left:auto;right:var(--edge)}
+  .ov.pos-tl{bottom:auto;top:var(--edge)}
+  .ov.pos-tr{bottom:auto;top:var(--edge);left:auto;right:var(--edge)}
   /* card: pops in first, leaves last */
-  .ov-card{width:300px;position:relative;z-index:2;filter:drop-shadow(0 10px 14px #0009);
+  .ov-card{width:var(--card-w);position:relative;z-index:2;filter:drop-shadow(0 10px 14px #0009);
       will-change:transform,opacity;backface-visibility:hidden;
       opacity:0;transform:translateY(24px) scale(.95);
       transition:opacity .3s ease .4s, transform .4s cubic-bezier(.4,0,1,1) .4s}
-  .ov.show .ov-card{opacity:1;transform:none;
-      transition:opacity .4s ease, transform .55s cubic-bezier(.22,1,.36,1)}
-  .ov-card img{width:100%;display:block;border-radius:14px}
-  .ov-card .shine{position:absolute;inset:0;border-radius:14px;overflow:hidden;pointer-events:none}
+  .ov.show .ov-card{opacity:1;transform:none;transition:opacity .4s ease, transform .55s cubic-bezier(.22,1,.36,1)}
+  .ov-card img{width:100%;display:block;border-radius:calc(var(--card-w) * .047)}
+  .ov-card .shine{position:absolute;inset:0;border-radius:calc(var(--card-w) * .047);overflow:hidden;pointer-events:none}
   .ov-card .shine::after{content:"";position:absolute;top:-50%;left:-80%;width:50%;height:200%;
       background:linear-gradient(100deg,transparent,#ffffff55,transparent);transform:rotate(12deg);animation:shine 4.5s ease-in-out infinite}
+  .ov.noshine .ov-card .shine{display:none}
   @keyframes shine{0%,55%{left:-80%}100%{left:160%}}
-  /* price plaque: slides out from behind the card */
+  /* prices: slide out from behind the card */
   .ov-slot{margin-left:-30px;overflow:hidden;padding:60px 70px 70px 0;margin-right:-70px;position:relative;z-index:1}
-  .ov-panel{padding:22px 34px 22px 56px;border-radius:0 18px 18px 0;
-      background:linear-gradient(135deg,#101014f2,#26262cf2);border:4px solid #fff;border-left:none;
-      box-shadow:0 0 0 3px #000, 0 20px 45px #000c, inset 0 0 0 2px #000;will-change:transform;backface-visibility:hidden;
+  .ov-panel{padding:22px 34px 22px calc(56px + var(--gap));border-radius:0 18px 18px 0;
+      background:var(--panel);border:4px solid var(--border);border-left:none;
+      box-shadow:0 0 0 3px var(--ink), 0 20px 45px #000c;will-change:transform;backface-visibility:hidden;
       transform:translate3d(-101%,0,0);transition:transform .4s cubic-bezier(.55,0,.75,.2)}
   .ov.show .ov-panel{transform:translate3d(0,0,0);transition:transform .65s cubic-bezier(.22,1,.36,1) .35s}
   /* layout: pop UNDER the card */
   .ov.lay-under{flex-direction:column;align-items:center}
-  .ov.lay-under .ov-card{filter:drop-shadow(0 3px 5px #0009)}  /* short shadow so it doesn't dim the Raw Price title */
+  .ov.lay-under .ov-card{filter:drop-shadow(0 3px 5px #0009)}
   .ov.lay-under .ov-slot{margin:-30px -70px 0;padding:0 70px 70px}
-  .ov.lay-under .ov-panel{border-radius:0 0 18px 18px;border:4px solid #fff;border-top:none;
-      padding:54px 30px 18px;min-width:280px;text-align:center;transform:translate3d(0,-101%,0)}
+  .ov.lay-under .ov-panel{border-radius:0 0 18px 18px;border:4px solid var(--border);border-top:none;
+      padding:calc(46px + var(--gap)) 30px 18px;min-width:calc(var(--card-w) - 20px);text-align:center;transform:translate3d(0,-101%,0)}
   .ov.lay-under.show .ov-panel{transform:translate3d(0,0,0)}
   .ov.lay-under .ov-price{align-items:center}
-  .ov.lay-under .ov-price .val{font-size:58px}
-  .ov.lay-under .ov-price .lab{font-size:26px;--o:2px}
-  .ov.lay-under .ov-price .val{--o:4.5px}
-  /* no background: just the stroked text */
+  /* no background: just the outlined text */
   .ov.nobg .ov-panel{background:none;border:none;box-shadow:none}
   .ov.nobg .ov-price + .ov-price{border-top:none}
-  .ov-price{display:flex;flex-direction:column;gap:6px;padding:10px 0}
-  /* font setting */
-  .ov.font-poke .ov-price .lab,.ov.font-pokeall .ov-price .lab{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;text-transform:none;letter-spacing:2px;font-size:30px}
-  .ov.font-pokeall .ov-price .val{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;letter-spacing:2px}
-  .ov.lay-under.font-poke .ov-price .lab,.ov.lay-under.font-pokeall .ov-price .lab{font-size:26px}
+  .ov-price{display:flex;flex-direction:column;gap:var(--line);padding:10px 0}
   .ov-price + .ov-price{border-top:3px solid #ffffff33}
   /* smooth 16-direction outline (same style as the garage sale counter) */
-  .ov-price .lab,.ov-price .val{--ink:#000;text-shadow:calc(var(--o) * 1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * 0.0) calc(var(--o) * 1.0) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * -1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * -0.383) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * -0.0) calc(var(--o) * -1.0) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * -0.383) 0 var(--ink)}
-  .ov-price .lab{font-size:28px;font-weight:900;color:#fff;letter-spacing:2px;text-transform:uppercase;--o:2px}
-  .ov-price .val{font-size:62px;font-weight:900;color:#fff;line-height:1;--o:4.5px;font-variant-numeric:tabular-nums}
+  .ov-price .lab,.ov-price .val{text-shadow:calc(var(--o) * 1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * 0.0) calc(var(--o) * 1.0) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * -1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * -0.383) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * -0.0) calc(var(--o) * -1.0) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * -0.383) 0 var(--ink)}
+  .ov-price .lab{font-size:var(--lab);--o:var(--o-lab);font-weight:900;color:var(--txt);letter-spacing:2px;text-transform:uppercase;line-height:1.1}
+  .ov.noupper .ov-price .lab{text-transform:none}
+  .ov-price .val{font-size:var(--val);--o:var(--o-val);font-weight:900;color:var(--txt);line-height:1;font-variant-numeric:tabular-nums}
+  /* font setting */
+  .ov.font-poke .ov-price .lab,.ov.font-pokeall .ov-price .lab{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;text-transform:none;letter-spacing:2px}
+  .ov.font-pokeall .ov-price .val{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;letter-spacing:2px}
+  .ov.font-impact .ov-price .lab,.ov.font-impact .ov-price .val{font-family:Impact,'Arial Black',sans-serif;font-weight:400;letter-spacing:1px}
+  .ov.font-verdana .ov-price .lab,.ov.font-verdana .ov-price .val{font-family:Verdana,'Arial Black',sans-serif;font-weight:900}
+
+  /* ================= OVERLAY EDITOR ================= */
+  .ed{display:grid;grid-template-columns:1fr 380px;gap:18px}
+  @media(max-width:1100px){.ed{grid-template-columns:1fr}}
+  .ed-stage{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:1px solid var(--line-c,#2a2a32)}
+  .ed-stage iframe{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;transform-origin:0 0;background:transparent}
+  .ed-stage.bg-dark{background:#222}
+  .ed-stage.bg-green{background:#2f9e55}
+  .ed-stage.bg-check{background:repeating-conic-gradient(#3a3a3a 0 25%,#2a2a2a 0 50%) 0 0/32px 32px}
+  .ed-stage.bg-light{background:#cfcfd6}
+  .ed-ctrl{max-height:78vh;overflow:auto;padding-right:4px}
+  .ed-ctrl h3{margin:14px 0 8px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+  .ed-ctrl h3:first-child{margin-top:0}
+  .fld{display:grid;grid-template-columns:110px 1fr 54px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+  .fld input[type=range]{width:100%;accent-color:var(--gold)}
+  .fld .num{text-align:right;color:var(--muted);font-size:12px}
+  .fld.two{grid-template-columns:110px 1fr}
+  .fld input[type=color]{width:44px;height:30px;border:1px solid #33333d;border-radius:8px;background:#0b0b0e;padding:2px}
+  .seg{display:flex;gap:4px;flex-wrap:wrap}
+  .seg button{background:#1c1c22;border:1px solid #3a3a44;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
+  .seg button.on{background:var(--gold);color:#111;border-color:var(--gold)}
+  .viewsw{display:flex;gap:6px}
 </style>
 </head>
 <body>
@@ -203,6 +227,27 @@ function buildView(card, s){
   return out;
 }
 
+/* ---------- overlay look (edited in the Overlay Editor) ---------- */
+const STYLE_DEFAULTS = {layout:'under', bg:false, pos:'bl', font:'arial', cardW:300, lab:26, val:58, oLab:2, oVal:4.5,
+  txt:'#ffffff', ink:'#000000', border:'#ffffff', panel:'#16161a', gap:0, line:6, edge:60,
+  rawLabel:'Raw Price', psaLabel:'PSA 10 Price', upper:true, shine:true, countUp:true};
+function styleOf(s){
+  const st = Object.assign({}, STYLE_DEFAULTS, s.style||{});
+  // carry over older settings saved before the editor existed
+  if(!s.style){ if(s.layout) st.layout=s.layout; if(s.bg!==undefined) st.bg=s.bg; if(s.pos) st.pos=s.pos; if(s.font) st.font=s.font; }
+  return st;
+}
+function ovClass(st){
+  return 'ov pos-'+st.pos+' lay-'+(st.layout==='under'?'under':'right')+(st.bg?'':' nobg')+
+    ({poke:' font-poke',pokeall:' font-pokeall',impact:' font-impact',verdana:' font-verdana'}[st.font]||'')+
+    (st.upper?'':' noupper')+(st.shine?'':' noshine');
+}
+function applyStyle(el, st){
+  const v={'--card-w':st.cardW+'px','--lab':st.lab+'px','--val':st.val+'px','--o-lab':st.oLab+'px','--o-val':st.oVal+'px',
+    '--txt':st.txt,'--ink':st.ink,'--border':st.border,'--panel':st.panel,'--gap':st.gap+'px','--line':st.line+'px','--edge':st.edge+'px'};
+  for(const k in v) el.style.setProperty(k, v[k]);
+}
+
 /* =========================================================
    OVERLAY
    ========================================================= */
@@ -210,13 +255,30 @@ if(IS_OVERLAY){
   document.body.className='overlay';
   document.body.innerHTML = `<div class="ov" id="ov"></div>`;
   const ov = $('#ov');
-  let lastTs = 0, renderToken = 0;
+  const PREVIEW = P.has('preview');
+  let lastTs = 0, renderToken = 0, shownSig = '';
 
-  async function render(state){
-    if(!state || !state.ts || state.ts <= lastTs) return;   // ignore duplicates/older (same click arrives via several channels)
-    lastTs = state.ts;
+  async function render(state, force){
+    if(!state) return;
+    if(!force){ if(!state.ts || state.ts <= lastTs) return; }   // ignore duplicates/older (same click arrives via several channels)
+    lastTs = Math.max(lastTs, state.ts||0);
+    const s0 = state.settings || {}, st = styleOf(s0);
+    // look-only change on the card already showing: restyle in place, no replay
+    if(!force && state.visible && state.cardId && ov.classList.contains('show')){
+      try{
+        const c = await api('/cards/' + encodeURIComponent(state.cardId)); const vv = buildView(c, s0);
+        const sig = [state.cardId, state.psa10, vv.raw, vv.cur].join('|');
+        if(sig === shownSig){
+          ++renderToken;
+          ov.className = ovClass(st) + ' show'; applyStyle(ov, st);
+          const labs = ov.querySelectorAll('.lab'); if(labs[0]) labs[0].textContent = st.rawLabel; if(labs[1]) labs[1].textContent = st.psaLabel;
+          ov.querySelectorAll('.val').forEach(el=>{ if(el.dataset.n!=='') el.textContent=fmt(parseFloat(el.dataset.n), el.dataset.c); });
+          return;
+        }
+      }catch(_){}
+    }
     const token = ++renderToken;
-    if(!state.visible || !state.cardId){ ov.classList.remove('show'); return; }  // token already bumped above
+    if(!state.visible || !state.cardId){ ov.classList.remove('show'); shownSig=''; return; }  // token already bumped above
     let card;
     try{ card = await api('/cards/' + encodeURIComponent(state.cardId)); }catch(e){ return; }
     if(token !== renderToken) return;
@@ -226,11 +288,12 @@ if(IS_OVERLAY){
     const html = `
       <div class="ov-card"><img src="${esc(img(card.image))}" onerror="this.src='${esc(img(card.image,'high','png'))}'"><div class="shine"></div></div>
       <div class="ov-slot"><div class="ov-panel">
-        <div class="ov-price"><span class="lab">Raw Price</span><span class="val" data-n="${v.raw??''}" data-c="${v.cur}">${fmt(v.raw,v.cur)}</span></div>
-        ${state.psa10!=null?`<div class="ov-price"><span class="lab">PSA 10 Price</span><span class="val" data-n="${state.psa10??''}" data-c="USD">${fmt(state.psa10,'USD')}</span></div>`:''}
+        <div class="ov-price"><span class="lab">${esc(st.rawLabel)}</span><span class="val" data-n="${v.raw??''}" data-c="${v.cur}">${fmt(v.raw,v.cur)}</span></div>
+        ${state.psa10!=null?`<div class="ov-price"><span class="lab">${esc(st.psaLabel)}</span><span class="val" data-n="${state.psa10??''}" data-c="USD">${fmt(state.psa10,'USD')}</span></div>`:''}
       </div>      </div>`;
-    const pos = 'ov pos-' + (s.pos||'bl') + ' lay-' + (s.layout==='under'?'under':'right') + (s.bg===false?' nobg':'') + (s.font==='poke'?' font-poke':s.font==='pokeall'?' font-pokeall':'');
-    if(s.font==='poke'||s.font==='pokeall'){ try{ await Promise.race([document.fonts.load("30px 'Pokemon Solid'"), new Promise(r=>setTimeout(r,1500))]); }catch(_){} }
+    const pos = ovClass(st);
+    const sig = [state.cardId, state.psa10, v.raw, v.cur].join('|');
+    if(st.font==='poke'||st.font==='pokeall'){ try{ await Promise.race([document.fonts.load("30px 'Pokemon Solid'"), new Promise(r=>setTimeout(r,1500))]); }catch(_){} }
     // preload the card image BEFORE touching the screen, so nothing pops in half-loaded
     await new Promise(r=>{ const pre=new Image(); pre.onload=pre.onerror=r; pre.src=img(card.image); setTimeout(r,3000); });
     if(token !== renderToken) return;
@@ -239,11 +302,11 @@ if(IS_OVERLAY){
       await new Promise(r=>setTimeout(r,900));
       if(token !== renderToken) return;
     }
-    ov.className = pos; ov.innerHTML = html;
-    ov.querySelectorAll('.val').forEach(el=>{ if(el.dataset.n!=='') el.textContent=fmt(0,el.dataset.c); });
+    ov.className = pos; applyStyle(ov, st); ov.innerHTML = html; shownSig = sig;
+    if(st.countUp) ov.querySelectorAll('.val').forEach(el=>{ if(el.dataset.n!=='') el.textContent=fmt(0,el.dataset.c); });
     requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
     // count the prices up as the plaque slides out
-    setTimeout(()=>{ if(token !== renderToken) return; ov.querySelectorAll('.val').forEach(el=>{
+    if(st.countUp) setTimeout(()=>{ if(token !== renderToken) return; ov.querySelectorAll('.val').forEach(el=>{
       const target=parseFloat(el.dataset.n); if(isNaN(target)) return;
       const t0=performance.now(), dur=1000;
       const step=t=>{ if(token !== renderToken) return;
@@ -253,6 +316,14 @@ if(IS_OVERLAY){
     }); }, 650);
   }
 
+  if(PREVIEW){
+    window.addEventListener('message', e => {
+      if(e.origin !== location.origin || !e.data) return;
+      if(e.data.type==='state') render(e.data.state, false);
+      if(e.data.type==='replay') render(Object.assign({}, e.data.state, {ts: Date.now()}), true);
+    });
+    parent.postMessage({type:'preview-ready'}, location.origin);
+  } else {
   // same-browser channels (OBS custom dock shares storage with browser sources)
   bc && (bc.onmessage = e => render(e.data));
   window.addEventListener('storage', e => { if(e.key==='pkmn_state_'+ROOM && e.newValue) render(JSON.parse(e.newValue)); });
@@ -274,6 +345,7 @@ if(IS_OVERLAY){
       if(last?.message) render(JSON.parse(last.message));
     }catch(_){}
   })();
+  }
 }
 
 /* =========================================================
@@ -284,14 +356,18 @@ else {
   document.body.innerHTML = `
   <div class="wrap">
     <header>
-      <h1><span>akaoutlaw</span> · Pokémon Card Prices <span style="font-size:12px;color:#3ddc84;border:1px solid #3ddc84;border-radius:6px;padding:2px 6px;vertical-align:middle">v15 · brighter titles</span></h1>
+      <h1><span>akaoutlaw</span> · Pokémon Card Prices <span style="font-size:12px;color:#3ddc84;border:1px solid #3ddc84;border-radius:6px;padding:2px 6px;vertical-align:middle">v16 · overlay editor</span></h1>
+      <div class="viewsw tabs" style="margin:0 0 0 18px">
+        <div class="tab on" data-v="cards">Cards</div>
+        <div class="tab" data-v="editor">Overlay Editor</div>
+      </div>
       <div class="room">
         <span class="pill"><span class="dot" id="dot"></span>Key <b>${ROOM}</b></span>
         <button class="btn" id="copyUrl">Copy overlay URL</button>
         <button class="btn" id="newRoom" title="Make a new private key">New key</button>
       </div>
     </header>
-    <div class="grid">
+    <div class="grid" id="viewCards">
       <div class="box">
         <div class="tabs">
           <div class="tab on" data-t="sets">Browse by set</div>
@@ -301,6 +377,7 @@ else {
       </div>
       <div class="box prev" id="prev"><div class="status">Pick a set, then click a card.</div></div>
     </div>
+    <div class="ed" id="viewEditor" style="display:none"></div>
   </div>
   <div class="toast" id="toast"></div>`;
 
@@ -362,8 +439,8 @@ else {
     catch(e){ $('#dot').classList.remove('on'); toast('Relay offline — only same-browser overlay updated'); }
   }
 
-  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  document.querySelectorAll('.tab[data-t]').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.tab[data-t]').forEach(x=>x.classList.toggle('on',x===t));
     tab=t.dataset.t; renderPane();
   });
 
@@ -551,26 +628,6 @@ else {
           <a href="#" id="oKey" class="muted" style="width:100%;font-size:11px;margin-top:2px">${PPT_KEY()?'PokemonPriceTracker key saved · change':'Optional: add PokemonPriceTracker API key for auto PSA 10'}</a></label>
         <label ${S.source!=='tcgplayer'?'style="opacity:.4"':''}><input type="checkbox" id="oCad" ${S.cad?'checked':''}> Show in CAD</label>
         <label>USD→CAD <input type="number" id="oRate" step="0.01" value="${esc(S.rate)}" style="width:80px;padding:5px 8px"></label>
-        <label>Prices pop
-          <select id="oLay" style="margin-left:auto;padding:5px 8px">
-            <option value="right" ${S.layout!=='under'?'selected':''}>Right</option>
-            <option value="under" ${S.layout==='under'?'selected':''}>Under</option>
-          </select></label>
-        <label>Background
-          <select id="oBg" style="margin-left:auto;padding:5px 8px">
-            <option value="on" ${S.bg!==false?'selected':''}>On</option>
-            <option value="off" ${S.bg===false?'selected':''}>Off</option>
-          </select></label>
-        <label class="full">Font
-          <select id="oFont" style="margin-left:auto;padding:5px 8px">
-            <option value="arial" ${!['poke','pokeall'].includes(S.font)?'selected':''}>Arial Black</option>
-            <option value="poke" ${S.font==='poke'?'selected':''}>Pokémon titles + Arial Black prices</option>
-            <option value="pokeall" ${S.font==='pokeall'?'selected':''}>Pokémon everything</option>
-          </select></label>
-        <label class="full">Position
-          <select id="oPos" style="margin-left:auto;padding:5px 8px">
-            ${[['bl','Bottom left'],['br','Bottom right'],['tl','Top left'],['tr','Top right']].map(([k,n])=>`<option value="${k}" ${S.pos===k?'selected':''}>${n}</option>`).join('')}
-          </select></label>
       </div>
       <div class="actions">
         <button class="btn gold" id="show">${visible?'Update overlay':'Show on overlay'}</button>
@@ -592,13 +649,119 @@ else {
     if($('#oRawC')) $('#oRawC').onchange=e=>{S.rawCustom=e.target.value; saveS(); renderPrev()};
     $('#oCad').onchange=e=>{S.cad=e.target.checked; saveS(); renderPrev()};
     $('#oRate').onchange=e=>{S.rate=e.target.value; saveS(); renderPrev()};
-    $('#oFont').onchange=e=>{S.font=e.target.value; saveS(); if(visible) send()};
-    $('#oLay').onchange=e=>{S.layout=e.target.value; saveS(); if(visible) send()};
-    $('#oBg').onchange=e=>{S.bg=e.target.value==='on'; saveS(); if(visible) send()};
-    $('#oPos').onchange=e=>{S.pos=e.target.value; saveS()};
     $('#show').onclick=()=>{visible=true; send(); $('#show').textContent='Update overlay'; toast('Sent to overlay')};
     $('#hide').onclick=()=>{visible=false; send(); $('#show').textContent='Show on overlay'; toast('Overlay hidden')};
   }
+
+
+  /* =================== OVERLAY EDITOR =================== */
+  const ST = styleOf(S); S.style = ST; saveS();
+  let edBuilt=false, edReady=false, edLive = localStorage.getItem('pkmn_ed_live')==='1';
+  const DEMO_ID = 'swsh3-136';   // Charizard (Darkness Ablaze) — used when no card is picked
+  const edFrame = ()=>$('#edFrame');
+  const edState = (force)=>({cardId: current?.id || DEMO_ID, visible:true, settings:{...S, style:{...ST}},
+      psa10: current ? (psaMap[current.id] ?? 4250) : 4250, ts: Date.now()});
+  const edPost = (type)=>{ const f=edFrame(); if(f && edReady) f.contentWindow.postMessage({type, state: edState()}, location.origin); };
+  let liveT=null;
+  const changed = ()=>{
+    saveS(); edPost('state');
+    if(edLive && visible){ clearTimeout(liveT); liveT=setTimeout(send, 250); }
+  };
+  window.addEventListener('message', e=>{ if(e.origin===location.origin && e.data?.type==='preview-ready'){ edReady=true; edPost('replay'); } });
+
+  function edScale(){
+    const st=$('#edStage'); if(!st) return;
+    const k = st.clientWidth/1920; edFrame().style.transform=`scale(${k})`;
+  }
+  window.addEventListener('resize', edScale);
+
+  const SLIDERS = [
+    ['Sizes'],
+    ['cardW','Card size',150,520,1,'px'],
+    ['lab','Title size',10,60,1,'px'],
+    ['val','Price size',20,120,1,'px'],
+    ['Outline'],
+    ['oLab','Title outline',0,8,0.5,'px'],
+    ['oVal','Price outline',0,12,0.5,'px'],
+    ['Spacing'],
+    ['gap','Card ↔ prices',-20,80,1,'px'],
+    ['line','Title ↔ price',-10,30,1,'px'],
+    ['edge','Screen edge',0,300,5,'px'],
+  ];
+  const seg = (key, opts) => `<div class="seg" data-k="${key}">${opts.map(([v,n])=>`<button data-v="${v}" class="${String(ST[key])===String(v)?'on':''}">${n}</button>`).join('')}</div>`;
+
+  function buildEditor(){
+    const v=$('#viewEditor');
+    v.innerHTML = `
+      <div class="box">
+        <div class="row" style="margin-bottom:10px">
+          <b>Live preview</b><span class="muted">${current?esc(current.name):'demo card — pick a card in Cards to preview it'}</span>
+          <div class="seg" id="edBg" style="margin-left:auto">
+            ${[['check','Checker'],['dark','Dark'],['green','Green'],['light','Light']].map(([k,n])=>`<button data-b="${k}" class="${(localStorage.getItem('pkmn_ed_bg')||'check')===k?'on':''}">${n}</button>`).join('')}
+          </div>
+          <button class="btn" id="edReplay">▶ Replay animation</button>
+        </div>
+        <div class="ed-stage bg-${localStorage.getItem('pkmn_ed_bg')||'check'}" id="edStage">
+          <iframe id="edFrame" src="${location.pathname}?overlay=1&preview=1&key=${ROOM}"></iframe>
+        </div>
+        <div class="muted" style="margin-top:8px">Preview shows a full 1920×1080 stream frame. Changes save automatically.</div>
+      </div>
+      <div class="box ed-ctrl">
+        <h3>Layout</h3>
+        <div class="fld two"><span>Prices pop</span>${seg('layout',[['under','Under'],['right','Right']])}</div>
+        <div class="fld two"><span>Background</span>${seg('bg',[[false,'Off'],[true,'On']])}</div>
+        <div class="fld two"><span>Position</span>${seg('pos',[['tl','↖ Top L'],['tr','↗ Top R'],['bl','↙ Bot L'],['br','↘ Bot R']])}</div>
+        <h3>Font</h3>
+        <div class="fld two"><span>Font</span>${seg('font',[['arial','Arial Black'],['impact','Impact'],['verdana','Verdana'],['poke','Pokémon titles'],['pokeall','Pokémon all']])}</div>
+        <div class="fld two"><span>ALL CAPS titles</span>${seg('upper',[[true,'On'],[false,'Off']])}</div>
+        ${SLIDERS.map(r=> r.length===1 ? `<h3>${r[0]}</h3>` :
+          `<div class="fld"><span>${r[1]}</span><input type="range" data-s="${r[0]}" min="${r[2]}" max="${r[3]}" step="${r[4]}" value="${ST[r[0]]}"><span class="num" id="n_${r[0]}">${ST[r[0]]}${r[5]}</span></div>`).join('')}
+        <h3>Colors</h3>
+        <div class="fld two"><span>Text</span><input type="color" data-c="txt" value="${ST.txt}"></div>
+        <div class="fld two"><span>Outline</span><input type="color" data-c="ink" value="${ST.ink}"></div>
+        <div class="fld two"><span>Panel border</span><input type="color" data-c="border" value="${ST.border}"></div>
+        <div class="fld two"><span>Panel fill</span><input type="color" data-c="panel" value="${ST.panel}"></div>
+        <h3>Titles</h3>
+        <div class="fld two"><span>Raw title</span><input type="text" data-t2="rawLabel" value="${esc(ST.rawLabel)}"></div>
+        <div class="fld two"><span>PSA 10 title</span><input type="text" data-t2="psaLabel" value="${esc(ST.psaLabel)}"></div>
+        <h3>Extras</h3>
+        <div class="fld two"><span>Card shine</span>${seg('shine',[[true,'On'],[false,'Off']])}</div>
+        <div class="fld two"><span>Count-up prices</span>${seg('countUp',[[true,'On'],[false,'Off']])}</div>
+        <h3>Stream</h3>
+        <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:6px 0"><input type="checkbox" id="edLive" ${edLive?'checked':''}> Update the live overlay while I edit</label>
+        <div class="row" style="margin-top:10px">
+          <button class="btn gold" id="edPush" style="flex:1">Punch it to stream</button>
+          <button class="btn" id="edReset">Reset</button>
+        </div>
+        <div class="muted" style="margin-top:6px;font-size:12px">"Punch it" updates what's on stream now (if a card is showing). Otherwise the new look is used next time you show a card.</div>
+      </div>`;
+    edReady=false; edScale();
+    edFrame().onload = ()=>{ edScale(); };
+    v.querySelectorAll('.seg[data-k]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      const k=g.dataset.k; let val=b.dataset.v; if(val==='true')val=true; else if(val==='false')val=false;
+      ST[k]=val; g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+      // layout/bg/font switches look best replayed
+      if(['layout','bg','font','countUp'].includes(k)){ saveS(); edPost('replay'); if(edLive&&visible) send(); } else changed();
+    }));
+    v.querySelectorAll('input[data-s]').forEach(r=>r.oninput=()=>{
+      const k=r.dataset.s, row=SLIDERS.find(x=>x[0]===k); ST[k]=parseFloat(r.value); $('#n_'+k).textContent=r.value+row[5]; changed(); });
+    v.querySelectorAll('input[data-c]').forEach(c=>c.oninput=()=>{ ST[c.dataset.c]=c.value; changed(); });
+    v.querySelectorAll('input[data-t2]').forEach(t=>t.oninput=()=>{ ST[t.dataset.t2]=t.value||STYLE_DEFAULTS[t.dataset.t2]; changed(); });
+    $('#edBg').querySelectorAll('button').forEach(b=>b.onclick=()=>{ localStorage.setItem('pkmn_ed_bg',b.dataset.b);
+      $('#edStage').className='ed-stage bg-'+b.dataset.b; $('#edBg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); });
+    $('#edReplay').onclick=()=>edPost('replay');
+    $('#edLive').onchange=e=>{ edLive=e.target.checked; localStorage.setItem('pkmn_ed_live', edLive?'1':'0'); };
+    $('#edPush').onclick=()=>{ if(visible){ send(); toast('Punched to stream'); } else toast('Saved — show a card in Cards to put it on stream'); };
+    $('#edReset').onclick=()=>{ if(!confirm('Reset the overlay look to defaults?')) return; Object.keys(ST).forEach(k=>delete ST[k]); Object.assign(ST, STYLE_DEFAULTS); saveS(); buildEditor(); };
+    edBuilt=true;
+  }
+
+  document.querySelectorAll('.tab[data-v]').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.tab[data-v]').forEach(x=>x.classList.toggle('on',x===t));
+    const ed = t.dataset.v==='editor';
+    $('#viewCards').style.display = ed?'none':''; $('#viewEditor').style.display = ed?'grid':'none';
+    if(ed){ buildEditor(); requestAnimationFrame(edScale); }
+  });
 
   renderPane();
 }

@@ -8,7 +8,7 @@ Stream overlay + control room for showing Pokémon card prices on stream.
 ## Features
 - Browse by set (sort by number, price, or rarity) or search by name
 - Raw price (TCGplayer market) + PSA 10 price (type in / Look up / optional PokemonPriceTracker key)
-- Prices pop **Right** or **Under** the card, background **On/Off**, 4 corner positions
+- **Overlay Editor** tab with live preview: layout, background, position, font, sizes, outline, spacing, colors, title text
 - White text with smooth black outline, Arial Black or Pokémon font
 - Private **key** links your control room to your overlay (works across devices)
 
