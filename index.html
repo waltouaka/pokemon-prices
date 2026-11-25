@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>akaoutlaw · Pokémon Card Prices v15</title>
+<style>
+  :root{
+    --gold:#ffcb05; --blue:#3d7dca; --ink:#0d0d10; --panel:#17171c; --line:#2a2a32;
+    --text:#f4f4f6; --muted:#9a9aa6; --green:#3ddc84; --red:#ff5a5a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;font-family:'Arial Black','Arial Bold',Gadget,Arial,sans-serif;color:var(--text)}
+  button,input,select{font-family:inherit}
+
+  /* ================= CONTROL ROOM ================= */
+  body.control{min-height:100vh;background:linear-gradient(180deg,#000 0%,#3a3a3a 100%) fixed}
+  .wrap{max-width:1400px;margin:0 auto;padding:22px}
+  header{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+  header h1{margin:0;font-size:22px;font-weight:900;letter-spacing:.5px}
+  header h1 span{color:var(--gold)}
+  .room{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .pill{background:#0008;border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:13px;color:var(--muted)}
+  .pill b{color:var(--text)}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
+  .dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .btn{background:#26262e;color:var(--text);border:1px solid #3a3a44;border-radius:10px;padding:9px 14px;font-weight:600;font-size:14px;cursor:pointer}
+  .btn:hover{background:#30303a}
+  .btn.gold{background:var(--gold);color:#111;border-color:var(--gold)}
+  .btn.gold:hover{filter:brightness(1.08)}
+  .btn.red{background:#3a1c1f;border-color:#6a2a30;color:#ffb3b3}
+  .grid{display:grid;grid-template-columns:1fr 420px;gap:18px}
+  @media(max-width:1000px){.grid{grid-template-columns:1fr}}
+  .box{background:#111116e6;border:1px solid var(--line);border-radius:16px;padding:16px}
+  .tabs{display:flex;gap:6px;margin-bottom:12px}
+  .tab{flex:0 0 auto;padding:8px 14px;border-radius:10px;cursor:pointer;color:var(--muted);font-weight:600;border:1px solid transparent}
+  .tab.on{background:#23232b;color:var(--text);border-color:var(--line)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  input[type=text],input[type=number],select{background:#0b0b0e;color:var(--text);border:1px solid #33333d;border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+  input[type=text]:focus,select:focus{border-color:var(--gold)}
+  .grow{flex:1;min-width:160px}
+  .sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:68vh;overflow:auto;margin-top:12px;padding-right:4px}
+  .set{background:#18181e;border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer;text-align:center;transition:.15s}
+  .set:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .set img{height:48px;max-width:100%;object-fit:contain;display:block;margin:0 auto 8px}
+  .set .noimg{height:48px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+  .set .n{font-size:13px;font-weight:600}
+  .set .c{font-size:11px;color:var(--muted);margin-top:2px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;max-height:68vh;overflow:auto;margin-top:12px;padding-right:4px}
+  .cardt{cursor:pointer;border-radius:8px;overflow:hidden;background:#18181e;border:2px solid transparent;transition:.12s;position:relative}
+  .cardt:hover{border-color:var(--gold);transform:scale(1.03)}
+  .cardt.sel{border-color:var(--gold);box-shadow:0 0 0 2px #ffcb0555}
+  .cardt img{width:100%;display:block;aspect-ratio:63/88;object-fit:cover;background:#222}
+  .cardt .ph{aspect-ratio:63/88;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);padding:8px;text-align:center}
+  .cardt .pp{position:absolute;top:6px;right:6px;background:#000c;color:var(--gold);border:1px solid #ffcb0588;border-radius:6px;padding:2px 6px;font-size:12px}
+  .cardt .rr{font-size:10px;color:var(--muted);padding:0 6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cardt .lbl{font-size:11px;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crumb{display:flex;gap:10px;align-items:center;margin-top:4px}
+  .crumb img{height:30px}
+  .muted{color:var(--muted);font-size:13px}
+  .status{padding:30px;text-align:center;color:var(--muted)}
+  .prev img.big{width:100%;max-width:260px;display:block;margin:0 auto 12px;border-radius:12px;box-shadow:0 10px 30px #0009}
+  .prev h2{margin:0 0 2px;font-size:20px}
+  .vars{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  .var{padding:6px 10px;border-radius:8px;border:1px solid #3a3a44;background:#1c1c22;cursor:pointer;font-size:13px}
+  .var.on{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+  table.pt{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  table.pt td{padding:6px 4px;border-bottom:1px solid #24242c}
+  table.pt td:last-child{text-align:right;font-weight:700}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;font-size:13px}
+  .opts label{display:flex;gap:8px;align-items:center;background:#18181e;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer}
+  .opts .full{grid-column:1/-1}
+  .actions{display:flex;gap:8px;margin-top:14px}
+  .actions .btn{flex:1;padding:12px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#222;border:1px solid var(--gold);padding:10px 18px;border-radius:10px;transition:.25s;z-index:99}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* ================= OVERLAY ================= */
+  @font-face{font-family:'Pokemon Solid';src:local('Pokemon Solid'),local('PokemonSolid'),local('Pokemon Solid Normal'),url('pokemon-solid.ttf') format('truetype'),url('Pokemon%20Solid.ttf') format('truetype'),url('PokemonSolid.ttf') format('truetype'),url('Pokemon_Solid.ttf') format('truetype');font-display:block}
+  body.overlay{background:transparent;overflow:hidden;width:100vw;height:100vh}
+  .ov{position:absolute;left:60px;bottom:60px;display:flex;align-items:center}
+  .ov.pos-br{left:auto;right:60px}
+  .ov.pos-tl{bottom:auto;top:60px}
+  .ov.pos-tr{bottom:auto;top:60px;left:auto;right:60px}
+  /* card: pops in first, leaves last */
+  .ov-card{width:300px;position:relative;z-index:2;filter:drop-shadow(0 10px 14px #0009);
+      will-change:transform,opacity;backface-visibility:hidden;
+      opacity:0;transform:translateY(24px) scale(.95);
+      transition:opacity .3s ease .4s, transform .4s cubic-bezier(.4,0,1,1) .4s}
+  .ov.show .ov-card{opacity:1;transform:none;
+      transition:opacity .4s ease, transform .55s cubic-bezier(.22,1,.36,1)}
+  .ov-card img{width:100%;display:block;border-radius:14px}
+  .ov-card .shine{position:absolute;inset:0;border-radius:14px;overflow:hidden;pointer-events:none}
+  .ov-card .shine::after{content:"";position:absolute;top:-50%;left:-80%;width:50%;height:200%;
+      background:linear-gradient(100deg,transparent,#ffffff55,transparent);transform:rotate(12deg);animation:shine 4.5s ease-in-out infinite}
+  @keyframes shine{0%,55%{left:-80%}100%{left:160%}}
+  /* price plaque: slides out from behind the card */
+  .ov-slot{margin-left:-30px;overflow:hidden;padding:60px 70px 70px 0;margin-right:-70px;position:relative;z-index:1}
+  .ov-panel{padding:22px 34px 22px 56px;border-radius:0 18px 18px 0;
+      background:linear-gradient(135deg,#101014f2,#26262cf2);border:4px solid #fff;border-left:none;
+      box-shadow:0 0 0 3px #000, 0 20px 45px #000c, inset 0 0 0 2px #000;will-change:transform;backface-visibility:hidden;
+      transform:translate3d(-101%,0,0);transition:transform .4s cubic-bezier(.55,0,.75,.2)}
+  .ov.show .ov-panel{transform:translate3d(0,0,0);transition:transform .65s cubic-bezier(.22,1,.36,1) .35s}
+  /* layout: pop UNDER the card */
+  .ov.lay-under{flex-direction:column;align-items:center}
+  .ov.lay-under .ov-card{filter:drop-shadow(0 3px 5px #0009)}  /* short shadow so it doesn't dim the Raw Price title */
+  .ov.lay-under .ov-slot{margin:-30px -70px 0;padding:0 70px 70px}
+  .ov.lay-under .ov-panel{border-radius:0 0 18px 18px;border:4px solid #fff;border-top:none;
+      padding:54px 30px 18px;min-width:280px;text-align:center;transform:translate3d(0,-101%,0)}
+  .ov.lay-under.show .ov-panel{transform:translate3d(0,0,0)}
+  .ov.lay-under .ov-price{align-items:center}
+  .ov.lay-under .ov-price .val{font-size:58px}
+  .ov.lay-under .ov-price .lab{font-size:26px;--o:2px}
+  .ov.lay-under .ov-price .val{--o:4.5px}
+  /* no background: just the stroked text */
+  .ov.nobg .ov-panel{background:none;border:none;box-shadow:none}
+  .ov.nobg .ov-price + .ov-price{border-top:none}
+  .ov-price{display:flex;flex-direction:column;gap:6px;padding:10px 0}
+  /* font setting */
+  .ov.font-poke .ov-price .lab,.ov.font-pokeall .ov-price .lab{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;text-transform:none;letter-spacing:2px;font-size:30px}
+  .ov.font-pokeall .ov-price .val{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;letter-spacing:2px}
+  .ov.lay-under.font-poke .ov-price .lab,.ov.lay-under.font-pokeall .ov-price .lab{font-size:26px}
+  .ov-price + .ov-price{border-top:3px solid #ffffff33}
+  /* smooth 16-direction outline (same style as the garage sale counter) */
+  .ov-price .lab,.ov-price .val{--ink:#000;text-shadow:calc(var(--o) * 1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * 0.0) calc(var(--o) * 1.0) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * -1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * -0.383) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * -0.0) calc(var(--o) * -1.0) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * -0.383) 0 var(--ink)}
+  .ov-price .lab{font-size:28px;font-weight:900;color:#fff;letter-spacing:2px;text-transform:uppercase;--o:2px}
+  .ov-price .val{font-size:62px;font-weight:900;color:#fff;line-height:1;--o:4.5px;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<script>
+/* =========================================================
+   akaoutlaw · Pokémon card prices — control room + overlay
+   Data: TCGdex (api.tcgdex.net) — free, no key, TCGplayer + Cardmarket prices
+   Sync: same-browser (BroadcastChannel/localStorage, e.g. OBS dock)
+         + ntfy.sh relay keyed by your room code (works across devices)
+   Overlay URL:  this-page.html?overlay=1&key=YOURKEY
+   ========================================================= */
+const API = 'https://api.tcgdex.net/v2/en';
+const P = new URLSearchParams(location.search);
+const IS_OVERLAY = P.has('overlay');
+const ROOM = (P.get('key') || P.get('room') || localStorage.getItem('pkmn_room') || makeRoom()).toUpperCase();
+localStorage.setItem('pkmn_room', ROOM);
+const TOPIC = 'akaoutlaw-pkmn-' + ROOM;
+const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('pkmn-' + ROOM) : null;
+
+function makeRoom(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<8;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const cache = {};
+async function api(path){
+  if(cache[path]) return cache[path];
+  const r = await fetch(API + path);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return cache[path] = await r.json();
+}
+const img = (base, q='high', ext='webp') => base ? `${base}/${q}.${ext}` : '';
+
+/* ---------- price helpers ---------- */
+const VAR_NAMES = {normal:'Normal',holofoil:'Holo',holo:'Holo',reverse:'Reverse Holo','reverse-holofoil':'Reverse Holo',
+  '1stEdition':'1st Edition','1st-edition':'1st Edition','1stEditionHolofoil':'1st Ed Holo','unlimited':'Unlimited','unlimitedHolofoil':'Unlimited Holo'};
+function varName(k){
+  if(!k) return '';
+  if(VAR_NAMES[k]) return VAR_NAMES[k];
+  return String(k)
+    .replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').toLowerCase()
+    .replace(/holofoil/g,'holo').replace(/1st edition/g,'1st ed').replace(/reverse holo/g,'reverse')
+    .replace(/\b(\w)/g,c=>c.toUpperCase()).replace('1st Ed','1st Edition').replace(/^Reverse$/,'Reverse Holo');
+}
+function tcgVariants(card){
+  const t = card?.pricing?.tcgplayer; if(!t) return [];
+  return Object.keys(t).filter(k=>t[k] && typeof t[k]==='object');
+}
+function fmt(n, cur){
+  if(n==null || isNaN(n)) return '—';
+  const sym = cur==='EUR' ? '€' : '$';
+  const suf = cur==='CAD' ? ' CAD' : '';
+  return sym + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + suf;
+}
+// Builds what the overlay shows from a card + settings
+function buildView(card, s){
+  const out = {main:null, mainLabel:'', chips:[], cur:'USD', updated:null, source:''};
+  const tcg = card?.pricing?.tcgplayer, cm = card?.pricing?.cardmarket;
+  if(s.source==='cardmarket' && cm){
+    const h = s.cmHolo ? '-holo' : '';
+    out.cur='EUR'; out.source='Cardmarket'; out.updated=cm.updated;
+    out.main = cm['trend'+h] ?? cm['avg'+h]; out.mainLabel = 'Trend';
+    out.chips = [['Low',cm['low'+h]],['7-day avg',cm['avg7'+h]],['30-day avg',cm['avg30'+h]]];
+    out.raw = s.rawFrom==='low' ? cm['low'+h] : s.rawFrom==='mid' ? cm['avg'+h] : out.main;
+  } else if(tcg){
+    const v = tcg[s.variant] || tcg[tcgVariants(card)[0]];
+    if(v){
+      out.source='TCGplayer'; out.updated=tcg.updated;
+      const rate = s.cad ? (parseFloat(s.rate)||1) : 1;
+      out.cur = s.cad ? 'CAD' : 'USD';
+      const m = x => x==null ? null : x*rate;
+      out.main = m(v.marketPrice ?? v.midPrice); out.mainLabel = 'Market';
+      out.chips = [['Low',m(v.lowPrice)],['Mid',m(v.midPrice)],['High',m(v.highPrice)]];
+      out.raw = s.rawFrom==='low' ? m(v.lowPrice) : s.rawFrom==='mid' ? m(v.midPrice) : out.main;
+    }
+  }
+  if(s.rawFrom==='custom'){ const n=parseFloat(String(s.rawCustom||'').replace(/[^0-9.]/g,'')); out.raw = isNaN(n)?null:n; }
+  return out;
+}
+
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+if(IS_OVERLAY){
+  document.body.className='overlay';
+  document.body.innerHTML = `<div class="ov" id="ov"></div>`;
+  const ov = $('#ov');
+  let lastTs = 0, renderToken = 0;
+
+  async function render(state){
+    if(!state || !state.ts || state.ts <= lastTs) return;   // ignore duplicates/older (same click arrives via several channels)
+    lastTs = state.ts;
+    const token = ++renderToken;
+    if(!state.visible || !state.cardId){ ov.classList.remove('show'); return; }  // token already bumped above
+    let card;
+    try{ card = await api('/cards/' + encodeURIComponent(state.cardId)); }catch(e){ return; }
+    if(token !== renderToken) return;
+    const s = state.settings || {};
+    const v = buildView(card, s);
+    const varLabel = s.source==='cardmarket' ? (s.cmHolo?'Holo':'') : varName(s.variant);
+    const html = `
+      <div class="ov-card"><img src="${esc(img(card.image))}" onerror="this.src='${esc(img(card.image,'high','png'))}'"><div class="shine"></div></div>
+      <div class="ov-slot"><div class="ov-panel">
+        <div class="ov-price"><span class="lab">Raw Price</span><span class="val" data-n="${v.raw??''}" data-c="${v.cur}">${fmt(v.raw,v.cur)}</span></div>
+        ${state.psa10!=null?`<div class="ov-price"><span class="lab">PSA 10 Price</span><span class="val" data-n="${state.psa10??''}" data-c="USD">${fmt(state.psa10,'USD')}</span></div>`:''}
+      </div>      </div>`;
+    const pos = 'ov pos-' + (s.pos||'bl') + ' lay-' + (s.layout==='under'?'under':'right') + (s.bg===false?' nobg':'') + (s.font==='poke'?' font-poke':s.font==='pokeall'?' font-pokeall':'');
+    if(s.font==='poke'||s.font==='pokeall'){ try{ await Promise.race([document.fonts.load("30px 'Pokemon Solid'"), new Promise(r=>setTimeout(r,1500))]); }catch(_){} }
+    // preload the card image BEFORE touching the screen, so nothing pops in half-loaded
+    await new Promise(r=>{ const pre=new Image(); pre.onload=pre.onerror=r; pre.src=img(card.image); setTimeout(r,3000); });
+    if(token !== renderToken) return;
+    if(ov.classList.contains('show')){
+      ov.classList.remove('show');
+      await new Promise(r=>setTimeout(r,900));
+      if(token !== renderToken) return;
+    }
+    ov.className = pos; ov.innerHTML = html;
+    ov.querySelectorAll('.val').forEach(el=>{ if(el.dataset.n!=='') el.textContent=fmt(0,el.dataset.c); });
+    requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
+    // count the prices up as the plaque slides out
+    setTimeout(()=>{ if(token !== renderToken) return; ov.querySelectorAll('.val').forEach(el=>{
+      const target=parseFloat(el.dataset.n); if(isNaN(target)) return;
+      const t0=performance.now(), dur=1000;
+      const step=t=>{ if(token !== renderToken) return;
+        const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,4);
+        el.textContent=fmt(target*e, el.dataset.c); if(k<1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }); }, 650);
+  }
+
+  // same-browser channels (OBS custom dock shares storage with browser sources)
+  bc && (bc.onmessage = e => render(e.data));
+  window.addEventListener('storage', e => { if(e.key==='pkmn_state_'+ROOM && e.newValue) render(JSON.parse(e.newValue)); });
+  // cross-device relay
+  function connect(){
+    const es = new EventSource(`https://ntfy.sh/${TOPIC}/sse`);
+    es.onmessage = e => { try{ const m = JSON.parse(e.data); if(m.message) render(JSON.parse(m.message)); }catch(_){} };
+    es.onerror = () => { es.close(); setTimeout(connect, 3000); };
+  }
+  connect();
+  // restore last state on load (OBS scene switch / refresh)
+  (async()=>{
+    const local = localStorage.getItem('pkmn_state_'+ROOM);
+    if(local) render(JSON.parse(local));
+    try{
+      const r = await fetch(`https://ntfy.sh/${TOPIC}/json?poll=1&since=12h`);
+      const lines = (await r.text()).trim().split('\n').filter(Boolean);
+      const last = lines.length ? JSON.parse(lines[lines.length-1]) : null;
+      if(last?.message) render(JSON.parse(last.message));
+    }catch(_){}
+  })();
+}
+
+/* =========================================================
+   CONTROL ROOM
+   ========================================================= */
+else {
+  document.body.className='control';
+  document.body.innerHTML = `
+  <div class="wrap">
+    <header>
+      <h1><span>akaoutlaw</span> · Pokémon Card Prices <span style="font-size:12px;color:#3ddc84;border:1px solid #3ddc84;border-radius:6px;padding:2px 6px;vertical-align:middle">v15 · brighter titles</span></h1>
+      <div class="room">
+        <span class="pill"><span class="dot" id="dot"></span>Key <b>${ROOM}</b></span>
+        <button class="btn" id="copyUrl">Copy overlay URL</button>
+        <button class="btn" id="newRoom" title="Make a new private key">New key</button>
+      </div>
+    </header>
+    <div class="grid">
+      <div class="box">
+        <div class="tabs">
+          <div class="tab on" data-t="sets">Browse by set</div>
+          <div class="tab" data-t="search">Search by name</div>
+        </div>
+        <div id="pane"></div>
+      </div>
+      <div class="box prev" id="prev"><div class="status">Pick a set, then click a card.</div></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>`;
+
+  const S = JSON.parse(localStorage.getItem('pkmn_settings')||'null') || {
+    source:'tcgplayer', variant:'', cmHolo:false, cad:false, rate:'1.40', showChips:true, showSource:true, pos:'bl', note:''
+  };
+  const saveS = ()=>localStorage.setItem('pkmn_settings', JSON.stringify(S));
+  // PSA 10 prices: remembered per card (typed in, or fetched with a PokemonPriceTracker key)
+  const psaMap = JSON.parse(localStorage.getItem('pkmn_psa10')||'{}');
+  const savePsa = ()=>localStorage.setItem('pkmn_psa10', JSON.stringify(psaMap));
+  const PPT_KEY = () => localStorage.getItem('pkmn_ppt_key') || '';
+  // Looks through a PokemonPriceTracker card response for a PSA 10 price (field names vary by plan/version)
+  function findPsa10(obj){
+    let found=null;
+    const walk=(o,depth,inPsa)=>{
+      if(!o || typeof o!=='object' || depth>7 || found!=null) return;
+      for(const [k,v] of Object.entries(o)){
+        const isPsa = /^(psa[_\s-]?10|PSA_10|grade[_\s-]?10)$/i.test(k) || /psa\s?10/i.test(k);
+        if(isPsa || inPsa){
+          if(typeof v==='number' && v>0 && (inPsa ? /avg|average|market|smart|median|price/i.test(k) : true)){ found=v; return; }
+          if(typeof v==='object') walk(v,depth+1,true);
+        } else if(typeof v==='object') walk(v,depth+1,false);
+        if(found!=null) return;
+      }
+    };
+    walk(obj,0,false);
+    return found;
+  }
+  async function fetchPsa10(card){
+    const key=PPT_KEY(); if(!key) throw new Error('no key');
+    const q = new URLSearchParams({search: card.name, includeEbay:'true', limit:'20'});
+    if(card.set?.name) q.set('set', card.set.name);
+    const r = await fetch('https://www.pokemonpricetracker.com/api/v2/cards?'+q, {headers:{Authorization:'Bearer '+key}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    const list = Array.isArray(j) ? j : (Array.isArray(j.data) ? j.data : [j.data||j]);
+    const num = String(card.localId).replace(/^0+/,'');
+    const match = list.find(c=>String(c.cardNumber??c.number??c.localId??'').split('/')[0].replace(/^0+/,'')===num) || list[0];
+    const v = match ? findPsa10(match) : null;
+    if(v==null) throw new Error('no PSA 10 data for this card');
+    return v;
+  }
+  let current = null, visible = false, tab='sets', openSet=null;
+
+  const toast = t => { const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),1800); };
+  const overlayUrl = () => location.href.split('?')[0] + `?overlay=1&key=${ROOM}`;
+  $('#copyUrl').onclick = async()=>{ try{await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied — add it as an OBS Browser Source (1920×1080)');}catch(_){prompt('Overlay URL:', overlayUrl())} };
+  $('#newRoom').onclick = ()=>{ if(confirm('Make a new key? You will need to paste the new overlay URL into OBS.')){ localStorage.removeItem('pkmn_room'); location.href=location.href.split('?')[0]; } };
+
+  // relay check
+  fetch(`https://ntfy.sh/${TOPIC}/json?poll=1&since=1m`).then(()=>$('#dot').classList.add('on')).catch(()=>{});
+
+  async function send(){
+    const state = {cardId: current?.id || null, visible, settings:{...S}, psa10: current ? (psaMap[current.id] ?? null) : null, ts: Date.now()};
+    const json = JSON.stringify(state);
+    localStorage.setItem('pkmn_state_'+ROOM, json);
+    bc && bc.postMessage(state);
+    try{ await fetch(`https://ntfy.sh/${TOPIC}`, {method:'POST', body: json}); $('#dot').classList.add('on'); }
+    catch(e){ $('#dot').classList.remove('on'); toast('Relay offline — only same-browser overlay updated'); }
+  }
+
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+    tab=t.dataset.t; renderPane();
+  });
+
+  /* ---- sets ---- */
+  let allSets=null;
+  async function renderPane(){
+    const pane=$('#pane');
+    if(tab==='search'){
+      pane.innerHTML = `<div class="row"><input type="text" class="grow" id="q" placeholder="Card name, e.g. Charizard, Umbreon ex, Pikachu"><button class="btn gold" id="go">Search</button></div><div class="cards" id="res"></div>`;
+      const go = async()=>{
+        const q=$('#q').value.trim(); if(!q) return;
+        $('#res').innerHTML='<div class="status">Searching…</div>';
+        try{
+          const list = await api(`/cards?name=${encodeURIComponent(q)}&pagination:itemsPerPage=120`);
+          showCards(list.filter(c=>c.image), $('#res'), true);
+        }catch(e){ $('#res').innerHTML=`<div class="status">Search failed (${esc(e.message)})</div>`; }
+      };
+      $('#go').onclick=go; $('#q').onkeydown=e=>{if(e.key==='Enter')go()}; $('#q').focus();
+      return;
+    }
+    if(openSet) return renderSet(openSet);
+    pane.innerHTML = `<div class="row"><input type="text" class="grow" id="sf" placeholder="Filter sets, e.g. Surging Sparks, 151, Evolving Skies, Base"></div><div class="sets" id="sets"><div class="status">Loading sets…</div></div>`;
+    try{
+      if(!allSets) allSets = (await api('/sets')).slice().reverse(); // newest first
+    }catch(e){ $('#sets').innerHTML=`<div class="status">Couldn't load sets (${esc(e.message)})</div>`; return; }
+    const draw = f => {
+      const list = allSets.filter(s=>!f || s.name.toLowerCase().includes(f) || s.id.toLowerCase().includes(f));
+      $('#sets').innerHTML = list.map(s=>`<div class="set" data-id="${esc(s.id)}">
+          ${s.logo?`<img loading="lazy" src="${esc(s.logo)}.webp" onerror="this.outerHTML='<div class=noimg>${esc(s.id)}</div>'">`:`<div class="noimg">${esc(s.id)}</div>`}
+          <div class="n">${esc(s.name)}</div><div class="c">${s.cardCount?.total??'?'} cards</div></div>`).join('') || '<div class="status">No sets match.</div>';
+      $('#sets').querySelectorAll('.set').forEach(el=>el.onclick=()=>{openSet=el.dataset.id; renderSet(openSet)});
+    };
+    draw('');
+    $('#sf').oninput = e => draw(e.target.value.trim().toLowerCase());
+  }
+
+  /* ---- rarity + price helpers for sorting ---- */
+  // Ranked to follow the official rarity tiers (lowest → highest)
+  function rarityScore(r){
+    r=String(r||'').toLowerCase();
+    if(!r) return 0;
+    if(/mega hyper|hyper|crown|rainbow|gold/.test(r)) return 12;
+    if(/special illustration/.test(r)) return 11;
+    if(/secret/.test(r)) return 10;
+    if(/shiny ultra/.test(r)) return 9;
+    if(/illustration/.test(r)) return 8;
+    if(/ultra/.test(r)) return 7;
+    if(/shiny|amazing|radiant|ace spec|legend|prime|lv\.?x|star/.test(r)) return 6;
+    if(/double|holo.*(v|ex|gx|vmax|vstar)|break/.test(r)) return 5;
+    if(/holo/.test(r)) return 4;
+    if(/uncommon/.test(r)) return 2;
+    if(/common/.test(r)) return 1;
+    if(/rare/.test(r)) return 3;
+    return 0;
+  }
+  function bestPrice(card){
+    const t=card?.pricing?.tcgplayer; let m=null;
+    if(t) for(const k of tcgVariants(card)){ const p=t[k].marketPrice ?? t[k].midPrice; if(p!=null && (m==null||p>m)) m=p; }
+    if(m==null && card?.pricing?.cardmarket) m = card.pricing.cardmarket.trend ?? card.pricing.cardmarket.avg ?? null;
+    return m;
+  }
+  async function loadDetails(cards, onProgress){
+    let i=0, done=0; const out={};
+    const worker = async()=>{ while(i<cards.length){ const c=cards[i++];
+      try{ out[c.id]=await api('/cards/'+encodeURIComponent(c.id)); }catch(_){}
+      onProgress && onProgress(++done, cards.length); } };
+    await Promise.all(Array.from({length:8}, worker));
+    return out;
+  }
+  const numKey = c => { const n=parseInt(c.localId,10); return isNaN(n) ? 1e9 : n; };
+
+  async function renderSet(id){
+    const pane=$('#pane');
+    const sortMode = localStorage.getItem('pkmn_sort') || 'num';
+    pane.innerHTML = `<div class="row"><button class="btn" id="back">← All sets</button><div class="crumb" id="crumb"></div>
+      <input type="text" class="grow" id="cf" placeholder="Filter by name or number">
+      <select id="sort" title="Sort cards">
+        <option value="num">Sort: Card number</option>
+        <option value="price-desc">Sort: Price (high → low)</option>
+        <option value="price-asc">Sort: Price (low → high)</option>
+        <option value="rarity">Sort: Rarity (rarest first)</option>
+      </select></div>
+      <div class="muted" id="prog" style="margin-top:8px;display:none"></div>
+      <div class="cards" id="res"><div class="status">Loading cards…</div></div>`;
+    $('#sort').value = sortMode;
+    $('#back').onclick=()=>{openSet=null; renderPane()};
+    let set, cards=[], details=null;
+    try{
+      set = await api('/sets/'+encodeURIComponent(id));
+      $('#crumb').innerHTML = `${set.logo?`<img src="${esc(set.logo)}.webp" onerror="this.remove()">`:''}<div><b>${esc(set.name)}</b><div class="muted">${esc(set.serie?.name||'')} ${set.releaseDate?'· '+esc(set.releaseDate):''}</div></div>`;
+      cards = set.cards||[];
+    }catch(e){ $('#res').innerHTML=`<div class="status">Couldn't load set (${esc(e.message)})</div>`; return; }
+
+    const draw = ()=>{
+      const f=$('#cf').value.trim().toLowerCase(), mode=$('#sort').value;
+      let list = cards.filter(c=>!f || c.name.toLowerCase().includes(f) || String(c.localId).toLowerCase()===f);
+      if(details && mode!=='num'){
+        const pr = c => bestPrice(details[c.id]);
+        if(mode==='price-desc') list.sort((a,b)=>(pr(b)??-1)-(pr(a)??-1) || numKey(a)-numKey(b));
+        if(mode==='price-asc')  list.sort((a,b)=>(pr(a)??1e12)-(pr(b)??1e12) || numKey(a)-numKey(b));
+        if(mode==='rarity')     list.sort((a,b)=>rarityScore(details[b.id]?.rarity)-rarityScore(details[a.id]?.rarity) || (pr(b)??-1)-(pr(a)??-1));
+      } else list.sort((a,b)=>numKey(a)-numKey(b));
+      showCards(list, $('#res'), false, details);
+    };
+    const ensureDetails = async()=>{
+      if(details) return;
+      const prog=$('#prog'); prog.style.display='block';
+      details = await loadDetails(cards, (d,t)=>{ prog.textContent=`Loading prices & rarity… ${d}/${t}`; });
+      prog.style.display='none';
+    };
+    $('#sort').onchange = async e => {
+      localStorage.setItem('pkmn_sort', e.target.value);
+      if(e.target.value!=='num') await ensureDetails();
+      draw();
+    };
+    $('#cf').oninput = draw;
+    draw();
+    if(sortMode!=='num'){ await ensureDetails(); if(openSet===id) draw(); }
+  }
+
+  function showCards(cards, el, withSet, details){
+    if(!cards.length){ el.innerHTML='<div class="status">No cards.</div>'; return; }
+    el.innerHTML = cards.map(c=>{
+      const d = details && details[c.id];
+      const price = d ? bestPrice(d) : null;
+      return `<div class="cardt ${current?.id===c.id?'sel':''}" data-id="${esc(c.id)}">
+      ${c.image?`<img loading="lazy" src="${esc(img(c.image,'low'))}" onerror="this.src='${esc(img(c.image,'low','png'))}'">`:`<div class="ph">${esc(c.name)}<br>(no image)</div>`}
+      ${d ? `<div class="pp">${price!=null?fmt(price, d.pricing?.tcgplayer?'USD':'EUR'):'—'}</div>`:''}
+      <div class="lbl">#${esc(c.localId)} ${esc(c.name)}${withSet?` <span class="muted">· ${esc(c.id.split('-').slice(0,-1).join('-'))}</span>`:''}</div>
+      ${d?.rarity ? `<div class="rr">${esc(d.rarity)}</div>`:''}</div>`;
+    }).join('');
+    el.querySelectorAll('.cardt').forEach(t=>t.onclick=()=>{
+      el.querySelectorAll('.cardt').forEach(x=>x.classList.toggle('sel',x===t));
+      pick(t.dataset.id);
+    });
+  }
+
+  /* ---- preview & controls ---- */
+  async function pick(id){
+    $('#prev').innerHTML='<div class="status">Loading prices…</div>';
+    try{ current = await api('/cards/'+encodeURIComponent(id)); }
+    catch(e){ $('#prev').innerHTML=`<div class="status">Couldn't load card (${esc(e.message)})</div>`; return; }
+    const vs = tcgVariants(current);
+    if(!vs.includes(S.variant)) S.variant = vs[0] || '';
+    if(!current.pricing?.tcgplayer && current.pricing?.cardmarket) S.source='cardmarket';
+    renderPrev();
+  }
+
+  function renderPrev(){
+    const c = current; if(!c) return;
+    const tcg=c.pricing?.tcgplayer, cm=c.pricing?.cardmarket, vs=tcgVariants(c);
+    const v = buildView(c,S);
+    $('#prev').innerHTML = `
+      <img class="big" src="${esc(img(c.image))}" onerror="this.src='${esc(img(c.image,'high','png'))}'">
+      <h2>${esc(c.name)}</h2>
+      <div class="muted">${esc(c.set?.name||'')} · #${esc(c.localId)}${c.rarity?' · '+esc(c.rarity):''}</div>
+      <div class="row" style="margin-top:12px">
+        <select id="src">
+          <option value="tcgplayer" ${S.source==='tcgplayer'?'selected':''} ${tcg?'':'disabled'}>TCGplayer (USD)${tcg?'':' — n/a'}</option>
+          <option value="cardmarket" ${S.source==='cardmarket'?'selected':''} ${cm?'':'disabled'}>Cardmarket (EUR)${cm?'':' — n/a'}</option>
+        </select>
+      </div>
+      ${S.source==='tcgplayer' && vs.length ? `<div class="vars">${vs.map(k=>`<div class="var ${S.variant===k?'on':''}" data-v="${k}">${esc(varName(k))}</div>`).join('')}</div>`:''}
+      ${S.source==='cardmarket' && cm ? `<div class="vars"><div class="var ${!S.cmHolo?'on':''}" data-h="0">Normal</div><div class="var ${S.cmHolo?'on':''}" data-h="1">Holo / Reverse</div></div>`:''}
+      ${(!tcg && !cm) ? `<div class="muted" style="margin:10px 0">No market prices listed for this card.</div>` : `
+      <table class="pt">
+        <tr><td>Raw price</td><td style="color:var(--gold);font-size:16px">${fmt(v.raw,v.cur)}</td></tr>
+        <tr><td>PSA 10 price</td><td style="color:var(--gold);font-size:16px">${fmt(psaMap[c.id],'USD')}</td></tr>
+        ${v.updated?`<tr><td class="muted">Updated</td><td class="muted">${new Date(v.updated).toLocaleString()}</td></tr>`:''}
+      </table>`}
+      <div class="opts">
+        <label class="full">Raw price =
+          <select id="oRaw" style="margin-left:auto;padding:5px 8px">
+            <option value="market" ${!['low','mid','custom'].includes(S.rawFrom)?'selected':''}>Market price (recent sales)</option>
+            <option value="low" ${S.rawFrom==='low'?'selected':''}>Lowest listing</option>
+            <option value="mid" ${S.rawFrom==='mid'?'selected':''}>${S.source==='cardmarket'?'Average sell':'Mid listing'}</option>
+            <option value="custom" ${S.rawFrom==='custom'?'selected':''}>Type my own</option>
+          </select></label>
+        ${S.rawFrom==='custom'?`<label class="full"><input type="text" id="oRawC" class="grow" placeholder="Raw price, e.g. 25" value="${esc(S.rawCustom||'')}" style="padding:6px 8px"></label>`:''}
+        <label class="full" style="flex-wrap:wrap">PSA 10 price
+          <input type="text" id="oPsa" placeholder="e.g. 450" value="${psaMap[c.id]??''}" style="width:110px;padding:5px 8px;margin-left:auto">
+          <button class="btn" id="oPsaFetch" style="padding:5px 10px" title="${PPT_KEY()?'Pull PSA 10 from PokemonPriceTracker':'Add a PokemonPriceTracker API key first'}">Auto</button>
+          <a target="_blank" rel="noopener" class="btn" style="padding:5px 10px;text-decoration:none" title="Open PriceCharting to see the PSA 10 price"
+             href="https://www.pricecharting.com/search-products?type=prices&q=${encodeURIComponent((c.name+' '+(c.set?.name||'')+' '+c.localId).trim())}">Look up</a>
+          <a href="#" id="oKey" class="muted" style="width:100%;font-size:11px;margin-top:2px">${PPT_KEY()?'PokemonPriceTracker key saved · change':'Optional: add PokemonPriceTracker API key for auto PSA 10'}</a></label>
+        <label ${S.source!=='tcgplayer'?'style="opacity:.4"':''}><input type="checkbox" id="oCad" ${S.cad?'checked':''}> Show in CAD</label>
+        <label>USD→CAD <input type="number" id="oRate" step="0.01" value="${esc(S.rate)}" style="width:80px;padding:5px 8px"></label>
+        <label>Prices pop
+          <select id="oLay" style="margin-left:auto;padding:5px 8px">
+            <option value="right" ${S.layout!=='under'?'selected':''}>Right</option>
+            <option value="under" ${S.layout==='under'?'selected':''}>Under</option>
+          </select></label>
+        <label>Background
+          <select id="oBg" style="margin-left:auto;padding:5px 8px">
+            <option value="on" ${S.bg!==false?'selected':''}>On</option>
+            <option value="off" ${S.bg===false?'selected':''}>Off</option>
+          </select></label>
+        <label class="full">Font
+          <select id="oFont" style="margin-left:auto;padding:5px 8px">
+            <option value="arial" ${!['poke','pokeall'].includes(S.font)?'selected':''}>Arial Black</option>
+            <option value="poke" ${S.font==='poke'?'selected':''}>Pokémon titles + Arial Black prices</option>
+            <option value="pokeall" ${S.font==='pokeall'?'selected':''}>Pokémon everything</option>
+          </select></label>
+        <label class="full">Position
+          <select id="oPos" style="margin-left:auto;padding:5px 8px">
+            ${[['bl','Bottom left'],['br','Bottom right'],['tl','Top left'],['tr','Top right']].map(([k,n])=>`<option value="${k}" ${S.pos===k?'selected':''}>${n}</option>`).join('')}
+          </select></label>
+      </div>
+      <div class="actions">
+        <button class="btn gold" id="show">${visible?'Update overlay':'Show on overlay'}</button>
+        <button class="btn red" id="hide">Hide</button>
+      </div>`;
+    $('#src').onchange=e=>{S.source=e.target.value; saveS(); renderPrev()};
+    $('#prev').querySelectorAll('.var[data-v]').forEach(el=>el.onclick=()=>{S.variant=el.dataset.v; saveS(); renderPrev()});
+    $('#prev').querySelectorAll('.var[data-h]').forEach(el=>el.onclick=()=>{S.cmHolo=el.dataset.h==='1'; saveS(); renderPrev()});
+    $('#oPsa').onchange=e=>{ const n=parseFloat(e.target.value.replace(/[^0-9.]/g,'')); if(isNaN(n)) delete psaMap[c.id]; else psaMap[c.id]=n; savePsa(); if(visible) send(); renderPrev(); toast(visible?'PSA 10 updated on overlay':'PSA 10 saved — hit Show on overlay'); };
+    $('#oPsa').onkeydown=e=>{ if(e.key==='Enter') e.target.blur(); };
+    $('#oKey').onclick=e=>{ e.preventDefault(); const k=prompt('PokemonPriceTracker API key (stored only in this browser). Leave blank to remove:', PPT_KEY()); if(k===null) return; k.trim()?localStorage.setItem('pkmn_ppt_key',k.trim()):localStorage.removeItem('pkmn_ppt_key'); renderPrev(); };
+    $('#oPsaFetch').onclick=async()=>{
+      if(!PPT_KEY()){ $('#oKey').click(); return; }
+      $('#oPsaFetch').textContent='…';
+      try{ psaMap[c.id]=Math.round(await fetchPsa10(c)*100)/100; savePsa(); if(visible) send(); toast('PSA 10 price pulled'); renderPrev(); }
+      catch(err){ $('#oPsaFetch').textContent='Auto'; toast("Couldn't auto-pull PSA 10 ("+err.message+") — type it in"); }
+    };
+    $('#oRaw').onchange=e=>{S.rawFrom=e.target.value; saveS(); renderPrev()};
+    if($('#oRawC')) $('#oRawC').onchange=e=>{S.rawCustom=e.target.value; saveS(); renderPrev()};
+    $('#oCad').onchange=e=>{S.cad=e.target.checked; saveS(); renderPrev()};
+    $('#oRate').onchange=e=>{S.rate=e.target.value; saveS(); renderPrev()};
+    $('#oFont').onchange=e=>{S.font=e.target.value; saveS(); if(visible) send()};
+    $('#oLay').onchange=e=>{S.layout=e.target.value; saveS(); if(visible) send()};
+    $('#oBg').onchange=e=>{S.bg=e.target.value==='on'; saveS(); if(visible) send()};
+    $('#oPos').onchange=e=>{S.pos=e.target.value; saveS()};
+    $('#show').onclick=()=>{visible=true; send(); $('#show').textContent='Update overlay'; toast('Sent to overlay')};
+    $('#hide').onclick=()=>{visible=false; send(); $('#show').textContent='Show on overlay'; toast('Overlay hidden')};
+  }
+
+  renderPane();
+}
+</script>
+</body>
+</html>
