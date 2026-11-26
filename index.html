@@ -328,7 +328,7 @@ function cutPacks(root){
     cutoutWhite(img.getAttribute('src')).then(u=>{ img.src=u; img.classList.add('cut'); });
   });
 }
-const opPackImg = code => { const id = OP_PACK[String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'')]; return id ? `https://tcgplayer-cdn.tcgplayer.com/product/${id}_in_400x400.jpg` : ''; };
+const opPackImg = code => { const id = OP_PACK[String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'')]; return id ? `https://tcgplayer-cdn.tcgplayer.com/product/${id}_in_400x400.jpg?cors=1` : ''; };   // ?cors=1 keeps it separate from any non-CORS cached copy
 async function opFetch(path){
   const k='op'+path; if(cache[k]) return cache[k];
   const r = await fetch(OP_API + path); if(!r.ok) throw new Error('HTTP '+r.status);
@@ -546,7 +546,7 @@ else {
       <div class="brand">
         <div class="pfpwrap"><img class="pfp" alt="akaoutlaw" src="logos/pfp.png"
           onerror="if(!this.dataset.t){this.dataset.t=1;this.src='https://unavatar.io/twitch/akaoutlaw?fallback=false'}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'mark',textContent:'A'}))}"></div>
-        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v18.6</span></div></div>
+        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v18.7</span></div></div>
       </div>
       <div class="viewsw">
         <button class="tab on" data-v="cards">Cards</button>
