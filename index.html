@@ -61,9 +61,12 @@
   .gamebar button[data-g=pk].on{background:#ffcb05!important;color:#111!important;border-color:#000!important;box-shadow:0 6px 0 #000, 0 0 0 3px #ffcb05!important;transform:translateY(-3px)}
   .gamebar button[data-g=op].on{background:#ff4d40!important;color:#fff!important;border-color:#000!important;box-shadow:0 6px 0 #000, 0 0 0 3px #ff4d40!important;transform:translateY(-3px)}
   .gamebar .glogo{height:44px!important;max-width:200px!important}
-  .gamebar button.has-logo.on{background:#121219!important}
-  .gamebar button[data-g=pk].has-logo.on{box-shadow:0 6px 0 #000, 0 0 0 3px #ffcb05!important}
-  .gamebar button[data-g=op].has-logo.on{box-shadow:0 6px 0 #000, 0 0 0 3px #ff4d40!important}
+  /* logo buttons: no background box, just the logo */
+  .gamebar button.has-logo,.gamebar button.has-logo[data-g].on{background:none!important;border-color:transparent!important;box-shadow:none!important;transform:none;min-height:96px!important}
+  .gamebar button.has-logo .glogo{height:80px!important;max-width:90%!important;opacity:.35;filter:grayscale(1) drop-shadow(0 4px 6px #000a)!important;transition:opacity .15s, filter .15s, transform .15s}
+  .gamebar button.has-logo:hover .glogo{opacity:.7;filter:grayscale(.3) drop-shadow(0 4px 6px #000a)!important}
+  .gamebar button.has-logo.on .glogo{opacity:1;filter:drop-shadow(0 6px 10px #000c)!important;transform:scale(1.06)}
+  .gamebar button.has-logo[data-g].on{background:radial-gradient(closest-side, var(--accent-soft), transparent)!important}
   /* section header: selected game's logo (or big wordmark) */
   .sectitle{display:flex;align-items:center;gap:12px;min-height:48px}
   .sectitle .seclogo{height:48px;max-width:220px;object-fit:contain;filter:drop-shadow(0 3px 4px #000a)}
@@ -497,7 +500,7 @@ else {
       <div class="brand">
         <div class="pfpwrap"><img class="pfp" alt="akaoutlaw" src="logos/pfp.png"
           onerror="if(!this.dataset.t){this.dataset.t=1;this.src='https://unavatar.io/twitch/akaoutlaw?fallback=false'}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'mark',textContent:'A'}))}"></div>
-        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v18.1</span></div></div>
+        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v18.2</span></div></div>
       </div>
       <div class="viewsw">
         <button class="tab on" data-v="cards">Cards</button>
@@ -592,12 +595,14 @@ else {
     document.querySelectorAll('.tab[data-t]').forEach(x=>x.classList.toggle('on',x===t));
     tab=t.dataset.t; renderPane();
   });
-  document.querySelectorAll('.gamesw .glogo').forEach(im=>{ const mark=()=>im.parentElement && im.parentElement.classList.add('has-logo'); if(im.complete && im.naturalWidth) mark(); else im.addEventListener('load', mark); });
+  document.querySelectorAll('.gamesw .glogo').forEach(im=>{ const mark=()=>{ im.parentElement && im.parentElement.classList.add('has-logo'); paintGame(); }; if(im.complete && im.naturalWidth) setTimeout(mark); else im.addEventListener('load', mark); });
   const paintGame = ()=>{
     const g = S.game==='op' ? 'op' : 'pk';
     document.body.classList.toggle('game-op', g==='op');
     const file = g==='op' ? 'logos/one-piece.png' : 'logos/pokemon.png', word = g==='op' ? 'One Piece' : 'Pokémon';
-    $('#sectitle').innerHTML = `<img class="seclogo" src="${file}" alt="${word}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'wm',textContent:'${word}'}))"><span class="secsub">Card Game</span>`;
+    // when the switch already shows this game's logo, don't repeat it in the header
+    if(document.querySelector(`.gamebar button[data-g=${g}]`)?.classList.contains('has-logo')){ $('#sectitle').innerHTML=''; }
+    else $('#sectitle').innerHTML = `<img class="seclogo" src="${file}" alt="${word}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'wm',textContent:'${word}'}))"><span class="secsub">Card Game</span>`;
     document.querySelectorAll('.gamesw button').forEach(b=>b.classList.toggle('on', b.dataset.g===g));
   };
   document.querySelectorAll('.gamesw button').forEach(b=>b.onclick=()=>{
