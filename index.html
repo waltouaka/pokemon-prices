@@ -52,6 +52,35 @@
   .tab:hover,.gamesw button:hover{color:var(--text)}
   .tab.on{background:var(--panel3);color:var(--text);box-shadow:0 1px 0 #ffffff0d inset}
   .gamesw button.on{background:var(--accent);color:var(--accent-ink);font-family:var(--heavy);font-weight:900}
+  /* ---- bold game bar ---- */
+  .gamebar{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;width:100%!important;padding:0!important;background:none!important;border:0!important;margin-bottom:16px}
+  .gamebar button{min-height:68px!important;border-radius:16px!important;border:3px solid #2e2e3a!important;background:#121219!important;
+    font-family:var(--heavy)!important;font-weight:900!important;font-size:22px!important;letter-spacing:1px;text-transform:uppercase;color:#7c7c8a!important;
+    transition:transform .12s, box-shadow .12s, background .12s, color .12s!important}
+  .gamebar button:hover{color:#fff!important;border-color:#45455a!important}
+  .gamebar button[data-g=pk].on{background:#ffcb05!important;color:#111!important;border-color:#000!important;box-shadow:0 6px 0 #000, 0 0 0 3px #ffcb05!important;transform:translateY(-3px)}
+  .gamebar button[data-g=op].on{background:#ff4d40!important;color:#fff!important;border-color:#000!important;box-shadow:0 6px 0 #000, 0 0 0 3px #ff4d40!important;transform:translateY(-3px)}
+  .gamebar .glogo{height:44px!important;max-width:200px!important}
+  .gamebar button.has-logo.on{background:#121219!important}
+  .gamebar button[data-g=pk].has-logo.on{box-shadow:0 6px 0 #000, 0 0 0 3px #ffcb05!important}
+  .gamebar button[data-g=op].has-logo.on{box-shadow:0 6px 0 #000, 0 0 0 3px #ff4d40!important}
+  /* section header: selected game's logo (or big wordmark) */
+  .sectitle{display:flex;align-items:center;gap:12px;min-height:48px}
+  .sectitle .seclogo{height:48px;max-width:220px;object-fit:contain;filter:drop-shadow(0 3px 4px #000a)}
+  .sectitle .wm{font-family:var(--heavy);font-size:34px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);line-height:1;
+    text-shadow:3px 0 0 #000,-3px 0 0 #000,0 3px 0 #000,0 -3px 0 #000,2px 2px 0 #000,-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,0 6px 0 #000}
+  .sectitle .secsub{font-family:var(--heavy);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#fff;background:#000;border:2px solid var(--accent);border-radius:8px;padding:5px 8px}
+  /* bolder tabs + boxes overall */
+  .tabs .tab,.viewsw .tab{font-family:var(--heavy);font-weight:900;text-transform:uppercase;letter-spacing:.8px;font-size:12px}
+  .tabs .tab.on,.viewsw .tab.on{background:#fff;color:#111}
+  .box{border:2px solid #23232d;box-shadow:0 10px 0 #000a, 0 20px 50px #0007}
+  .set,.cardt{border-width:2px}
+  .set .n{font-family:var(--heavy);font-weight:900;font-size:12.5px}
+  /* profile pic */
+  .pfpwrap{width:46px;height:46px;flex:0 0 46px}
+  .pfp{width:46px;height:46px;border-radius:50%;object-fit:cover;display:block;border:3px solid var(--accent);box-shadow:0 0 0 3px #000, 0 6px 16px #000a;background:#222}
+  .pfpwrap .mark{width:46px;height:46px;border-radius:50%}
+  .bn{font-size:19px!important}
   /* logo files you add to /logos replace the text label */
   .gamesw button{display:flex;align-items:center;justify-content:center;min-height:38px}
   .gamesw .glogo{height:26px;max-width:120px;object-fit:contain;display:block;filter:drop-shadow(0 2px 3px #0008)}
@@ -466,8 +495,9 @@ else {
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="mark">A</div>
-        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v17.1</span></div></div>
+        <div class="pfpwrap"><img class="pfp" alt="akaoutlaw" src="logos/pfp.png"
+          onerror="if(!this.dataset.t){this.dataset.t=1;this.src='https://unavatar.io/twitch/akaoutlaw?fallback=false'}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'mark',textContent:'A'}))}"></div>
+        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v18</span></div></div>
       </div>
       <div class="viewsw">
         <button class="tab on" data-v="cards">Cards</button>
@@ -481,11 +511,12 @@ else {
     </header>
     <div class="grid" id="viewCards">
       <div class="box">
+        <div class="gamesw gamebar">
+          <button data-g="pk" title="Pokémon"><img class="glogo" src="logos/pokemon.png" alt="" onerror="this.remove()"><span class="gtxt">Pokémon</span></button>
+          <button data-g="op" title="One Piece"><img class="glogo" src="logos/one-piece.png" alt="" onerror="this.remove()"><span class="gtxt">One Piece</span></button>
+        </div>
         <div class="boxhead">
-          <div class="gamesw">
-            <button data-g="pk" title="Pokémon"><img class="glogo" src="logos/pokemon.png" alt="" onerror="this.remove()"><span class="gtxt"><span class="gdot" style="background:#ffcb05"></span>Pokémon</span></button>
-            <button data-g="op" title="One Piece"><img class="glogo" src="logos/one-piece.png" alt="" onerror="this.remove()"><span class="gtxt"><span class="gdot" style="background:#ff5a4e"></span>One Piece</span></button>
-          </div>
+          <div class="sectitle" id="sectitle"></div>
           <div class="tabs">
             <button class="tab on" data-t="sets">Browse sets</button>
             <button class="tab" data-t="search">Search</button>
@@ -565,6 +596,8 @@ else {
   const paintGame = ()=>{
     const g = S.game==='op' ? 'op' : 'pk';
     document.body.classList.toggle('game-op', g==='op');
+    const file = g==='op' ? 'logos/one-piece.png' : 'logos/pokemon.png', word = g==='op' ? 'One Piece' : 'Pokémon';
+    $('#sectitle').innerHTML = `<img class="seclogo" src="${file}" alt="${word}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'wm',textContent:'${word}'}))"><span class="secsub">Card Game</span>`;
     document.querySelectorAll('.gamesw button').forEach(b=>b.classList.toggle('on', b.dataset.g===g));
   };
   document.querySelectorAll('.gamesw button').forEach(b=>b.onclick=()=>{
