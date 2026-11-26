@@ -1,11 +1,12 @@
-# outlaw · Pokémon Card Prices
+# outlaw · Card Prices
 
-Stream overlay + control room for showing Pokémon card prices on stream.
+Stream overlay + control room for showing **Pokémon** and **One Piece** card prices on stream.
 
 - **Control room:** open the site, pick a set → click a card → **Show on overlay**
 - **Overlay (OBS Browser Source, 1920×1080):** click **Copy overlay URL** in the control room and paste it into OBS
 
 ## Features
+- Switch between **Pokémon** and **One Piece**
 - Browse by set (sort by number, price, or rarity) or search by name
 - Raw price (TCGplayer market) + PSA 10 price (type in / Look up / optional PokemonPriceTracker key)
 - **Overlay Editor** tab with live preview: layout, background, position, font, sizes, outline, spacing, colors, title text
@@ -15,4 +16,4 @@ Stream overlay + control room for showing Pokémon card prices on stream.
 ## Pokémon font (optional)
 Add `pokemon-solid.ttf` to this repo next to `index.html`, then pick it under **Font**.
 
-Card data & prices: [TCGdex](https://tcgdex.dev) (TCGplayer / Cardmarket).
+Card data & prices: Pokémon from [TCGdex](https://tcgdex.dev) (TCGplayer / Cardmarket), One Piece from [OPTCG API](https://optcgapi.com) (TCGplayer).
