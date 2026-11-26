@@ -111,7 +111,8 @@
   .set .code{font-family:var(--heavy);font-size:22px;letter-spacing:1px;color:var(--accent);text-shadow:0 2px 0 #000}
   .set .noimg{color:var(--muted);font-size:12px}
   .set .packwrap{position:relative;height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
-  .set .pack{height:110px;width:70px;object-fit:cover;object-position:center;border-radius:6px;background:#fff;filter:drop-shadow(0 8px 12px #000b);transition:transform .2s}
+  .set .pack{height:110px;width:auto;max-width:100%;object-fit:contain;opacity:0;transition:opacity .25s, transform .2s;filter:drop-shadow(0 8px 12px #000b);transition:transform .2s}
+  .set .pack.cut{opacity:1}
   .set:hover .pack{transform:translateY(-3px) rotate(-2deg) scale(1.04)}
   .set .pcode{position:absolute;bottom:-6px;right:4px;font-family:var(--heavy);font-size:11px;background:#000;color:var(--accent);border:2px solid var(--accent);border-radius:7px;padding:2px 6px}
   .crumb .crumbpack{height:44px;border-radius:5px;filter:drop-shadow(0 3px 5px #000a)}
@@ -290,6 +291,43 @@ const OP_RAR = {L:'Leader',C:'Common',UC:'Uncommon',R:'Rare',SR:'Super Rare',SEC
 const opCache = {};
 // TCGplayer product photos of each One Piece booster pack / starter deck (keyed by set code without dashes)
 const OP_PACK = Object.fromEntries('ST37:735362,EB06:733408,ST38:735364,OP17:704756,OP18:712904,EB05:711383,ST31:704885,ST34:704893,ST33:704890,ST32:704889,ST35:704894,ST36:704897,OP16:689341,ST30:692138,EB03:666727,ST29:671479,OP15EB04:682056,OP14EB04:666577,OP13:628351,ST22:628448,PRB02:628451,OP12:628345,OP11:620179,ST23:627669,ST24:627672,ST25:627674,ST26:627677,ST28:627681,ST27:627678,OP10:586670,ST21:606575,EB02:594068,OP09:563833,PRB01:545398,ST18:545042,ST15:545033,ST16:545036,ST17:545039,ST19:545045,ST20:545048,ST14:545026,OP08:542502,OP07:532104,EB01:521160,ST12:536585,ST13:543595,ST11:515294,OP06:515077,ST10:502982,OP05:498733,OP04:485832,ST08:502975,OP03:477175,ST09:502978,ST07:480236,ST06:455868,ST05:455859,OP02:455865,OP01:450085,ST01:288221,ST02:288226,ST04:288224,ST03:288227'.split(',').map(x=>x.split(':')));
+// cuts the white photo background off a pack image (only white touching the edges), returns a transparent image URL
+const cutCache = {};
+function cutoutWhite(src){
+  if(cutCache[src]) return cutCache[src];
+  return cutCache[src] = new Promise(res=>{
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = ()=>{ try{
+      const w=im.naturalWidth, h=im.naturalHeight, c=document.createElement('canvas'); c.width=w; c.height=h;
+      const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0);
+      const id=x.getImageData(0,0,w,h), d=id.data, seen=new Uint8Array(w*h), st=[];
+      const isW = p => d[p*4]>228 && d[p*4+1]>228 && d[p*4+2]>228;
+      for(let X=0;X<w;X++) st.push(X,(h-1)*w+X);
+      for(let Y=0;Y<h;Y++) st.push(Y*w,Y*w+w-1);
+      while(st.length){ const p=st.pop(); if(seen[p] || !isW(p)) continue; seen[p]=1; d[p*4+3]=0;
+        const X=p%w; if(X>0) st.push(p-1); if(X<w-1) st.push(p+1); if(p>=w) st.push(p-w); if(p<w*(h-1)) st.push(p+w); }
+      // soften the light fringe left next to the removed area
+      let x0=w,y0=h,x1=0,y1=0;
+      for(let Y=0;Y<h;Y++) for(let X=0;X<w;X++){ const p=Y*w+X; if(seen[p]) continue;
+        const nb=(X>0&&seen[p-1])||(X<w-1&&seen[p+1])||(Y>0&&seen[p-w])||(Y<h-1&&seen[p+w]);
+        if(nb && d[p*4]>190 && d[p*4+1]>190 && d[p*4+2]>190) d[p*4+3]=110;
+        if(X<x0)x0=X; if(X>x1)x1=X; if(Y<y0)y0=Y; if(Y>y1)y1=Y; }
+      x.putImageData(id,0,0);
+      if(x1<=x0||y1<=y0) return res(src);
+      const c2=document.createElement('canvas'); c2.width=x1-x0+1; c2.height=y1-y0+1;
+      c2.getContext('2d').drawImage(c,x0,y0,c2.width,c2.height,0,0,c2.width,c2.height);
+      res(c2.toDataURL('image/webp',0.92));
+    }catch(e){ res(src); } };
+    im.onerror = ()=>res(src);
+    im.src = src;
+  });
+}
+function cutPacks(root){
+  root.querySelectorAll('img.pack,img.crumbpack').forEach(img=>{
+    if(img.dataset.cut) return; img.dataset.cut='1';
+    cutoutWhite(img.getAttribute('src')).then(u=>{ img.src=u; img.classList.add('cut'); });
+  });
+}
 const opPackImg = code => { const id = OP_PACK[String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'')]; return id ? `https://tcgplayer-cdn.tcgplayer.com/product/${id}_in_400x400.jpg` : ''; };
 async function opFetch(path){
   const k='op'+path; if(cache[k]) return cache[k];
@@ -508,7 +546,7 @@ else {
       <div class="brand">
         <div class="pfpwrap"><img class="pfp" alt="akaoutlaw" src="logos/pfp.png"
           onerror="if(!this.dataset.t){this.dataset.t=1;this.src='https://unavatar.io/twitch/akaoutlaw?fallback=false'}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'mark',textContent:'A'}))}"></div>
-        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v18.5</span></div></div>
+        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v18.6</span></div></div>
       </div>
       <div class="viewsw">
         <button class="tab on" data-v="cards">Cards</button>
@@ -670,10 +708,11 @@ else {
       const list = allSets.filter(s=>!f || s.name.toLowerCase().includes(f) || s.code.toLowerCase().includes(f) || (s.kind||'').toLowerCase().includes(f));
       $('#sets').innerHTML = list.map(s=>`<div class="set ${s.logo?'':'textset'}" data-id="${esc(s.id)}">
           ${s.logo?`<img loading="lazy" src="${esc(s.logo)}.webp" onerror="this.outerHTML='<div class=noimg>${esc(s.code)}</div>'">`
-            : s.pack?`<div class="packwrap"><img class="pack" loading="lazy" src="${esc(s.pack)}" onerror="this.parentElement.outerHTML='<div class=code>${esc(s.code)}</div>'"><span class="pcode">${esc(s.code)}</span></div>`
+            : s.pack?`<div class="packwrap"><img class="pack" crossorigin="anonymous" src="${esc(s.pack)}" onerror="this.parentElement.outerHTML='<div class=code>${esc(s.code)}</div>'"><span class="pcode">${esc(s.code)}</span></div>`
             :`<div class="code">${esc(s.code)}</div>`}
           <div class="n">${esc(s.name)}</div><div class="c">${s.kind?esc(s.kind):(s.count??'?')+' cards'}</div></div>`).join('') || '<div class="status">No sets match.</div>';
       $('#sets').querySelectorAll('.set').forEach(el=>el.onclick=()=>{openSet=el.dataset.id; renderSet(openSet)});
+      cutPacks($('#sets'));
     };
     draw('');
     $('#sf').oninput = e => draw(e.target.value.trim().toLowerCase());
@@ -744,7 +783,8 @@ else {
         cards = list.map(opNorm);
         details = Object.fromEntries(cards.map(c=>[c.id,c]));   // One Piece sets already include prices + rarity
         const pk = opPackImg(code);
-        $('#crumb').innerHTML = `${pk?`<img class="crumbpack" src="${esc(pk)}" onerror="this.remove()">`:''}<div class="setcode">${esc(code)}</div><div><b>${esc(meta.name)}</b><div class="muted">${esc(meta.kind)} · ${cards.length} cards</div></div>`;
+        setTimeout(()=>cutPacks($('#crumb')));
+        $('#crumb').innerHTML = `${pk?`<img class="crumbpack" crossorigin="anonymous" src="${esc(pk)}" onerror="this.remove()">`:''}<div class="setcode">${esc(code)}</div><div><b>${esc(meta.name)}</b><div class="muted">${esc(meta.kind)} · ${cards.length} cards</div></div>`;
       } else {
         set = await api('/sets/'+encodeURIComponent(id));
         $('#crumb').innerHTML = `${set.logo?`<img src="${esc(set.logo)}.webp" onerror="this.remove()">`:''}<div><b>${esc(set.name)}</b><div class="muted">${esc(set.serie?.name||'')} ${set.releaseDate?'· '+esc(set.releaseDate):''}</div></div>`;
