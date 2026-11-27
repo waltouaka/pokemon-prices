@@ -52,12 +52,18 @@ button{width:100%;border:0;border-radius:12px;padding:15px;background:#fff;color
 const ICON = '<link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">';
 async function toReplay(request, env) {
   if (!env.REPLAY) return new Response('Replay is not connected yet (missing REPLAY service binding).', { status: 502 });
+  // The replay panel was written to run on *.workers.dev: off that address it points OBS at an old
+  // "killcam-v4.html" page the Worker doesn't have. Send those links to the real overlay (/killcam).
+  const u = new URL(request.url);
+  if (u.pathname.toLowerCase() === '/killcam-v4.html') { u.pathname = '/killcam'; request = new Request(u, request); }
   const res = await env.REPLAY.fetch(request);
-  // give the replay pages the same tab icon as the rest of the site
-  if ((res.headers.get('content-type') || '').includes('text/html')) {
-    return new HTMLRewriter().on('head', { element(el) { el.append(ICON, { html: true }); } }).transform(res);
-  }
-  return res;
+  if (!(res.headers.get('content-type') || '').includes('text/html')) return res;
+  // In replay pages: treat this domain like workers.dev (fixes the OBS link + proxy auto-fill) and add the tab icon.
+  let html = await res.text();
+  html = html.replace(/location\.hostname\.endsWith\((['"])workers\.dev\1\)/g, 'true');
+  html = html.includes('</head>') ? html.replace('</head>', ICON + '</head>') : ICON + html;
+  const headers = new Headers(res.headers); headers.delete('content-length');
+  return new Response(html, { status: res.status, statusText: res.statusText, headers });
 }
 
 export async function onRequest({ request, env, next }) {
