@@ -1,6 +1,7 @@
 // Password screen for the card control room (runs on Cloudflare Pages).
 // - The password lives in the Cloudflare project as the secret SITE_PASSWORD (never in this code).
-// - The overlay is its own page (/overlay) and is never behind the password, so OBS never hits the login screen.
+// - Everything is behind the password except the overlay page (/overlay), logos and the homepage,
+//   so OBS never hits the login screen and no other address can serve the control room.
 // - The main domain (outlawswitchmyshit.com) shows the public homepage.
 // - If SITE_PASSWORD isn't set, the site stays open.
 const COOKIE = 'cp_auth';
@@ -47,6 +48,10 @@ export async function onRequest({ request, env, next }) {
   if (HOME_HOSTS.includes(url.hostname) && (url.pathname === '/' || url.pathname === '/index.html')) {
     return env.ASSETS.fetch(new Request(new URL('/home', url), request));   // public homepage
   }
+  // always public: the OBS overlay, logo images and the homepage
+  const path = url.pathname.toLowerCase();
+  if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/') || path === '/home' || path === '/home.html') return next();
+
   const pw = env.SITE_PASSWORD;
   if (!pw) return next();
 
