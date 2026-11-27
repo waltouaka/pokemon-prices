@@ -25,6 +25,7 @@ const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;'
 
 const loginPage = (wrong, next) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>akaoutlaw</title>
+<link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%}
@@ -48,9 +49,15 @@ button{width:100%;border:0;border-radius:12px;padding:15px;background:#fff;color
   <div class="err">${wrong ? 'Wrong password, try again.' : ''}</div>
 </form></body></html>`;
 
-function toReplay(request, env) {
+const ICON = '<link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">';
+async function toReplay(request, env) {
   if (!env.REPLAY) return new Response('Replay is not connected yet (missing REPLAY service binding).', { status: 502 });
-  return env.REPLAY.fetch(request);
+  const res = await env.REPLAY.fetch(request);
+  // give the replay pages the same tab icon as the rest of the site
+  if ((res.headers.get('content-type') || '').includes('text/html')) {
+    return new HTMLRewriter().on('head', { element(el) { el.append(ICON, { html: true }); } }).transform(res);
+  }
+  return res;
 }
 
 export async function onRequest({ request, env, next }) {
