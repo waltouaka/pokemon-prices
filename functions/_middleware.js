@@ -1,11 +1,14 @@
-// Password screen for the card control room (runs on Cloudflare Pages).
-// - The password lives in the Cloudflare project as the secret SITE_PASSWORD (never in this code).
-// - Everything is behind the password except the overlay page (/overlay), logos and the homepage,
-//   so OBS never hits the login screen and no other address can serve the control room.
-// - The main domain (outlawswitchmyshit.com) shows the public homepage.
-// - If SITE_PASSWORD isn't set, the site stays open.
+// One password for the whole site (runs on Cloudflare Pages).
+//  - outlawswitchmyshit.com      → homepage   (password)
+//  - cards.outlawswitchmyshit.com → card room  (password)   /overlay + /logos stay open for OBS
+//  - replay.outlawswitchmyshit.com → replay Worker via the REPLAY service binding;
+//        only the panel needs the password, the replay overlay + its proxy stay open for OBS
+// The password is the Cloudflare secret SITE_PASSWORD (never in this code). Log in once and the
+// cookie works on every *.outlawswitchmyshit.com address for 30 days.
+const ROOT = 'outlawswitchmyshit.com';
 const COOKIE = 'cp_auth';
 const MONTH = 60 * 60 * 24 * 30;
+const ours = h => h === ROOT || h.endsWith('.' + ROOT);
 
 async function tokenFor(pw) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('outlaw-cards:' + pw));
@@ -16,8 +19,12 @@ function same(a, b) {               // constant-time compare
   let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return r === 0;
 }
-const loginPage = (wrong) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>akaoutlaw · Card Prices</title>
+const cookieAttrs = (host, age) => `Path=/; Max-Age=${age}; HttpOnly; Secure; SameSite=Lax` + (ours(host) ? `; Domain=.${ROOT}` : '');
+const safeNext = n => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//')) ? n : '/';
+const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+const loginPage = (wrong, next) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>akaoutlaw</title>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%}
@@ -33,43 +40,59 @@ input:focus{box-shadow:inset 0 0 0 2px #fff}
 button{width:100%;border:0;border-radius:12px;padding:15px;background:#fff;color:#000;font:inherit;font-weight:900;font-size:16px;cursor:pointer}
 .err{color:#ff8a8a;font-size:14px;min-height:18px}
 </style></head><body>
-<form method="POST" action="/__login">
+<form method="POST" action="/__login?next=${encodeURIComponent(next)}">
   <img src="https://unavatar.io/twitch/akaoutlaw" alt="">
-  <h1>akaoutlaw</h1><p>Card Prices · enter password</p>
+  <h1>akaoutlaw</h1><p>Enter password</p>
   <input type="password" name="password" placeholder="Password" autocomplete="current-password" autofocus required>
   <button type="submit">Enter</button>
   <div class="err">${wrong ? 'Wrong password, try again.' : ''}</div>
 </form></body></html>`;
 
-const HOME_HOSTS = ['outlawswitchmyshit.com', 'www.outlawswitchmyshit.com'];
+function toReplay(request, env) {
+  if (!env.REPLAY) return new Response('Replay is not connected yet (missing REPLAY service binding).', { status: 502 });
+  return env.REPLAY.fetch(request);
+}
 
 export async function onRequest({ request, env, next }) {
   const url = new URL(request.url);
-  if (HOME_HOSTS.includes(url.hostname) && (url.pathname === '/' || url.pathname === '/index.html')) {
-    return env.ASSETS.fetch(new Request(new URL('/home', url), request));   // public homepage
-  }
-  // always public: the OBS overlay, logo images and the homepage
+  const host = url.hostname;
   const path = url.pathname.toLowerCase();
-  if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/') || path === '/home' || path === '/home.html') return next();
-
-  const pw = env.SITE_PASSWORD;
-  if (!pw) return next();
-
-  const good = await tokenFor(pw);
+  const isReplay = host === 'replay.' + ROOT;
+  const isHome = host === ROOT || host === 'www.' + ROOT;
   const html = (body, status) => new Response(body, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+  const pw = env.SITE_PASSWORD;
 
-  if (url.pathname === '/__login' && request.method === 'POST') {
+  // log in / log out (same on every address)
+  if (path === '/__login' && request.method === 'POST' && pw) {
+    const nxt = safeNext(url.searchParams.get('next'));
     const form = await request.formData();
+    const good = await tokenFor(pw);
     if (same(await tokenFor(String(form.get('password') || '')), good)) {
-      return new Response(null, { status: 303, headers: {
-        Location: '/', 'Set-Cookie': `${COOKIE}=${good}; Path=/; Max-Age=${MONTH}; HttpOnly; Secure; SameSite=Lax` } });
+      return new Response(null, { status: 303, headers: { Location: nxt, 'Set-Cookie': `${COOKIE}=${good}; ${cookieAttrs(host, MONTH)}` } });
     }
-    return html(loginPage(true), 401);
+    return html(loginPage(true, nxt), 401);
   }
-  if (url.pathname === '/__logout') {
-    return new Response(null, { status: 303, headers: { Location: '/', 'Set-Cookie': `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax` } });
+  if (path === '/__logout') {
+    return new Response(null, { status: 303, headers: { Location: '/', 'Set-Cookie': `${COOKIE}=; ${cookieAttrs(host, 0)}` } });
   }
+
+  // what runs once someone is allowed in
+  const pass = () => {
+    if (isReplay) return toReplay(request, env);
+    if (isHome && (path === '/' || path === '/index.html')) return env.ASSETS.fetch(new Request(new URL('/home', url), request));
+    return next();
+  };
+
+  // always open (OBS needs these)
+  if (isReplay) {
+    const locked = path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html';
+    if (!locked) return toReplay(request, env);
+  } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
+    return next();
+  }
+
+  if (!pw) return pass();
   const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)cp_auth=([a-f0-9]{64})/);
-  if (m && same(m[1], good)) return next();
-  return html(loginPage(false), 401);
+  if (m && same(m[1], await tokenFor(pw))) return pass();
+  return html(loginPage(false, url.pathname + url.search), 401);
 }
