@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">
+<title>akaoutlaw · Image Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<style>
+  :root{--tile:rgba(255,255,255,.07);--tile2:rgba(255,255,255,.12);--line:rgba(255,255,255,.08);--muted:#a99cc0}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:Archivo,system-ui,sans-serif;font-weight:700;font-size:14px;color:#fff;background:#1E1A34}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(125deg,#1E1A34 0%,#2b1f5c 22%,#1E1A34 45%,#3a1d63 68%,#15122a 85%,#1E1A34 100%);background-size:300% 300%;animation:bg 22s ease-in-out infinite}
+  @keyframes bg{0%{background-position:0% 30%}50%{background-position:100% 70%}100%{background-position:0% 30%}}
+  button,input{font-family:inherit;font-weight:700;color:inherit}
+  .top{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.18);position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+  .top a.home{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+  .top img{width:34px;height:34px;border-radius:50%;border:2px solid #fff;object-fit:cover}
+  .top h1{margin:0;font-weight:900;font-size:22px;font-stretch:120%;letter-spacing:-.6px}
+  .top nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .top nav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:9px;background:var(--tile);font-size:13px}
+  .top nav a:hover,.top nav a.on{color:#fff;background:var(--tile2)}
+  main{max-width:1200px;margin:0 auto;padding:22px 18px 60px}
+  .drop{border-radius:18px;background:rgba(0,0,0,.25);box-shadow:inset 0 0 0 2px var(--line);padding:38px 20px;text-align:center;cursor:pointer;transition:.15s}
+  .drop:hover,.drop.over{box-shadow:inset 0 0 0 2px #fff;background:rgba(0,0,0,.35)}
+  .drop svg{width:42px;height:42px;opacity:.85}
+  .drop b{display:block;font-size:18px;margin-top:10px}
+  .drop span{color:var(--muted);font-size:13px}
+  .stats{display:flex;align-items:center;gap:10px;margin:22px 2px 12px;color:var(--muted);font-size:13px;flex-wrap:wrap}
+  .stats h2{margin:0;color:#fff;font-size:13px;letter-spacing:1.5px;text-transform:uppercase}
+  .meter{flex:0 0 160px;height:6px;border-radius:6px;background:var(--tile);overflow:hidden}
+  .meter i{display:block;height:100%;background:#fff;width:0}
+  .stats input{margin-left:auto;background:rgba(0,0,0,.4);border:0;border-radius:10px;padding:9px 12px;box-shadow:inset 0 0 0 1px var(--line);min-width:200px;outline:none}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+  .it{background:rgba(0,0,0,.28);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .it .th{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/18px 18px;cursor:zoom-in}
+  .it .th img{max-width:100%;max-height:100%;object-fit:contain}
+  .it .meta{padding:10px 12px 4px;font-size:12px}
+  .it .meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+  .it .meta span{color:var(--muted)}
+  .it .acts{display:grid;grid-template-columns:1fr auto auto;gap:6px;padding:10px 12px 12px}
+  .btn{border:0;border-radius:9px;background:var(--tile);padding:9px 10px;cursor:pointer;font-size:12px;text-decoration:none;color:#fff;text-align:center}
+  .btn:hover{background:var(--tile2)}
+  .btn.copy{background:#fff;color:#000;font-weight:900}
+  .btn.del:hover{background:#ff2a2a}
+  .up{background:rgba(0,0,0,.28);border-radius:14px;display:flex;align-items:center;justify-content:center;aspect-ratio:1;color:var(--muted);font-size:13px}
+  .empty{color:var(--muted);text-align:center;padding:40px}
+  .lb{position:fixed;inset:0;background:rgba(5,4,12,.88);display:none;align-items:center;justify-content:center;z-index:50;cursor:zoom-out}
+  .lb.show{display:flex}
+  .lb img{max-width:92vw;max-height:88vh;background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/18px 18px;border-radius:10px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(90px);background:#fff;color:#000;padding:11px 18px;border-radius:12px;transition:.25s;z-index:99;font-weight:800}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="home" href="/"><img src="https://unavatar.io/twitch/akaoutlaw" alt=""><h1>Image Host</h1></a>
+  <nav><a href="/">Home</a><a href="https://cards.outlawswitchmyshit.com/">Cards</a><a href="https://replay.outlawswitchmyshit.com/panel">Replay</a><a href="/bg">BG Remover</a><a class="on" href="/host">Image Host</a></nav>
+</div>
+<main>
+  <div class="drop" id="drop">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+    <b>Drop images to upload</b>
+    <span>click to browse, or paste with Ctrl+V · PNG, JPG, WebP, GIF, AVIF, SVG · up to 24 MB · links are public, the page is not</span>
+  </div>
+  <div class="stats"><h2>Your images</h2><span id="count">…</span><div class="meter"><i id="meter"></i></div><span id="used"></span><input id="q" placeholder="Search by name…"></div>
+  <div class="grid" id="grid"></div>
+</main>
+<input type="file" id="file" accept="image/*" multiple hidden>
+<div class="lb" id="lb"><img id="lbImg" alt=""></div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const toast=t=>{const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2200)};
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const size=b=>b>1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';
+const when=t=>t?new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
+const LIMIT=1024*1024*1024;
+let items=[], pending=0;
+
+async function load(){
+  try{
+    const r=await fetch('/api/list',{cache:'no-store'}); const j=await r.json();
+    if(!r.ok) throw new Error(j.error||r.status);
+    items=j.items; $('meter').style.width=Math.min(100,j.total/LIMIT*100)+'%';
+    $('used').textContent=`${size(j.total)} of 1 GB free storage`;
+    draw();
+  }catch(e){ $('grid').innerHTML=`<div class="empty">Couldn't load images: ${esc(e.message)}</div>`; $('count').textContent=''; }
+}
+function draw(){
+  const q=$('q').value.trim().toLowerCase();
+  const list=items.filter(i=>!q||(i.name||'').toLowerCase().includes(q));
+  $('count').textContent=`${items.length} image${items.length===1?'':'s'}`;
+  let h=''; for(let n=0;n<pending;n++) h+='<div class="up">Uploading…</div>';
+  h+=list.map(i=>`<div class="it" data-id="${esc(i.id)}">
+      <div class="th" data-zoom="${esc(i.url)}"><img loading="lazy" src="/i/${esc(i.id)}" alt=""></div>
+      <div class="meta"><b title="${esc(i.name)}">${esc(i.name||i.id)}</b><span>${size(i.size||0)} · ${when(i.ts)}</span></div>
+      <div class="acts"><button class="btn copy" data-copy="${esc(i.url)}">Copy link</button><a class="btn" href="/i/${esc(i.id)}" target="_blank" title="Open">↗</a><button class="btn del" data-del="${esc(i.id)}" title="Delete">✕</button></div>
+    </div>`).join('');
+  $('grid').innerHTML=h||'<div class="empty">No images yet. Drop one above.</div>';
+}
+async function upload(files){
+  files=[...files].filter(f=>f.type.startsWith('image/')); if(!files.length) return;
+  pending+=files.length; draw(); let last=null;
+  await Promise.all(files.map(async f=>{
+    try{
+      const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type,'x-filename':encodeURIComponent(f.name||'pasted')},body:f});
+      const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||r.status);
+      items.unshift(j); last=j;
+    }catch(e){ toast(`${f.name}: ${e.message}`); }
+    finally{ pending--; draw(); }
+  }));
+  if(last){ try{ await navigator.clipboard.writeText(last.url); toast(files.length>1?'Uploaded. Last link copied':'Uploaded. Link copied'); }catch(_){ toast('Uploaded'); } load(); }
+}
+$('drop').onclick=()=>$('file').click();
+$('file').onchange=e=>{upload(e.target.files);e.target.value=''};
+const d=$('drop');
+['dragenter','dragover'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||!e.relatedTarget)d.classList.remove('over')}));
+document.addEventListener('drop',e=>upload(e.dataTransfer.files));
+window.addEventListener('paste',e=>{const f=[...(e.clipboardData?.items||[])].filter(i=>i.type.startsWith('image/')).map(i=>i.getAsFile());if(f.length)upload(f)});
+$('q').oninput=draw;
+$('grid').onclick=async e=>{
+  const c=e.target.closest('[data-copy]'), x=e.target.closest('[data-del]'), z=e.target.closest('[data-zoom]');
+  if(c){ try{ await navigator.clipboard.writeText(c.dataset.copy); toast('Link copied'); }catch(_){ prompt('Copy this link',c.dataset.copy); } }
+  else if(x){
+    if(x.dataset.armed!=='1'){ x.dataset.armed='1'; x.textContent='Sure?'; x.style.background='#ff2a2a'; setTimeout(()=>{x.dataset.armed='';x.textContent='✕';x.style.background=''},2500); return; }
+    const id=x.dataset.del; const r=await fetch('/api/img/'+id,{method:'DELETE'});
+    if(r.ok){ items=items.filter(i=>i.id!==id); draw(); toast('Deleted'); load(); } else toast('Delete failed');
+  }
+  else if(z){ $('lbImg').src=z.dataset.zoom; $('lb').classList.add('show'); }
+};
+$('lb').onclick=()=>$('lb').classList.remove('show');
+load();
+</script>
+</body>
+</html>
