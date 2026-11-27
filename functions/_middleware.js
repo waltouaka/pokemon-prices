@@ -81,9 +81,9 @@ async function serveImage(url, env) {
   if (!env.IMAGES) return new Response('Image host not connected', { status: 502 });
   const id = url.pathname.slice(3);
   if (!/^[a-z0-9]{8}\.[a-z]{3,4}$/.test(id)) return new Response('Not found', { status: 404 });
-  const { value, metadata } = await env.IMAGES.getWithMetadata('img:' + id, { type: 'stream', cacheTtl: 86400 });
+  const { value, metadata } = await env.IMAGES.getWithMetadata('img:' + id, { type: 'stream', cacheTtl: 300 });
   if (!value) return new Response('Not found', { status: 404 });
-  const h = { 'content-type': metadata?.type || 'application/octet-stream', 'cache-control': 'public, max-age=31536000, immutable', 'access-control-allow-origin': '*', 'x-content-type-options': 'nosniff' };
+  const h = { 'content-type': metadata?.type || 'application/octet-stream', 'cache-control': 'public, max-age=3600', 'access-control-allow-origin': '*', 'x-content-type-options': 'nosniff' };
   if (metadata?.type === 'image/svg+xml') h['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'"; // no scripts inside SVGs
   return new Response(value, { headers: h });
 }
