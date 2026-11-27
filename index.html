@@ -19,13 +19,22 @@
   button,input,select{font-family:inherit}
 
   /* ================= CONTROL ROOM ================= */
-  html:has(body.control){background:#040108 linear-gradient(160deg,#150828 0%,#0b0417 45%,#040108 100%) fixed;min-height:100%}
+  html:has(body.control){min-height:100%;background:#1E1A34}
+  /* slow-moving purple gradient built around #1E1A34 */
+  body.control::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:linear-gradient(125deg,#1E1A34 0%,#2b1f5c 22%,#1E1A34 45%,#3a1d63 68%,#15122a 85%,#1E1A34 100%);
+    background-size:300% 300%;animation:bgshift 22s ease-in-out infinite}
+  @keyframes bgshift{0%{background-position:0% 30%}50%{background-position:100% 70%}100%{background-position:0% 30%}}
+  @media (prefers-reduced-motion:reduce){body.control::before,.glow{animation:none!important}}
   body.control{min-height:100vh;font-family:var(--ui);font-weight:700;font-size:15px;position:relative;overflow-x:hidden}
   body.control.game-op{--game:#ff4d40;--game-ink:#fff}
   body.control ::selection{background:#fff;color:#000}
   /* soft purple glow blobs */
-  .glow{position:fixed;border-radius:50%;filter:blur(40px);pointer-events:none;z-index:-1}
-  .glow.g1{width:720px;height:720px;left:-220px;top:-200px;background:radial-gradient(circle,rgba(124,58,237,.55),transparent 62%)}
+  .glow{position:fixed;border-radius:50%;filter:blur(40px);pointer-events:none;z-index:-1;animation:drift 26s ease-in-out infinite alternate}
+  .glow.g2{animation-duration:32s;animation-direction:alternate-reverse}
+  .glow.g3{animation-duration:38s}
+  @keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(80px,-40px) scale(1.12)}100%{transform:translate(-60px,50px) scale(.95)}}
+  .glow.g1{width:720px;height:720px;left:-220px;top:-200px;background:radial-gradient(circle,rgba(124,58,237,.42),transparent 62%)}
   .glow.g2{width:620px;height:620px;right:-180px;top:30%;background:radial-gradient(circle,rgba(190,40,160,.32),transparent 62%)}
   .glow.g3{width:700px;height:700px;left:30%;bottom:-320px;background:radial-gradient(circle,rgba(70,40,200,.38),transparent 62%)}
   .wrap{max-width:1360px;margin:0 auto;padding:22px 24px 40px}
@@ -84,7 +93,7 @@
   input[type=text],input[type=number],select{background:rgba(0,0,0,.45);color:#fff;border:0;border-radius:10px;padding:13px 14px;font-size:15px;font-weight:700;outline:none;box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .12s}
   input[type=text]::placeholder{color:#7d7193}
   input[type=text]:focus,input[type=number]:focus,select:focus{box-shadow:inset 0 0 0 2px #fff}
-  select option{background:#140b22}
+  select option{background:#1E1A34}
   .grow{flex:1;min-width:160px}
   .full-w{width:100%}
   /* sets */
@@ -157,7 +166,7 @@
   .pv-more summary{cursor:pointer;font-size:14px;color:var(--muted)}
   .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:10px}
   .chk input[type=number]{width:90px;padding:8px 10px;margin-left:auto}
-  .actions{display:flex;gap:8px;margin-top:18px;position:sticky;bottom:0;padding:14px 0 2px;background:linear-gradient(180deg,transparent,#0b0417 30%)}
+  .actions{display:flex;gap:8px;margin-top:18px;position:sticky;bottom:0;padding:14px 0 2px;background:linear-gradient(180deg,transparent,#1E1A34 30%)}
   .actions .btn:first-child{flex:1}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#fff;color:#000;padding:12px 18px;border-radius:12px;transition:.25s;z-index:99;font-weight:800;box-shadow:0 12px 30px #000a}
   .toast.show{transform:translateX(-50%) translateY(0)}
@@ -532,7 +541,7 @@ else {
       <div class="brand">
         <div class="pfpwrap"><img class="pfp" alt="akaoutlaw" src="logos/pfp.png"
           onerror="if(!this.dataset.t){this.dataset.t=1;this.src='https://unavatar.io/twitch/akaoutlaw?fallback=false'}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'mark',textContent:'A'}))}"></div>
-        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v19.2</span></div></div>
+        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v19.3</span></div></div>
       </div>
       <div class="viewsw">
         <button class="tab on" data-v="cards">Cards</button>
