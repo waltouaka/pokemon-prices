@@ -30,13 +30,8 @@
   .card{background:rgba(0,0,0,.25);border-radius:14px;padding:14px}
   .card h3{margin:0 0 10px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
   .card h3 i{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
-  .ai{width:100%;border:0;border-radius:12px;padding:15px;cursor:pointer;font-weight:900;font-size:16px;font-stretch:115%;color:#fff;background:linear-gradient(135deg,#7c3aed,#c026d3);box-shadow:0 8px 24px #7c3aed55;transition:filter .15s,transform .08s}
-  .ai:hover{filter:brightness(1.1)}.ai:active{transform:translateY(1px)}
-  .ai:disabled{opacity:.5;cursor:not-allowed}
   .note{color:var(--muted);font-size:12px;line-height:1.45;margin-top:10px;font-weight:600}
   .note b{color:#fff}
-  .prog{height:6px;border-radius:6px;background:var(--tile);overflow:hidden;margin-top:10px;display:none}
-  .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#c026d3);transition:width .2s}
   .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .tool{position:relative;border:0;border-radius:12px;background:var(--tile);padding:12px 6px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px}
   .tool:hover{background:var(--tile2)}
@@ -93,11 +88,6 @@
 </div>
 <div class="app">
   <aside class="side">
-    <div class="card">
-      <button class="ai" id="aiBtn" disabled>✨ AI cutout · one click</button>
-      <div class="prog" id="prog"><i></i></div>
-      <div class="note" id="aiNote">Finds the subject and erases the background. The AI model (~40 MB) downloads <b>once</b> and runs <b>locally in your browser</b>. Touch up with the tools below after.</div>
-    </div>
     <div class="card">
       <h3><i></i>Tools</h3>
       <div class="tools">
@@ -167,7 +157,7 @@ async function loadBlob(blob, name){
   orig=x.getImageData(0,0,W,H); mask=new Uint8ClampedArray(W*H);
   for(let i=0;i<W*H;i++) mask[i]=orig.data[i*4+3];
   hist=[]; fut=[]; fileName=(name||'image').replace(/\.[^.]+$/,'');
-  $('drop').style.display='none'; ['aiBtn','reset','copy','dl','up'].forEach(id=>$(id).disabled=false);
+  $('drop').style.display='none'; ['reset','copy','dl','up'].forEach(id=>$(id).disabled=false);
   $('hostres').style.display='none';
   $('info').textContent=`${W} × ${H}`;
   fit(); dirty=true; render(); syncHist();
@@ -313,30 +303,6 @@ function updCursor(e){
   if(e){ const r=view.getBoundingClientRect(); c.style.left=(e.clientX-r.left+view.scrollLeft)+'px'; c.style.top=(e.clientY-r.top+view.scrollTop)+'px'; }
   c.style.display='block';
 }
-
-/* ---------- AI cutout (runs locally via @imgly/background-removal) ---------- */
-let bgLib=null;
-$('aiBtn').onclick=async()=>{
-  if(!orig) return;
-  const btn=$('aiBtn'), prog=$('prog'), bar=prog.firstElementChild; btn.disabled=true; prog.style.display='block'; bar.style.width='3%';
-  $('busy').classList.add('show'); $('busy').textContent='Loading AI model…';
-  try{
-    if(!bgLib) bgLib = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
-    const remove = bgLib.removeBackground || bgLib.default;
-    const c=new OffscreenCanvas(W,H); c.getContext('2d').putImageData(orig,0,0);
-    const src=await c.convertToBlob({type:'image/png'});
-    const out = await remove(src, {
-      model:'isnet_quint8', output:{format:'image/png', type:'foreground'},
-      progress:(key,cur,total)=>{ if(total){ bar.style.width=Math.max(3,Math.round(cur/total*100))+'%'; $('busy').textContent=key.startsWith('fetch')?`Downloading AI model… ${Math.round(cur/total*100)}%`:'Cutting out…'; } }
-    });
-    $('busy').textContent='Cutting out…';
-    const bmp=await createImageBitmap(out); const c2=new OffscreenCanvas(W,H), x2=c2.getContext('2d'); x2.drawImage(bmp,0,0,W,H);
-    const a=x2.getImageData(0,0,W,H).data;
-    pushHist(); for(let i=0;i<W*H;i++) mask[i]=Math.min(mask[i], a[i*4+3]);
-    dirty=true; render(); bar.style.width='100%'; toast('Background removed. Touch up with the tools if needed');
-  }catch(err){ console.error(err); toast("AI cutout didn't work in this browser. Use the magic wand instead"); }
-  finally{ btn.disabled=false; $('busy').classList.remove('show'); setTimeout(()=>prog.style.display='none',600); }
-};
 
 /* ---------- export ---------- */
 $('bgSel').onchange=()=>{ $('bgCustomRow').style.display=$('bgSel').value==='custom'?'grid':'none'; };
