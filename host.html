@@ -78,13 +78,13 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 const size=b=>b>1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';
 const when=t=>t?new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
 const LIMIT=1024*1024*1024;
-let items=[], pending=0;
+let items=[], pending=0; const gone=new Set(), fresh=new Map(); // Cloudflare's list can lag ~1 min behind uploads/deletes
 
 async function load(){
   try{
     const r=await fetch('/api/list',{cache:'no-store'}); const j=await r.json();
     if(!r.ok) throw new Error(j.error||r.status);
-    items=j.items; $('meter').style.width=Math.min(100,j.total/LIMIT*100)+'%';
+    items=j.items.filter(i=>!gone.has(i.id)); for(const [id,f] of fresh){ if(!items.some(i=>i.id===id)) items.unshift(f); } items.sort((a,b)=>(b.ts||0)-(a.ts||0)); $('meter').style.width=Math.min(100,j.total/LIMIT*100)+'%';
     $('used').textContent=`${size(j.total)} of 1 GB free storage`;
     draw();
   }catch(e){ $('grid').innerHTML=`<div class="empty">Couldn't load images: ${esc(e.message)}</div>`; $('count').textContent=''; }
@@ -108,7 +108,7 @@ async function upload(files){
     try{
       const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type,'x-filename':encodeURIComponent(f.name||'pasted')},body:f});
       const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||r.status);
-      items.unshift(j); last=j;
+      items.unshift(j); fresh.set(j.id,j); last=j;
     }catch(e){ toast(`${f.name}: ${e.message}`); }
     finally{ pending--; draw(); }
   }));
@@ -128,7 +128,7 @@ $('grid').onclick=async e=>{
   else if(x){
     if(x.dataset.armed!=='1'){ x.dataset.armed='1'; x.textContent='Sure?'; x.style.background='#ff2a2a'; setTimeout(()=>{x.dataset.armed='';x.textContent='✕';x.style.background=''},2500); return; }
     const id=x.dataset.del; const r=await fetch('/api/img/'+id,{method:'DELETE'});
-    if(r.ok){ items=items.filter(i=>i.id!==id); draw(); toast('Deleted'); load(); } else toast('Delete failed');
+    if(r.ok){ gone.add(id); fresh.delete(id); items=items.filter(i=>i.id!==id); draw(); toast('Deleted'); } else toast('Delete failed');
   }
   else if(z){ $('lbImg').src=z.dataset.zoom; $('lb').classList.add('show'); }
 };
