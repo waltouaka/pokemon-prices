@@ -98,7 +98,9 @@ export async function onRequest({ request, env, next }) {
 
   // always open (OBS needs these)
   if (isReplay) {
-    const locked = path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html';
+    // the Worker's built-in proxy lives on "/" (/?url=… and /?channel=…), which OBS calls without logging in
+    const isProxy = path === '/' && (url.searchParams.has('url') || url.searchParams.has('channel'));
+    const locked = !isProxy && (path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html');
     if (!locked) return toReplay(request, env);
   } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
     return next();
