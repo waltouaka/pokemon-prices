@@ -1,6 +1,7 @@
 // Password screen for the card control room (runs on Cloudflare Pages).
 // - The password lives in the Cloudflare project as the secret SITE_PASSWORD (never in this code).
-// - Overlay links (?overlay=1) stay open so OBS browser sources never hit the login screen.
+// - The overlay is its own page (/overlay) and is never behind the password, so OBS never hits the login screen.
+// - The main domain (outlawswitchmyshit.com) shows the public homepage.
 // - If SITE_PASSWORD isn't set, the site stays open.
 const COOKIE = 'cp_auth';
 const MONTH = 60 * 60 * 24 * 30;
@@ -39,11 +40,15 @@ button{width:100%;border:0;border-radius:12px;padding:15px;background:#fff;color
   <div class="err">${wrong ? 'Wrong password, try again.' : ''}</div>
 </form></body></html>`;
 
+const HOME_HOSTS = ['outlawswitchmyshit.com', 'www.outlawswitchmyshit.com'];
+
 export async function onRequest({ request, env, next }) {
+  const url = new URL(request.url);
+  if (HOME_HOSTS.includes(url.hostname) && (url.pathname === '/' || url.pathname === '/index.html')) {
+    return env.ASSETS.fetch(new Request(new URL('/home', url), request));   // public homepage
+  }
   const pw = env.SITE_PASSWORD;
   if (!pw) return next();
-  const url = new URL(request.url);
-  if (url.searchParams.has('overlay')) return next();          // OBS overlay + editor preview
 
   const good = await tokenFor(pw);
   const html = (body, status) => new Response(body, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });

@@ -541,7 +541,7 @@ else {
       <div class="brand">
         <div class="pfpwrap"><img class="pfp" alt="akaoutlaw" src="logos/pfp.png"
           onerror="if(!this.dataset.t){this.dataset.t=1;this.src='https://unavatar.io/twitch/akaoutlaw?fallback=false'}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'mark',textContent:'A'}))}"></div>
-        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v19.3</span></div></div>
+        <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v20</span></div></div>
       </div>
       <div class="viewsw">
         <button class="tab on" data-v="cards">Cards</button>
@@ -616,7 +616,7 @@ else {
   let current = null, visible = false, tab='sets', openSet=null;
 
   const toast = t => { const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),1800); };
-  const overlayUrl = () => location.href.split('?')[0] + `?overlay=1&key=${ROOM}`;
+  const overlayUrl = () => new URL(`overlay?key=${ROOM}`, location.href.split('?')[0]).href;   // overlay lives in its own page
   $('#copyUrl').onclick = async()=>{ try{await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied — add it as an OBS Browser Source (1920×1080)');}catch(_){prompt('Overlay URL:', overlayUrl())} };
   $('#newRoom').onclick = ()=>{ if(confirm('Make a new key? You will need to paste the new overlay URL into OBS.')){ localStorage.removeItem('pkmn_room'); location.href=location.href.split('?')[0]; } };
 
@@ -976,7 +976,7 @@ else {
           <button class="btn" id="edReplay">▶ Replay animation</button>
         </div>
         <div class="ed-stage bg-${localStorage.getItem('pkmn_ed_bg')||'check'}" id="edStage">
-          <iframe id="edFrame" src="${location.pathname}?overlay=1&preview=1&key=${ROOM}"></iframe>
+          <iframe id="edFrame" src="overlay?preview=1&key=${ROOM}"></iframe>
         </div>
         <div class="muted" style="margin-top:8px">Preview shows a full 1920×1080 stream frame. Changes save automatically.</div>
       </div>
@@ -1007,6 +1007,9 @@ else {
           <button class="btn gold" id="edPush" style="flex:1">Punch it to stream</button>
           <button class="btn" id="edReset">Reset</button>
         </div>
+        <h3>Backup</h3>
+        <div class="row"><button class="btn" id="edExport" style="flex:1">Export settings</button><button class="btn" id="edImport" style="flex:1">Import settings</button></div>
+        <div class="muted" style="margin-top:6px;font-size:12px">Moves your key, look, saved PSA 10 prices and picks to another browser or site.</div>
         <div class="muted" style="margin-top:6px;font-size:12px">"Punch it" updates what's on stream now (if a card is showing). Otherwise the new look is used next time you show a card.</div>
       </div>`;
     edReady=false; edScale();
@@ -1026,6 +1029,19 @@ else {
     $('#edReplay').onclick=()=>edPost('replay');
     $('#edLive').onchange=e=>{ edLive=e.target.checked; localStorage.setItem('pkmn_ed_live', edLive?'1':'0'); };
     $('#edPush').onclick=()=>{ if(visible){ send(); toast('Punched to stream'); } else toast('Saved — show a card in Cards to put it on stream'); };
+    $('#edExport').onclick=async()=>{
+      const data={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k.startsWith('pkmn_')) data[k]=localStorage.getItem(k); }
+      const code='OUTLAW1:'+btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      try{ await navigator.clipboard.writeText(code); toast('Settings copied — paste them into Import on the other site'); }
+      catch(_){ prompt('Copy this backup code:', code); }
+    };
+    $('#edImport').onclick=()=>{
+      const code=(prompt('Paste your backup code (from Export settings):')||'').trim(); if(!code) return;
+      try{ if(!code.startsWith('OUTLAW1:')) throw 0; const data=JSON.parse(decodeURIComponent(escape(atob(code.slice(8)))));
+        Object.entries(data).forEach(([k,v])=>{ if(k.startsWith('pkmn_')) localStorage.setItem(k,v); });
+        toast('Settings imported — reloading'); setTimeout(()=>location.href=location.href.split('?')[0], 700);
+      }catch(_){ toast("That backup code didn't work — copy it again"); }
+    };
     $('#edReset').onclick=()=>{ if(!confirm('Reset the overlay look to defaults?')) return; Object.keys(ST).forEach(k=>delete ST[k]); Object.assign(ST, STYLE_DEFAULTS); saveS(); buildEditor(); };
     edBuilt=true;
   }

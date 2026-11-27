@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>akaoutlaw</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:Archivo,system-ui,sans-serif;font-weight:700;color:#fff;background:#1E1A34;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:70px 20px 40px;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;z-index:-2;background:linear-gradient(125deg,#1E1A34 0%,#2b1f5c 22%,#1E1A34 45%,#3a1d63 68%,#15122a 85%,#1E1A34 100%);background-size:300% 300%;animation:bg 22s ease-in-out infinite}
+  @keyframes bg{0%{background-position:0% 30%}50%{background-position:100% 70%}100%{background-position:0% 30%}}
+  .glow{position:fixed;border-radius:50%;filter:blur(40px);pointer-events:none;z-index:-1;animation:drift 28s ease-in-out infinite alternate}
+  .g1{width:720px;height:720px;left:-220px;top:-220px;background:radial-gradient(circle,rgba(124,58,237,.42),transparent 62%)}
+  .g2{width:620px;height:620px;right:-200px;top:35%;background:radial-gradient(circle,rgba(190,40,160,.32),transparent 62%);animation-duration:34s}
+  @keyframes drift{0%{transform:translate(0,0)}50%{transform:translate(70px,-40px) scale(1.1)}100%{transform:translate(-50px,40px) scale(.95)}}
+  @media (prefers-reduced-motion:reduce){body::before,.glow{animation:none}}
+  .pfp{width:112px;height:112px;border-radius:50%;border:3px solid #fff;object-fit:cover;background:#1a1426}
+  h1{margin:18px 0 4px;font-weight:900;font-size:clamp(40px,7vw,64px);font-stretch:125%;letter-spacing:-2px;line-height:1}
+  .sub{color:#a99cc0;font-size:16px;margin-bottom:40px}
+  .tools{width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  a.tool{display:flex;flex-direction:column;gap:10px;padding:26px 24px;border-radius:18px;background:rgba(255,255,255,.07);color:#fff;text-decoration:none;transition:background .15s,transform .15s;position:relative;overflow:hidden}
+  a.tool:hover{background:rgba(255,255,255,.13);transform:translateY(-3px)}
+  .tool .ico{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:#fff;color:#000}
+  .tool .ico svg{width:28px;height:28px}
+  .tool b{font-weight:900;font-size:28px;font-stretch:120%;letter-spacing:-.8px}
+  .tool span{color:#a99cc0;font-size:14px;line-height:1.4}
+  .tool .go{position:absolute;right:22px;top:26px;font-size:22px;color:#a99cc0;transition:transform .15s,color .15s}
+  a.tool:hover .go{transform:translateX(4px);color:#fff}
+  .links{margin-top:34px;display:flex;gap:10px}
+  .links a{color:#a99cc0;text-decoration:none;font-size:14px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.05)}
+  .links a:hover{color:#fff;background:rgba(255,255,255,.1)}
+</style>
+</head>
+<body>
+  <i class="glow g1"></i><i class="glow g2"></i>
+  <img class="pfp" src="https://unavatar.io/twitch/akaoutlaw" alt="akaoutlaw" onerror="this.style.visibility='hidden'">
+  <h1>akaoutlaw</h1>
+  <div class="sub">Stream tools</div>
+  <div class="tools">
+    <a class="tool" href="https://replay.outlawswitchmyshit.com/panel">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg></div>
+      <b>Replay</b>
+      <span>Grab the last few seconds of stream, trim, slow-mo and send it to the overlay.</span>
+      <div class="go">→</div>
+    </a>
+    <a class="tool" href="https://cards.outlawswitchmyshit.com/">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="11" height="15" rx="2"/><path d="M9 21h9a2 2 0 0 0 2-2V8"/><path d="M8.5 13l2-3 2 3"/></svg></div>
+      <b>Card Prices</b>
+      <span>Pokémon &amp; One Piece prices on stream: pick a card, show raw &amp; PSA 10.</span>
+      <div class="go">→</div>
+    </a>
+  </div>
+  <div class="links"><a href="https://twitch.tv/akaoutlaw" target="_blank" rel="noopener">twitch.tv/akaoutlaw ↗</a></div>
+</body>
+</html>

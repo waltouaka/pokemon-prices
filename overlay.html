@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>akaoutlaw · Card Overlay</title>
+<style>
+  :root{
+    --gold:#ffcb05; --accent:#ffffff; --accent-ink:#000; --accent-soft:#ffffff14; --game:#ffcb05; --game-ink:#121212;
+    --tile:rgba(255,255,255,.07); --tile2:rgba(255,255,255,.12); --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+    --text:#fff; --muted:#a99cc0; --green:#3ddc84; --red:#ff2a2a;
+    --heavy:'Arial Black','Arial Bold',Gadget,Arial,sans-serif;
+    --ui:Archivo,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;font-family:var(--heavy);color:var(--text)}
+  button,input,select{font-family:inherit}
+
+  /* ================= OVERLAY ================= */
+  @font-face{font-family:'Pokemon Solid';src:local('Pokemon Solid'),local('PokemonSolid'),local('Pokemon Solid Normal'),url('pokemon-solid.ttf') format('truetype'),url('Pokemon%20Solid.ttf') format('truetype'),url('PokemonSolid.ttf') format('truetype'),url('Pokemon_Solid.ttf') format('truetype');font-display:block}
+  body.overlay{background:transparent;overflow:hidden;width:100vw;height:100vh;margin:0}
+  /* every look setting is a CSS variable the Overlay Editor controls */
+  .ov{--card-w:300px;--lab:26px;--val:58px;--o-lab:2px;--o-val:4.5px;--txt:#fff;--ink:#000;--border:#fff;--panel:#16161a;
+      --gap:0px;--edge:60px;--line:6px;
+      position:absolute;left:var(--edge);bottom:var(--edge);display:flex;align-items:center}
+  .ov.pos-br{left:auto;right:var(--edge)}
+  .ov.pos-tl{bottom:auto;top:var(--edge)}
+  .ov.pos-tr{bottom:auto;top:var(--edge);left:auto;right:var(--edge)}
+  /* card: pops in first, leaves last */
+  .ov-card{width:var(--card-w);position:relative;z-index:2;filter:drop-shadow(0 10px 14px #0009);
+      will-change:transform,opacity;backface-visibility:hidden;
+      opacity:0;transform:translateY(24px) scale(.95);
+      transition:opacity .3s ease .4s, transform .4s cubic-bezier(.4,0,1,1) .4s}
+  .ov.show .ov-card{opacity:1;transform:none;transition:opacity .4s ease, transform .55s cubic-bezier(.22,1,.36,1)}
+  .ov-card img{width:100%;display:block;border-radius:calc(var(--card-w) * .047)}
+  .ov-card .shine{position:absolute;inset:0;border-radius:calc(var(--card-w) * .047);overflow:hidden;pointer-events:none}
+  .ov-card .shine::after{content:"";position:absolute;top:-50%;left:-80%;width:50%;height:200%;
+      background:linear-gradient(100deg,transparent,#ffffff55,transparent);transform:rotate(12deg);animation:shine 4.5s ease-in-out infinite}
+  .ov.noshine .ov-card .shine{display:none}
+  @keyframes shine{0%,55%{left:-80%}100%{left:160%}}
+  /* prices: slide out from behind the card */
+  .ov-slot{margin-left:-30px;overflow:hidden;padding:60px 70px 70px 0;margin-right:-70px;position:relative;z-index:1}
+  .ov-panel{padding:22px 34px 22px calc(56px + var(--gap));border-radius:0 18px 18px 0;
+      background:var(--panel);border:4px solid var(--border);border-left:none;
+      box-shadow:0 0 0 3px var(--ink), 0 20px 45px #000c;will-change:transform;backface-visibility:hidden;
+      transform:translate3d(-101%,0,0);transition:transform .4s cubic-bezier(.55,0,.75,.2)}
+  .ov.show .ov-panel{transform:translate3d(0,0,0);transition:transform .65s cubic-bezier(.22,1,.36,1) .35s}
+  /* layout: pop UNDER the card */
+  .ov.lay-under{flex-direction:column;align-items:center}
+  .ov.lay-under .ov-card{filter:drop-shadow(0 3px 5px #0009)}
+  .ov.lay-under .ov-slot{margin:-30px -70px 0;padding:0 70px 70px}
+  .ov.lay-under .ov-panel{border-radius:0 0 18px 18px;border:4px solid var(--border);border-top:none;
+      padding:calc(46px + var(--gap)) 30px 18px;min-width:calc(var(--card-w) - 20px);text-align:center;transform:translate3d(0,-101%,0)}
+  .ov.lay-under.show .ov-panel{transform:translate3d(0,0,0)}
+  .ov.lay-under .ov-price{align-items:center}
+  /* no background: just the outlined text */
+  .ov.nobg .ov-panel{background:none;border:none;box-shadow:none}
+  .ov.nobg .ov-price + .ov-price{border-top:none}
+  .ov-price{display:flex;flex-direction:column;gap:var(--line);padding:10px 0}
+  .ov-price + .ov-price{border-top:3px solid #ffffff33}
+  /* smooth 16-direction outline (same style as the garage sale counter) */
+  .ov-price .lab,.ov-price .val{text-shadow:calc(var(--o) * 1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * 0.0) calc(var(--o) * 1.0) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * 0.924) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * 0.707) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * 0.383) 0 var(--ink),calc(var(--o) * -1.0) calc(var(--o) * 0.0) 0 var(--ink),calc(var(--o) * -0.924) calc(var(--o) * -0.383) 0 var(--ink),calc(var(--o) * -0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * -0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * -0.0) calc(var(--o) * -1.0) 0 var(--ink),calc(var(--o) * 0.383) calc(var(--o) * -0.924) 0 var(--ink),calc(var(--o) * 0.707) calc(var(--o) * -0.707) 0 var(--ink),calc(var(--o) * 0.924) calc(var(--o) * -0.383) 0 var(--ink)}
+  .ov-price .lab{font-size:var(--lab);--o:var(--o-lab);font-weight:900;color:var(--txt);letter-spacing:2px;text-transform:uppercase;line-height:1.1}
+  .ov.noupper .ov-price .lab{text-transform:none}
+  .ov-price .val{font-size:var(--val);--o:var(--o-val);font-weight:900;color:var(--txt);line-height:1;font-variant-numeric:tabular-nums}
+  /* font setting */
+  .ov.font-poke .ov-price .lab,.ov.font-pokeall .ov-price .lab{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;text-transform:none;letter-spacing:2px}
+  .ov.font-pokeall .ov-price .val{font-family:'Pokemon Solid','Arial Black',sans-serif;font-weight:400;letter-spacing:2px}
+  .ov.font-impact .ov-price .lab,.ov.font-impact .ov-price .val{font-family:Impact,'Arial Black',sans-serif;font-weight:400;letter-spacing:1px}
+  .ov.font-verdana .ov-price .lab,.ov.font-verdana .ov-price .val{font-family:Verdana,'Arial Black',sans-serif;font-weight:900}
+
+</style>
+</head>
+<body>
+<script>
+/* =========================================================
+   akaoutlaw · Pokémon card prices — control room + overlay
+   Data: TCGdex (api.tcgdex.net) — free, no key, TCGplayer + Cardmarket prices
+   Sync: same-browser (BroadcastChannel/localStorage, e.g. OBS dock)
+         + ntfy.sh relay keyed by your room code (works across devices)
+   Overlay URL:  this-page.html?overlay=1&key=YOURKEY
+   ========================================================= */
+const API = 'https://api.tcgdex.net/v2/en';
+const P = new URLSearchParams(location.search);
+const IS_OVERLAY = true;   // overlay-only page
+const ROOM = (P.get('key') || P.get('room') || localStorage.getItem('pkmn_room') || makeRoom()).toUpperCase();
+localStorage.setItem('pkmn_room', ROOM);
+const TOPIC = 'akaoutlaw-pkmn-' + ROOM;
+const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('pkmn-' + ROOM) : null;
+
+function makeRoom(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<8;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const cache = {};
+async function api(path){
+  if(cache[path]) return cache[path];
+  const r = await fetch(API + path);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return cache[path] = await r.json();
+}
+const img = (base, q='high', ext='webp') => !base ? '' : /\.(jpe?g|png|webp|gif)(\?|$)/i.test(base) ? base : `${base}/${q}.${ext}`;
+
+/* ---------- One Piece (OPTCG API — free, no key, TCGplayer prices) ---------- */
+const OP_API = 'https://optcgapi.com/api';
+const OP_RAR = {L:'Leader',C:'Common',UC:'Uncommon',R:'Rare',SR:'Super Rare',SEC:'Secret Rare',SP:'SP Card','SP CARD':'SP Card',TR:'Treasure Rare',P:'Promo',PR:'Promo'};
+const opCache = {};
+// TCGplayer product photos of each One Piece booster pack / starter deck (keyed by set code without dashes)
+const OP_PACK = Object.fromEntries('ST37:735362,EB06:733408,ST38:735364,OP17:704756,OP18:712904,EB05:711383,ST31:704885,ST34:704893,ST33:704890,ST32:704889,ST35:704894,ST36:704897,OP16:689341,ST30:692138,EB03:666727,ST29:671479,OP15EB04:682056,OP14EB04:666577,OP13:628351,ST22:628448,PRB02:628451,OP12:628345,OP11:620179,ST23:627669,ST24:627672,ST25:627674,ST26:627677,ST28:627681,ST27:627678,OP10:586670,ST21:606575,EB02:594068,OP09:563833,PRB01:545398,ST18:545042,ST15:545033,ST16:545036,ST17:545039,ST19:545045,ST20:545048,ST14:545026,OP08:542502,OP07:532104,EB01:521160,ST12:536585,ST13:543595,ST11:515294,OP06:515077,ST10:502982,OP05:498733,OP04:485832,ST08:502975,OP03:477175,ST09:502978,ST07:480236,ST06:455868,ST05:455859,OP02:455865,OP01:450085,ST01:288221,ST02:288226,ST04:288224,ST03:288227'.split(',').map(x=>x.split(':')));
+// cuts the white photo background off a pack image (only white touching the edges), returns a transparent image URL
+const cutCache = {};
+function cutoutWhite(src){
+  if(cutCache[src]) return cutCache[src];
+  return cutCache[src] = new Promise(res=>{
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = ()=>{ try{
+      const w=im.naturalWidth, h=im.naturalHeight, c=document.createElement('canvas'); c.width=w; c.height=h;
+      const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0);
+      const id=x.getImageData(0,0,w,h), d=id.data, seen=new Uint8Array(w*h), st=[];
+      const isW = p => d[p*4]>228 && d[p*4+1]>228 && d[p*4+2]>228;
+      for(let X=0;X<w;X++) st.push(X,(h-1)*w+X);
+      for(let Y=0;Y<h;Y++) st.push(Y*w,Y*w+w-1);
+      while(st.length){ const p=st.pop(); if(seen[p] || !isW(p)) continue; seen[p]=1; d[p*4+3]=0;
+        const X=p%w; if(X>0) st.push(p-1); if(X<w-1) st.push(p+1); if(p>=w) st.push(p-w); if(p<w*(h-1)) st.push(p+w); }
+      // soften the light fringe left next to the removed area
+      let x0=w,y0=h,x1=0,y1=0;
+      for(let Y=0;Y<h;Y++) for(let X=0;X<w;X++){ const p=Y*w+X; if(seen[p]) continue;
+        const nb=(X>0&&seen[p-1])||(X<w-1&&seen[p+1])||(Y>0&&seen[p-w])||(Y<h-1&&seen[p+w]);
+        if(nb && d[p*4]>190 && d[p*4+1]>190 && d[p*4+2]>190) d[p*4+3]=110;
+        if(X<x0)x0=X; if(X>x1)x1=X; if(Y<y0)y0=Y; if(Y>y1)y1=Y; }
+      x.putImageData(id,0,0);
+      if(x1<=x0||y1<=y0) return res(src);
+      const c2=document.createElement('canvas'); c2.width=x1-x0+1; c2.height=y1-y0+1;
+      c2.getContext('2d').drawImage(c,x0,y0,c2.width,c2.height,0,0,c2.width,c2.height);
+      res(c2.toDataURL('image/webp',0.92));
+    }catch(e){ res(src); } };
+    im.onerror = ()=>res(src);
+    im.src = src;
+  });
+}
+function cutPacks(root){
+  root.querySelectorAll('img.pack,img.crumbpack').forEach(img=>{
+    if(img.dataset.cut) return; img.dataset.cut='1';
+    cutoutWhite(img.getAttribute('src')).then(u=>{ img.src=u; img.classList.add('cut'); });
+  });
+}
+const opPackImg = code => { const id = OP_PACK[String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'')]; return id ? `https://tcgplayer-cdn.tcgplayer.com/product/${id}_in_400x400.jpg?cors=1` : ''; };   // ?cors=1 keeps it separate from any non-CORS cached copy
+async function opFetch(path){
+  const k='op'+path; if(cache[k]) return cache[k];
+  const r = await fetch(OP_API + path); if(!r.ok) throw new Error('HTTP '+r.status);
+  return cache[k] = await r.json();
+}
+function opTags(name){
+  const t=[]; if(/manga/i.test(name)) t.push('Manga');
+  if(/alternate art/i.test(name)) t.push('Alt Art'); else if(/parallel/i.test(name)) t.push('Parallel');
+  if(/reprint/i.test(name)) t.push('Reprint'); if(/serial/i.test(name)) t.push('Serial');
+  return t;
+}
+// turns an OPTCG card into the same shape the rest of the app already uses
+function opNorm(c){
+  const id = 'op:' + (c.card_image_id || c.card_set_id);
+  if(opCache[id]) return opCache[id];
+  const code = String(c.rarity||'').toUpperCase(), tags = opTags(c.card_name||'');
+  return opCache[id] = {game:'op', id, name:c.card_name, cleanName:String(c.card_name||'').replace(/\s*\([^)]*\)/g,'').trim(),
+    localId:c.card_set_id, image:c.card_image, rarityCode:code, tags,
+    rarity:[OP_RAR[code]||c.rarity, ...tags].filter(Boolean).join(' · '),
+    set:{name:c.set_name, id:c.set_id},
+    pricing:{tcgplayer:{updated:c.date_scraped, unit:'USD', normal:{marketPrice:c.market_price, lowPrice:c.inventory_price}}}};
+}
+// one way to load any card, Pokémon (TCGdex) or One Piece (OPTCG)
+async function getCard(id){
+  id = String(id);
+  if(id.startsWith('op:')){
+    if(opCache[id]) return opCache[id];
+    const base = id.slice(3).split('_')[0];
+    const paths = /^ST/i.test(base) ? ['/decks/card/','/sets/card/'] : ['/sets/card/','/decks/card/'];
+    for(const pth of paths){
+      try{ const list = await opFetch(pth + encodeURIComponent(base) + '/'); const arr = Array.isArray(list)?list:[list];
+        arr.forEach(opNorm); if(opCache[id]) return opCache[id]; }catch(_){}
+    }
+    throw new Error('card not found');
+  }
+  return api('/cards/' + encodeURIComponent(id));
+}
+
+/* ---------- price helpers ---------- */
+const VAR_NAMES = {normal:'Normal',holofoil:'Holo',holo:'Holo',reverse:'Reverse Holo','reverse-holofoil':'Reverse Holo',
+  '1stEdition':'1st Edition','1st-edition':'1st Edition','1stEditionHolofoil':'1st Ed Holo','unlimited':'Unlimited','unlimitedHolofoil':'Unlimited Holo'};
+function varName(k){
+  if(!k) return '';
+  if(VAR_NAMES[k]) return VAR_NAMES[k];
+  return String(k)
+    .replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').toLowerCase()
+    .replace(/holofoil/g,'holo').replace(/1st edition/g,'1st ed').replace(/reverse holo/g,'reverse')
+    .replace(/\b(\w)/g,c=>c.toUpperCase()).replace('1st Ed','1st Edition').replace(/^Reverse$/,'Reverse Holo');
+}
+function tcgVariants(card){
+  const t = card?.pricing?.tcgplayer; if(!t) return [];
+  return Object.keys(t).filter(k=>t[k] && typeof t[k]==='object');
+}
+function fmt(n, cur){
+  if(n==null || isNaN(n)) return '—';
+  const sym = cur==='EUR' ? '€' : '$';
+  const suf = cur==='CAD' ? ' CAD' : '';
+  return sym + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + suf;
+}
+// Builds what the overlay shows from a card + settings
+function buildView(card, s){
+  const out = {main:null, mainLabel:'', chips:[], cur:'USD', updated:null, source:''};
+  const tcg = card?.pricing?.tcgplayer, cm = card?.pricing?.cardmarket;
+  if(s.source==='cardmarket' && cm){
+    const h = s.cmHolo ? '-holo' : '';
+    out.cur='EUR'; out.source='Cardmarket'; out.updated=cm.updated;
+    out.main = cm['trend'+h] ?? cm['avg'+h]; out.mainLabel = 'Trend';
+    out.chips = [['Low',cm['low'+h]],['7-day avg',cm['avg7'+h]],['30-day avg',cm['avg30'+h]]];
+    out.raw = s.rawFrom==='low' ? cm['low'+h] : s.rawFrom==='mid' ? cm['avg'+h] : out.main;
+  } else if(tcg){
+    const v = tcg[s.variant] || tcg[tcgVariants(card)[0]];
+    if(v){
+      out.source='TCGplayer'; out.updated=tcg.updated;
+      const rate = s.cad ? (parseFloat(s.rate)||1) : 1;
+      out.cur = s.cad ? 'CAD' : 'USD';
+      const m = x => x==null ? null : x*rate;
+      out.main = m(v.marketPrice ?? v.midPrice); out.mainLabel = 'Market';
+      out.chips = [['Low',m(v.lowPrice)],['Mid',m(v.midPrice)],['High',m(v.highPrice)]];
+      out.raw = s.rawFrom==='low' ? m(v.lowPrice) : s.rawFrom==='mid' ? m(v.midPrice) : out.main;
+    }
+  }
+  if(s.rawFrom==='custom'){ const n=parseFloat(String(s.rawCustom||'').replace(/[^0-9.]/g,'')); out.raw = isNaN(n)?null:n; }
+  return out;
+}
+
+/* ---------- overlay look (edited in the Overlay Editor) ---------- */
+const STYLE_DEFAULTS = {layout:'under', bg:false, pos:'bl', font:'arial', cardW:300, lab:26, val:58, oLab:2, oVal:4.5,
+  txt:'#ffffff', ink:'#000000', border:'#ffffff', panel:'#16161a', gap:0, line:6, edge:60,
+  rawLabel:'Raw Price', psaLabel:'PSA 10 Price', upper:true, shine:true, countUp:true};
+function styleOf(s){
+  const st = Object.assign({}, STYLE_DEFAULTS, s.style||{});
+  // carry over older settings saved before the editor existed
+  if(!s.style){ if(s.layout) st.layout=s.layout; if(s.bg!==undefined) st.bg=s.bg; if(s.pos) st.pos=s.pos; if(s.font) st.font=s.font; }
+  return st;
+}
+function ovClass(st){
+  return 'ov pos-'+st.pos+' lay-'+(st.layout==='under'?'under':'right')+(st.bg?'':' nobg')+
+    ({poke:' font-poke',pokeall:' font-pokeall',impact:' font-impact',verdana:' font-verdana'}[st.font]||'')+
+    (st.upper?'':' noupper')+(st.shine?'':' noshine');
+}
+function applyStyle(el, st){
+  const v={'--card-w':st.cardW+'px','--lab':st.lab+'px','--val':st.val+'px','--o-lab':st.oLab+'px','--o-val':st.oVal+'px',
+    '--txt':st.txt,'--ink':st.ink,'--border':st.border,'--panel':st.panel,'--gap':st.gap+'px','--line':st.line+'px','--edge':st.edge+'px'};
+  for(const k in v) el.style.setProperty(k, v[k]);
+}
+
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+if(IS_OVERLAY){
+  document.body.className='overlay';
+  document.body.innerHTML = `<div class="ov" id="ov"></div>`;
+  const ov = $('#ov');
+  const PREVIEW = P.has('preview');
+  let lastTs = 0, renderToken = 0, shownSig = '';
+
+  async function render(state, force){
+    if(!state) return;
+    if(!force){ if(!state.ts || state.ts <= lastTs) return; }   // ignore duplicates/older (same click arrives via several channels)
+    lastTs = Math.max(lastTs, state.ts||0);
+    const s0 = state.settings || {}, st = styleOf(s0);
+    // look-only change on the card already showing: restyle in place, no replay
+    if(!force && state.visible && state.cardId && ov.classList.contains('show')){
+      try{
+        const c = await getCard(state.cardId); const vv = buildView(c, s0);
+        const sig = [state.cardId, state.psa10, vv.raw, vv.cur].join('|');
+        if(sig === shownSig){
+          ++renderToken;
+          ov.className = ovClass(st) + ' show'; applyStyle(ov, st);
+          const labs = ov.querySelectorAll('.lab'); if(labs[0]) labs[0].textContent = st.rawLabel; if(labs[1]) labs[1].textContent = st.psaLabel;
+          ov.querySelectorAll('.val').forEach(el=>{ if(el.dataset.n!=='') el.textContent=fmt(parseFloat(el.dataset.n), el.dataset.c); });
+          return;
+        }
+      }catch(_){}
+    }
+    const token = ++renderToken;
+    if(!state.visible || !state.cardId){ ov.classList.remove('show'); shownSig=''; return; }  // token already bumped above
+    let card;
+    try{ card = await getCard(state.cardId); }catch(e){ return; }
+    if(token !== renderToken) return;
+    const s = state.settings || {};
+    const v = buildView(card, s);
+    const varLabel = s.source==='cardmarket' ? (s.cmHolo?'Holo':'') : varName(s.variant);
+    const html = `
+      <div class="ov-card"><img src="${esc(img(card.image))}" onerror="this.src='${esc(img(card.image,'high','png'))}'"><div class="shine"></div></div>
+      <div class="ov-slot"><div class="ov-panel">
+        <div class="ov-price"><span class="lab">${esc(st.rawLabel)}</span><span class="val" data-n="${v.raw??''}" data-c="${v.cur}">${fmt(v.raw,v.cur)}</span></div>
+        ${state.psa10!=null?`<div class="ov-price"><span class="lab">${esc(st.psaLabel)}</span><span class="val" data-n="${state.psa10??''}" data-c="USD">${fmt(state.psa10,'USD')}</span></div>`:''}
+      </div>      </div>`;
+    const pos = ovClass(st);
+    const sig = [state.cardId, state.psa10, v.raw, v.cur].join('|');
+    if(st.font==='poke'||st.font==='pokeall'){ try{ await Promise.race([document.fonts.load("30px 'Pokemon Solid'"), new Promise(r=>setTimeout(r,1500))]); }catch(_){} }
+    // preload the card image BEFORE touching the screen, so nothing pops in half-loaded
+    await new Promise(r=>{ const pre=new Image(); pre.onload=pre.onerror=r; pre.src=img(card.image); setTimeout(r,3000); });
+    if(token !== renderToken) return;
+    if(ov.classList.contains('show')){
+      ov.classList.remove('show');
+      await new Promise(r=>setTimeout(r,900));
+      if(token !== renderToken) return;
+    }
+    ov.className = pos; applyStyle(ov, st); ov.innerHTML = html; shownSig = sig;
+    if(st.countUp) ov.querySelectorAll('.val').forEach(el=>{ if(el.dataset.n!=='') el.textContent=fmt(0,el.dataset.c); });
+    requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
+    // count the prices up as the plaque slides out
+    if(st.countUp) setTimeout(()=>{ if(token !== renderToken) return; ov.querySelectorAll('.val').forEach(el=>{
+      const target=parseFloat(el.dataset.n); if(isNaN(target)) return;
+      const t0=performance.now(), dur=1000;
+      const step=t=>{ if(token !== renderToken) return;
+        const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,4);
+        el.textContent=fmt(target*e, el.dataset.c); if(k<1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }); }, 650);
+  }
+
+  if(PREVIEW){
+    window.addEventListener('message', e => {
+      if(e.origin !== location.origin || !e.data) return;
+      if(e.data.type==='state') render(e.data.state, false);
+      if(e.data.type==='replay') render(Object.assign({}, e.data.state, {ts: Date.now()}), true);
+    });
+    parent.postMessage({type:'preview-ready'}, location.origin);
+  } else {
+  // same-browser channels (OBS custom dock shares storage with browser sources)
+  bc && (bc.onmessage = e => render(e.data));
+  window.addEventListener('storage', e => { if(e.key==='pkmn_state_'+ROOM && e.newValue) render(JSON.parse(e.newValue)); });
+  // cross-device relay
+  function connect(){
+    const es = new EventSource(`https://ntfy.sh/${TOPIC}/sse`);
+    es.onmessage = e => { try{ const m = JSON.parse(e.data); if(m.message) render(JSON.parse(m.message)); }catch(_){} };
+    es.onerror = () => { es.close(); setTimeout(connect, 3000); };
+  }
+  connect();
+  // restore last state on load (OBS scene switch / refresh)
+  (async()=>{
+    const local = localStorage.getItem('pkmn_state_'+ROOM);
+    if(local) render(JSON.parse(local));
+    try{
+      const r = await fetch(`https://ntfy.sh/${TOPIC}/json?poll=1&since=12h`);
+      const lines = (await r.text()).trim().split('\n').filter(Boolean);
+      const last = lines.length ? JSON.parse(lines[lines.length-1]) : null;
+      if(last?.message) render(JSON.parse(last.message));
+    }catch(_){}
+  })();
+  }
+}
+
+</script>
+</body>
+</html>
