@@ -82,6 +82,11 @@
   .mini{height:34px;border-radius:7px;display:flex;overflow:hidden;min-width:0;align-items:stretch;font-weight:900;font-size:15px}
   .mini span{display:flex;align-items:center;justify-content:center;padding:0 8px}
   .seg2{display:flex;gap:6px;margin-bottom:12px}.seg2 .btn{flex:1}.seg2 .btn.on{background:#fff;color:#000}
+  .sportbar{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
+  .sportbar button{border:0;border-radius:12px;padding:12px 20px;background:var(--tile);cursor:pointer;font-size:15px;font-weight:900;display:flex;align-items:center;gap:8px}
+  .sportbar button:hover{background:var(--tile2)}
+  .sportbar button.on{background:#fff;color:#000}
+  .sportbar small{font-size:11px;font-weight:700;opacity:.6}
   .prevbox{background:rgba(0,0,0,.25);border-radius:16px;padding:12px;position:sticky;top:12px}
   .prevhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .prevhead .lbl{color:var(--muted);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;margin-right:auto}
@@ -104,7 +109,7 @@
   <header>
     <a class="backhome" href="/" title="Back to home">← Home</a>
     <img class="pfp" src="https://unavatar.io/twitch/akaoutlaw" alt="">
-    <div><div class="bn">akaoutlaw</div><div class="bs">Scoreboard</div></div>
+    <div><div class="bn">akaoutlaw</div><div class="bs" id="sportName">Scoreboard</div></div>
     <div class="hright">
       <div class="pill">Key <b id="keyTxt"></b></div>
       <button class="btn white" id="copyUrl">Copy overlay URL</button>
@@ -112,6 +117,7 @@
     </div>
   </header>
 
+  <div class="sportbar" id="sportbar"></div>
   <div class="grid">
     <div class="panel">
       <div class="tabs"><button data-t="games" class="on">Games</button><button data-t="styles">Styles</button><button data-t="custom">Customize</button><button data-t="theme">Theme</button></div>
@@ -204,7 +210,7 @@ const STYLES = [
   ['classic', 'Classic', 'Your original NFL widget look.', '<span style="background:#111117;color:#fff;flex:1">DEN</span><span style="background:#111117"><i style="background:#fec524;color:#000;padding:0 6px;border-radius:4px;font-style:normal">118</i></span><span style="background:#111117;color:#fff;flex:1">Q4</span><span style="background:#111117"><i style="background:#4e008e;color:#fff;padding:0 6px;border-radius:4px;font-style:normal">107</i></span><span style="background:#111117;color:#fff;flex:1">UTA</span>'],
 ];
 function buildStyles() {
-  $('p-styles').innerHTML = `<div class="sec"><h4>Layout</h4><div class="seg2"><button class="btn ${C.layout !== 'full' ? 'on' : ''}" data-lay="minimal">Minimal bar</button><button class="btn ${C.layout === 'full' ? 'on' : ''}" data-lay="full">Full + football field</button></div></div>
+  $('p-styles').innerHTML = `${CAT === 'football' ? `<div class="sec"><h4>Layout</h4><div class="seg2"><button class="btn ${C.layout !== 'full' ? 'on' : ''}" data-lay="minimal">Minimal bar</button><button class="btn ${C.layout === 'full' ? 'on' : ''}" data-lay="full">Full + football field</button></div></div>` : ''}
     <div class="sec"><h4>Style</h4><div class="stylecards">${STYLES.map(([k, n, d, m]) => `<button class="sc ${(C.skin || 'block') === k ? 'on' : ''}" data-skin="${k}"><div class="mini">${m}</div><b>${n}</b><small>${d}</small></button>`).join('')}</div></div>
     <div class="hint">Colors, font and corners for any style are in <b>Theme</b>.</div>`;
 }
@@ -231,22 +237,55 @@ const PRESETS = {
   'Light':     { panel: '#f4f4f7', panelEdge: '#d6d6e0', fieldBg: '#e7e7ee', ink: '#111118', muted: '#3a3a48', fd: '#d97706', turfA: '#2f6b3a', turfB: '#357841' },
 };
 
-let S = Object.assign({ league: 'nfl', teamId: '', team: '', eventId: '', label: '', show: true }, ls.get('sb_state', {}));
-let C = Object.assign({ skin: 'block' }, ...CUSTOM.flatMap(([, rows]) => rows.map(r => ({ [r[0]]: r[3] }))), ls.get('sb_custom', {}));
-let T = Object.assign({}, ls.get('sb_theme', {}));
+// ---- one scoreboard per sport: each has its own game, style, settings, theme, position and OBS link ----
+const CATS = {
+  football:   { n: 'Football',   e: '🏈', leagues: ['nfl', 'ncaaf', 'ufl', 'cfl'] },
+  basketball: { n: 'Basketball', e: '🏀', leagues: ['nba', 'wnba', 'ncaam', 'ncaaw'] },
+  hockey:     { n: 'Hockey',     e: '🏒', leagues: ['nhl'] },
+  baseball:   { n: 'Baseball',   e: '⚾', leagues: ['mlb'] },
+  soccer:     { n: 'Soccer',     e: '⚽', leagues: ['mls', 'epl', 'ucl'] },
+};
+const catOf = lg => Object.keys(CATS).find(c => CATS[c].leagues.includes(lg)) || 'football';
+// first time: the existing setup (and its OBS link) moves into the sport it was showing
+if (!ls.get('sb_cat', '')) {
+  const old = ls.get('sb_state', null), c0 = catOf(old && old.league || 'nfl');
+  if (old) ls.set(`sb_${c0}_state`, old);
+  if (ls.get('sb_custom', null)) ls.set(`sb_${c0}_custom`, ls.get('sb_custom', {}));
+  if (ls.get('sb_theme', null)) ls.set(`sb_${c0}_theme`, ls.get('sb_theme', {}));
+  if (ls.get('sb_key', '')) ls.set(`sb_${c0}_key`, ls.get('sb_key', ''));
+  ls.set('sb_cat', c0);
+}
+const CAT = CATS[ls.get('sb_cat', 'football')] ? ls.get('sb_cat', 'football') : 'football';
+const ck = n => `sb_${CAT}_${n}`;
+$('sportbar').innerHTML = Object.entries(CATS).map(([k, c]) => `<button data-cat="${k}" class="${k === CAT ? 'on' : ''}">${c.e} ${c.n}<small>${c.leagues.map(l => (LEAGUES.find(x => x[0] === l) || [, l.toUpperCase()])[1]).join(' · ')}</small></button>`).join('');
+$('sportbar').onclick = e => { const b = e.target.closest('[data-cat]'); if (!b || b.dataset.cat === CAT) return; ls.set('sb_cat', b.dataset.cat); location.reload(); };
+const FOOTBALL_ONLY = ['showField', 'fieldOnlyLive', 'showBigPlayRibbon', 'bigPlayYards', 'bigLook', 'testDrive', 'testDriveSpeed', 'fireBig'];
+const HOCKEY_ONLY = ['fireGoal'];
+for (const [, rows] of CUSTOM) for (let i = rows.length - 1; i >= 0; i--) {
+  const k = rows[i][0];
+  if ((FOOTBALL_ONLY.includes(k) && CAT !== 'football') || (HOCKEY_ONLY.includes(k) && CAT !== 'hockey')) rows.splice(i, 1);
+}
+for (let i = CUSTOM.length - 1; i >= 0; i--) if (!CUSTOM[i][1].length) CUSTOM.splice(i, 1);
+let S = Object.assign({ league: CATS[CAT].leagues[0], teamId: '', team: '', eventId: '', label: '', show: true }, ls.get(ck('state'), {}));
+if (!CATS[CAT].leagues.includes(S.league)) S.league = CATS[CAT].leagues[0];
+let C = Object.assign({ skin: 'block' }, ...CUSTOM.flatMap(([, rows]) => rows.map(r => ({ [r[0]]: r[3] }))), ls.get(ck('custom'), {}));
+if (CAT !== 'football') { C.layout = 'minimal'; C.testDrive = false; }
+let T = Object.assign({}, ls.get(ck('theme'), {}));
 if (!ls.get('sb_v2', false)) { C.layout = 'minimal'; ls.set('sb_v2', true); }   // minimal is the new default
-let KEY = ls.get('sb_key', '');
+let KEY = ls.get(ck('key'), '');
 const makeKey = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return [...crypto.getRandomValues(new Uint8Array(8))].map(b => a[b % a.length]).join(''); };
-if (!KEY) { KEY = makeKey(); ls.set('sb_key', KEY); }
+if (!KEY) { KEY = makeKey(); ls.set(ck('key'), KEY); }
 $('keyTxt').textContent = KEY;
 const overlayUrl = () => `${location.origin}/sports-overlay?key=${KEY}`;
+document.title = `akaoutlaw · ${CATS[CAT].n} scoreboard`;
+$('sportName').textContent = `${CATS[CAT].n} scoreboard`;
 
 // ---- send settings to the overlay ----
 let bc; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
 const payload = () => ({ ts: Date.now(), ...C, ...S, theme: T });
 let ntfyT = 0, kvT = 0;
 function publish() {
-  ls.set('sb_state', S); ls.set('sb_custom', C); ls.set('sb_theme', T);
+  ls.set(ck('state'), S); ls.set(ck('custom'), C); ls.set(ck('theme'), T);
   const p = payload();
   $('prev').contentWindow?.postMessage({ sb: p }, location.origin);
   try { bc && bc.postMessage(p); } catch (_) {}
@@ -261,7 +300,7 @@ addEventListener('message', e => { if (e.origin === location.origin && e.data?.s
 $('copyUrl').onclick = async () => { try { await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied. Paste it into an OBS Browser source'); } catch (_) { prompt('Copy this URL', overlayUrl()); } };
 $('newKey').onclick = () => {
   if ($('newKey').dataset.armed !== '1') { $('newKey').dataset.armed = '1'; $('newKey').textContent = 'Sure? Old OBS link stops'; setTimeout(() => { $('newKey').dataset.armed = ''; $('newKey').textContent = 'New key'; }, 3000); return; }
-  KEY = makeKey(); ls.set('sb_key', KEY); $('keyTxt').textContent = KEY; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
+  KEY = makeKey(); ls.set(ck('key'), KEY); $('keyTxt').textContent = KEY; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
   $('newKey').dataset.armed = ''; $('newKey').textContent = 'New key'; publish(); toast('New key. Copy the new overlay URL into OBS');
 };
 function syncVis() { $('showBtn').classList.toggle('on', S.show !== false); $('hideBtn').classList.toggle('on', S.show === false); }
@@ -275,9 +314,10 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 });
 
 // ---- Games panel ----
-let viewLeague = S.league || 'nfl', day = new Date(), games = [];
+let viewLeague = S.league || CATS[CAT].leagues[0], day = new Date(), games = [];
 const ymd = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-$('leagues').innerHTML = LEAGUES.map(([k, n]) => `<button class="chip" data-l="${k}">${n}</button>`).join('');
+$('leagues').innerHTML = LEAGUES.filter(([k]) => CATS[CAT].leagues.includes(k)).map(([k, n]) => `<button class="chip" data-l="${k}">${n}</button>`).join('');
+if (CATS[CAT].leagues.length < 2) $('leagues').style.display = 'none';
 $('leagues').onclick = e => { const b = e.target.closest('[data-l]'); if (!b) return; viewLeague = b.dataset.l; loadGames(); };
 $('dPrev').onclick = () => { day.setDate(day.getDate() - 1); loadGames(); };
 $('dNext').onclick = () => { day.setDate(day.getDate() + 1); loadGames(); };
@@ -343,7 +383,7 @@ function field(store, [k, label, type, def, a, b, step], onchange) {
 function wire(pane, store) {
   pane.onclick = e => {
     const f = e.target.closest('[data-fire]');
-    if (f) { S.fire = f.dataset.fire; S.fireTs = Date.now(); publish(); delete S.fire; delete S.fireTs; ls.set('sb_state', S); toast('Goal test sent'); return; }
+    if (f) { S.fire = f.dataset.fire; S.fireTs = Date.now(); publish(); delete S.fire; delete S.fireTs; ls.set(ck('state'), S); toast('Goal test sent'); return; }
     const b = e.target.closest('.sw'); if (!b) return; store[b.dataset.k] = !b.classList.contains('on'); b.classList.toggle('on'); if (b.dataset.k === 'testDrive' && store.testDrive) S.show = true; publish(); };
   pane.oninput = e => { const el = e.target, k = el.dataset.k; if (!k) return;
     store[k] = el.dataset.type === 'num' || el.dataset.type === 'range' ? +el.value : el.value;
