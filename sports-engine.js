@@ -612,7 +612,7 @@
     var lbl = ordinal(g.period);
     if (sp === "hockey") lbl = g.period > 3 ? (g.period === 4 ? "OT" : "SO") : ordinal(g.period);
     if (sp === "ncaab") lbl = g.period > 2 ? (g.period === 3 ? "OT" : (g.period - 2) + "OT") : (g.period === 1 ? "1ST HALF" : "2ND HALF");
-    if (sp === "basketball") lbl = g.period > 4 ? (g.period === 5 ? "OT" : (g.period - 4) + "OT") : (cfg.skin === "tv" ? ordinal(g.period) : "Q" + g.period);
+    if (sp === "basketball") lbl = g.period > 4 ? (g.period === 5 ? "OT" : (g.period - 4) + "OT") : (cfg.skin === "tv" || (window.SBBugs && SBBugs.has(cfg.skin)) ? ordinal(g.period) : "Q" + g.period);
     setPeriod(lbl);
     syncClock(g.clock);
     // under a minute basketball/hockey send "45.6" instead of "0:45"; show that as-is
@@ -895,7 +895,7 @@
         out[t.id] = { to: total ? Math.max(0, total - used) : null, fouls: fouls, bonus: fouls >= (college ? 7 : (per > 4 ? 4 : 5)) };
       });
       bball = { id: g.eventId, t: Date.now(), data: out, busy: false };
-      if (current && current.eventId === g.eventId) drawBB(out, current);
+      if (current && current.eventId === g.eventId) { drawBB(out, current); drawBug(current); }
     }).catch(function () { bball.busy = false; });
   }
   function drawBB(data, g) {
@@ -917,12 +917,16 @@
     sb.classList.toggle("sb--testing", on && testing);
     if (!on) { if (wrap) wrap.innerHTML = ""; return; }
     var s = g.situation, foot = sport() === "football";
+    var bbd = (sport() === "basketball" || sport() === "ncaab") && g.state === "in" && bball.id === g.eventId ? bball.data : null;
     var team = function (t, k) {
       var c = t.accent || t.color;
       // very bright team colors (Broncos orange, etc.) swallow a logo of the same color: tone them down behind the logo
       if (lum(c) > 0.18) c = shade(c, lum(c) > 0.35 ? -0.42 : -0.3);
       return { abbr: t.abbr, logo: logoFor(t), color: c, color2: t.alt && lum(t.alt) > 0.03 ? t.alt : c, ink: inkFor(c), score: t.score, rec: t.record, rank: t.rank,
         to: foot && s && truthy(cfg.showTimeouts) ? (k === "a" ? s.awayTos : s.homeTos) : null,
+        toMax: 3,
+        // basketball: "TOL 6 · FOULS 3" (or BONUS), short like the NBA broadcasts
+        fx: bbd && bbd[t.id] ? [truthy(cfg.showTimeouts) && bbd[t.id].to != null ? "TOL " + bbd[t.id].to : "", bbd[t.id].bonus ? "BONUS" : "FOULS " + bbd[t.id].fouls].filter(Boolean).join(" · ") : "",
         ball: foot && g.state === "in" && !!(s && s.possessionId) && String(s.possessionId) === String(t.id) };
     };
     var clock = $("time").classList.contains("none") ? "" : ($("timeCur").textContent || "");
@@ -947,27 +951,38 @@
       var team = g[k];
       if (cfg.myTeamOnly && String(team.id) !== String(g.myTeamId || "")) return;
       var evId = current && current.eventId;
-      fetchLastScore(evId).then(function (sc) {
+      fetchLastScore(evId, { away: g.away.score, home: g.home.score, teamId: team.id }).then(function (sc) {
         var txt = (sc && sc.text) || "";
         var cat = sp === "baseball" ? (/homer|home run/i.test(txt) ? (d >= 4 || /grand slam/i.test(txt) ? "GRAND SLAM" : "HOME RUN") : (d > 1 ? d + " RUNS SCORE" : "RUN SCORES")) : "GOAL";
-        enqueue({ kind: "score", category: cat, made: true, team: team, name: (sc && sc.name) || "",
+        enqueue({ kind: "score", category: cat, made: true, team: team, name: (sc && sc.name) || "", line: (sc && sc.line) || "",
           play: { text: txt, yards: NaN, athletes: (sc && sc.athletes) || [], scoring: true } });
       });
     });
   }
   // the newest scoring play from the game summary: who scored + their photo
-  function fetchLastScore(eventId) {
+  // the scoring play that produced this exact score (ESPN's play-by-play can lag the score by a few seconds, so retry)
+  function fetchLastScore(eventId, want, tries) {
     if (!eventId) return Promise.resolve(null);
+    tries = tries || 0;
     return fetch(summaryEndpoint(eventId), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (data) {
-      var plays = data.scoringPlays || [];
-      if (!plays.length && data.plays) plays = data.plays.filter(function (p) { return p.scoringPlay; });
-      var hit = plays[plays.length - 1]; if (!hit) return null;
-      var raw = hit.athletesInvolved || hit.participants || [];
+      var plays = (data.scoringPlays && data.scoringPlays.length) ? data.scoringPlays : (data.plays || []).filter(function (p) { return p.scoringPlay; });
+      var hit = null;
+      if (want) hit = plays.filter(function (p) { return String(p.awayScore) === String(want.away) && String(p.homeScore) === String(want.home); }).pop()
+        || plays.filter(function (p) { return p.team && String(p.team.id) === String(want.teamId); }).pop();
+      var fresh = hit && want && String(hit.awayScore) === String(want.away) && String(hit.homeScore) === String(want.home);
+      if (!fresh && want && tries < 4) return new Promise(function (res) { setTimeout(function () { res(fetchLastScore(eventId, want, tries + 1)); }, 4000); });
+      hit = hit || plays[plays.length - 1]; if (!hit) return null;
+      var raw = (hit.athletesInvolved || hit.participants || []).slice().sort(function (a, b) { return (a.type === "scorer" ? 0 : 1) - (b.type === "scorer" ? 0 : 1); });
       var cdn = sport() === "soccer" ? "soccer" : (leaguePath().split("/")[1] || "");
       var athletes = raw.map(function (a) { var at = a.athlete || a; var id = at.id;
-        return { name: at.displayName || at.fullName || at.shortName || "", headshot: (at.headshot && at.headshot.href) || (typeof at.headshot === "string" ? at.headshot : "") || (id ? "https://a.espncdn.com/i/headshots/" + cdn + "/players/full/" + id + ".png" : "") }; })
+        return { name: at.displayName || at.fullName || at.shortName || "", role: a.type || "", headshot: (at.headshot && at.headshot.href) || (typeof at.headshot === "string" ? at.headshot : "") || (id ? "https://a.espncdn.com/i/headshots/" + cdn + "/players/full/" + id + ".png" : "") }; })
         .filter(function (a) { return a.name; });
-      return { text: hit.text || (hit.type && hit.type.text) || "", athletes: athletes, name: athletes[0] ? athletes[0].name : "" };
+      var scorer = athletes.find(function (a) { return a.role === "scorer"; }) || athletes[0];
+      var assists = athletes.filter(function (a) { return a.role === "assister"; }).map(function (a) { return a.name.split(" ").slice(-1)[0]; });
+      var strength = hit.strength && (hit.strength.text || hit.strength.abbreviation) || "";
+      var line = "";
+      if (sport() === "hockey") line = (strength && !/even/i.test(strength) ? strength + " Goal" : "Goal") + (assists.length ? " · " + assists.join(", ") : " · Unassisted");
+      return { text: hit.text || (hit.type && hit.type.text) || "", athletes: scorer ? [scorer].concat(athletes.filter(function (a) { return a !== scorer; })) : athletes, name: scorer ? scorer.name : "", line: line };
     }).catch(function () { return null; });
   }
 
@@ -1078,6 +1093,7 @@
 
   // Builds the two-line alert: player name, then "{yards} Yd {play}".
   function playLine(item, yards) {
+    if (item.line) return item.line;
     var y = yards ? yards + " Yd " : "";
     switch (item.category) {
       case "TOUCHDOWN":            return y + "Touchdown";

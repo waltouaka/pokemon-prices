@@ -84,8 +84,9 @@
 .b-netflix .tm.h .nums{justify-content:flex-start}
 .b-netflix .rc{font-size:22px;font-weight:800;color:color-mix(in srgb,var(--c) 45%,#cfe);letter-spacing:.02em}
 .b-netflix .sc{font-size:54px;font-weight:900;font-stretch:110%;min-width:60px;text-align:center;margin-top:-6px}
-.b-netflix .to{position:absolute;bottom:2px;right:0;gap:8px}
-.b-netflix .tm.h .to{left:0;right:auto}
+.b-netflix .to{gap:8px}
+.b-netflix .tofx{position:absolute;bottom:2px;right:0}
+.b-netflix .tm.h .tofx{left:0;right:auto;flex-direction:row-reverse}
 .b-netflix .to b{width:44px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--c) 55%,#fff);opacity:.25}
 .b-netflix .to b.on{opacity:.95}
 .b-netflix .mid{width:250px;margin:-5px 2px 0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
@@ -102,3 +103,14 @@
 .b-netflix .top{height:30px}
 .b-netflix .bdd{font-size:22px;color:#e8eaee}
 .b-netflix .rc:empty{display:none}
+/* basketball: fouls / BONUS under the score, slimmer dashes for 7 timeouts */
+.bug .fx{font-size:13px;font-weight:800;letter-spacing:.06em;line-height:1;opacity:.92;white-space:nowrap}
+.bug .fx .bonus{color:#ffd400}
+.bug .to:has(b:nth-child(4)) b{width:11px !important}
+.b-fox .fx{margin-top:-4px;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.bug .tofx{display:flex;align-items:center;gap:8px}
+.bug .tofx:empty{display:none}
+.bug .tm.h .tofx{flex-direction:row-reverse}
+.bug .fx{font-size:12px}
+.b-cbs .col,.b-espn .col{gap:4px;padding-top:0}
+.b-cbs .col:has(.fx) .sc,.b-espn .col:has(.fx) .sc{font-size:44px}
