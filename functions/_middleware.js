@@ -415,7 +415,7 @@ export async function onRequest({ request, env, next }) {
     if (!locked) return toReplay(request, env, null);
   } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
     return next();
-  } else if (path === '/sports-overlay' || path === '/sports-overlay.html' || path === '/sports-overlay.css' || path === '/sports-engine.js') {
+  } else if (path === '/sports-overlay' || path === '/sports-overlay.html' || path === '/sports-overlay.css' || path === '/sports-engine.js' || path === '/sports-bugs.css' || path === '/sports-bugs.js') {
     // the scoreboard OBS overlay is public; its key picks the settings. Never let OBS/browsers keep an old copy.
     const r = await next(); const h = new Headers(r.headers); h.set('cache-control', 'no-cache');
     return new Response(r.body, { status: r.status, headers: h });

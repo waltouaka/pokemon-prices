@@ -305,6 +305,7 @@
 
     return {
       eventId: ev.id,
+      week: ev.week && ev.week.number ? "WEEK " + ev.week.number : "",
       note: (comp.notes && comp.notes[0] && comp.notes[0].headline) || (comp.series && comp.series.summary) || "",
       state: type.state,
       halftime: type.name === "STATUS_HALFTIME",
@@ -400,6 +401,7 @@
     drawField(g);
     if (sport() === "football") detectEvents(g); else detectScores(g);
     basketballExtras(g);
+    drawBug(g);
 
     prev.away = g.away.score;
     prev.home = g.home.score;
@@ -903,6 +905,31 @@
       if (!d) { el.innerHTML = ""; if (sport() === "basketball" || sport() === "ncaab") timeouts($(x[0] + "Tos"), null); return; }
       if (d.to !== null) timeouts($(x[0] + "Tos"), d.to, 7);
       el.innerHTML = d.bonus ? '<b class="bonus">BONUS</b>' : 'FOULS: <b>' + d.fouls + "</b>";
+    });
+  }
+
+  // network scorebugs (CBS, FOX, NBC, Prime, ESPN, Netflix, World Feed): own HTML per network, see sports-bugs.js
+  var LEAGUE_LOGO = { nfl: "nfl", "college-football": "ncaa", nba: "nba", wnba: "wnba", "mens-college-basketball": "ncaa", "womens-college-basketball": "ncaa", nhl: "nhl", mlb: "mlb", "usa.1": "mls", "eng.1": "eng.1", "uefa.champions": "uefa.champions", ufl: "ufl", cfl: "cfl" };
+  function drawBug(g) {
+    var sb = $("sb"), wrap = $("bugwrap");
+    var on = !!(window.SBBugs && wrap && SBBugs.has(cfg.skin));
+    sb.classList.toggle("sb--bug", on);
+    sb.classList.toggle("sb--testing", on && testing);
+    if (!on) { if (wrap) wrap.innerHTML = ""; return; }
+    var s = g.situation, foot = sport() === "football";
+    var team = function (t, k) {
+      var c = t.accent || t.color;
+      return { abbr: t.abbr, logo: logoFor(t), color: c, color2: t.alt && lum(t.alt) > 0.03 ? t.alt : c, ink: inkFor(c), score: t.score, rec: t.record, rank: t.rank,
+        to: foot && s && truthy(cfg.showTimeouts) ? (k === "a" ? s.awayTos : s.homeTos) : null,
+        ball: foot && g.state === "in" && !!(s && s.possessionId) && String(s.possessionId) === String(t.id) };
+    };
+    var clock = $("time").classList.contains("none") ? "" : ($("timeCur").textContent || "");
+    var dd = foot && g.state === "in" && s && s.dd ? String(s.dd).split(/\s+at\s+/i)[0] : "";
+    var lk = leaguePath().split("/")[1] || "nfl";
+    SBBugs.render(wrap, cfg.skin, {
+      a: team(g.away, "a"), h: team(g.home, "h"), period: $("period").textContent || "", clock: clock, dd: dd, status: "",
+      net: lk === "nfl" ? "TNF" : String(cfg.league || "").toUpperCase(), week: g.week || "",
+      leagueLogo: "https://a.espncdn.com/i/teamlogos/leagues/500/" + (LEAGUE_LOGO[lk] || lk) + ".png"
     });
   }
 

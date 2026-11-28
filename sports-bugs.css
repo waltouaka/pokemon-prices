@@ -1,0 +1,155 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,600..900&family=Roboto+Condensed:wght@700;800;900&family=Barlow:wght@700;800;900&display=swap");
+/* ============================================================
+   BROADCAST SCOREBUGS, each one copied from its network
+   ============================================================ */
+.sb--bug .bar,.sb--bug .field,.sb--bug .gnote,.sb--bug .testtag{display:none !important}
+.sb--bug{position:relative;width:max-content !important;min-width:0 !important;padding-top:0 !important}
+.sb--bug .card{position:absolute;inset:0;background:transparent;border:0;box-shadow:none;overflow:hidden}
+.bugwrap{position:relative;display:none}
+.sb--bug .bugwrap{display:block}
+.sb--bug.sb--testing .bugwrap::after{content:"TEST DRIVE";position:absolute;left:50%;top:-18px;transform:translateX(-50%);background:#f2c14e;color:#1a1400;font:700 11px/1 Arial;letter-spacing:.14em;padding:3px 8px;border-radius:4px}
+.bug{position:relative;display:flex;align-items:stretch;color:#fff;-webkit-font-smoothing:antialiased;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.bug .lg{object-fit:contain;display:block}
+.bug small{font-size:.66em;letter-spacing:.02em;margin-right:.12em}
+.bug .sc{font-variant-numeric:tabular-nums;line-height:1}
+.bug .sc.bump{animation:bugBump .7s ease-out}
+@keyframes bugBump{0%{transform:scale(1)}30%{transform:scale(1.18);filter:brightness(1.4)}100%{transform:scale(1)}}
+.bug .to{display:flex;gap:6px}
+.bug .to b{display:block;width:24px;height:4px;border-radius:1px;background:rgba(255,255,255,.25)}
+.bug .to b.on{background:#fff}
+.bug sup.rk{font-size:.5em;font-weight:700;margin-right:2px;vertical-align:.7em;opacity:.95}
+
+/* ---------------- CBS ---------------- */
+.b-cbs{height:66px;font-family:"Archivo",sans-serif;font-stretch:100%;border-radius:3px;overflow:hidden}
+.b-cbs .tm{display:flex;align-items:center;width:210px;padding:0 14px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 92%,#fff),var(--c) 40%,color-mix(in srgb,var(--c) 85%,#000))}
+.b-cbs .tm.h{justify-content:flex-end}
+.b-cbs .lg{width:78px;height:56px}
+.b-cbs .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding-top:6px}
+.b-cbs .sc{font-size:50px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.b-cbs .to b{width:22px;height:3px}
+.b-cbs .mid{width:246px;display:flex;flex-direction:column}
+.b-cbs .bdd{flex:1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;background:linear-gradient(180deg,#2c5bc4,#1c3f93);letter-spacing:.01em}
+.b-cbs .row{flex:1;display:flex;align-items:center;justify-content:center;gap:16px;background:#0b0b0d;font-weight:800;font-size:24px}
+.b-cbs .mid.nodd .bdd{display:none}
+.b-cbs .mid.nodd .row{font-size:28px}
+.b-cbs .sep{width:2px;height:62%;background:#8a8a8a}
+.b-cbs .ck{font-variant-numeric:tabular-nums;font-size:26px}
+
+/* ---------------- FOX (floats on the field, no panel behind the teams) ---------------- */
+.b-fox{display:grid;grid-template-columns:130px 96px 128px 96px 130px;grid-template-rows:30px 64px 22px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.55));font-family:"Archivo",sans-serif}
+.b-fox .bdd{grid-area:1/3/2/6;align-self:start;justify-self:stretch;margin-left:96px;margin-right:0;height:27px;display:flex;align-items:center;padding:0 12px;
+  background:#0b1b3a;color:#fff;font-weight:800;font-size:20px;font-style:italic;letter-spacing:.01em}
+.b-fox .la{grid-area:2/1/4/2;width:120px;height:86px;align-self:center;justify-self:center}
+.b-fox .lb{grid-area:2/5/4/6;width:120px;height:86px;align-self:center;justify-self:center}
+.b-fox .sc-wrap{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px;grid-row:2/4}
+.b-fox .sca{grid-column:2}.b-fox .scb{grid-column:4}
+.b-fox .sc{font-size:66px;font-weight:900;font-stretch:105%;background:linear-gradient(180deg,#ffffff 0%,#e6e6e6 55%,#bdbdbd 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 1px rgba(0,0,0,.45))}
+.b-fox .to{gap:5px}.b-fox .to b{width:22px;height:11px;border-radius:2px;background:rgba(235,235,235,.35)}.b-fox .to b.on{background:#ececec}
+.b-fox .ck{grid-area:2/3/4/4;align-self:center;justify-self:center;margin-top:-6px;display:flex;flex-direction:column;align-items:center;padding:6px 14px 4px;
+  background:rgba(24,30,22,.82);font-weight:900;line-height:1}
+.b-fox .ck b{font-size:34px;font-variant-numeric:tabular-nums}
+.b-fox .ck span{font-size:22px;margin-top:2px}
+
+/* ---------------- NBC (glossy bar, round clock medallion in the middle) ---------------- */
+.b-nbc{height:56px;margin:22px 0 26px;font-family:"Barlow",sans-serif;align-items:stretch}
+.b-nbc .tm{display:flex;align-items:center;gap:10px;width:300px;padding:0 16px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 55%,#fff) 0%,var(--c) 38%,color-mix(in srgb,var(--c) 70%,#000) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
+.b-nbc .tm.a{border-radius:60px 0 0 6px / 56px 0 0 6px;padding-left:22px}
+.b-nbc .tm.h{border-radius:0 60px 6px 0 / 0 56px 6px 0;justify-content:flex-end;padding-right:22px}
+.b-nbc .lg{width:86px;height:52px}
+.b-nbc .id{display:flex;flex-direction:column;align-items:flex-end;line-height:1;position:relative}
+.b-nbc .tm.h .id{align-items:flex-start}
+.b-nbc .id b{font-size:32px;font-weight:900;letter-spacing:.01em}
+.b-nbc .id small{font-size:15px;font-weight:700;opacity:.9;margin-top:2px}
+.b-nbc .id sup.rk{position:absolute;left:-12px;top:-2px;font-size:15px}
+.b-nbc .tm.h .id sup.rk{left:-12px}
+.b-nbc .id em{position:absolute;left:-26px;top:6px;font-style:normal;font-size:18px}
+.b-nbc .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:8px;border-left:1px solid rgba(255,255,255,.25)}
+.b-nbc .tm.h .col{border-left:0;border-right:1px solid rgba(255,255,255,.25)}
+.b-nbc .sc{font-size:42px;font-weight:800}
+.b-nbc .to b{width:20px;height:3px}
+.b-nbc .med{position:relative;z-index:2;width:112px;height:112px;margin:-28px -14px 0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 30%,#6b7079,#30343b 70%);border:3px solid #9aa0a8;box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,255,255,.25);font-weight:800;line-height:1}
+.b-nbc .med b{font-size:28px;font-variant-numeric:tabular-nums}
+.b-nbc .med span{font-size:17px;margin-top:3px}
+.b-nbc .peacock{position:relative;width:34px;height:16px;margin-bottom:3px}
+.b-nbc .peacock i{position:absolute;bottom:0;left:15px;width:5px;height:16px;border-radius:3px 3px 1px 1px;background:#e9ecef;transform-origin:50% 100%}
+.b-nbc .peacock i:nth-child(1){transform:rotate(-62deg)}.b-nbc .peacock i:nth-child(2){transform:rotate(-37deg)}.b-nbc .peacock i:nth-child(3){transform:rotate(-12deg)}
+.b-nbc .peacock i:nth-child(4){transform:rotate(12deg)}.b-nbc .peacock i:nth-child(5){transform:rotate(37deg)}.b-nbc .peacock i:nth-child(6){transform:rotate(62deg)}
+.b-nbc .bddrow{position:absolute;right:20px;left:calc(50% + 40px);bottom:-24px;height:24px;display:flex;align-items:center;justify-content:center;gap:20px;
+  background:linear-gradient(180deg,#22364f,#132339);border-radius:0 0 10px 0;font-weight:800;font-size:17px;letter-spacing:.04em}
+.b-nbc .bddrow em{font-style:normal;font-size:11px;opacity:.7}
+
+/* ---------------- Prime Video TNF ---------------- */
+.b-prime{height:56px;font-family:"Archivo",sans-serif;clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);filter:none;box-shadow:none}
+.b-prime .tm{display:flex;align-items:stretch}
+.b-prime .lgc{width:150px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(115deg,var(--c) 0 58%,#e9edf2 58% 100%)}
+.b-prime .tm.h .lgc{background:linear-gradient(115deg,#e9edf2 0 22%,var(--c) 22% 100%)}
+.b-prime .lg{width:110px;height:54px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.b-prime .sc-c{width:120px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1b3a70,#0c2147)}
+.b-prime .sc{font-size:44px;font-weight:800}
+.b-prime .mid{position:relative;width:300px;display:flex;flex-direction:column;background:#070f22;border-left:3px solid #dfe6f0;border-right:3px solid #dfe6f0;transform:skewX(-14deg)}
+.b-prime .mid > div{transform:skewX(14deg)}
+.b-prime .top{flex:1;display:flex;align-items:stretch}
+.b-prime .net{width:86px;display:flex;align-items:center;justify-content:center;font-weight:900;font-style:italic;font-size:22px;letter-spacing:-.02em}
+.b-prime .bdd{flex:1;display:flex;align-items:center;justify-content:center;margin:3px 6px 0 0;background:linear-gradient(180deg,#f3f6fa,#b9c4d3);color:#0b1630;font-weight:800;font-size:20px}
+.b-prime .bot{flex:1;display:flex;align-items:center;gap:26px;padding-left:44px;font-weight:800}
+.b-prime .pd{font-size:16px;opacity:.9}.b-prime .ck{font-size:24px;font-variant-numeric:tabular-nums}
+
+/* ---------------- ESPN / NFL Network ---------------- */
+.b-espn{height:70px;font-family:"Roboto Condensed",sans-serif;border-radius:6px;overflow:hidden;
+  background:linear-gradient(180deg,#3c3c3e 0%,#1d1d1f 48%,#0b0b0c 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.b-espn .tm{display:flex;align-items:center;width:270px;padding:0 16px}
+.b-espn .tm.a{background:linear-gradient(90deg,color-mix(in srgb,var(--c2) 85%,#fff) 0%,color-mix(in srgb,var(--c2) 40%,transparent) 22%,transparent 46%)}
+.b-espn .tm.h{justify-content:flex-end;background:linear-gradient(270deg,var(--c2) 0%,color-mix(in srgb,var(--c2) 45%,transparent) 30%,transparent 55%)}
+.b-espn .lg{width:96px;height:66px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.b-espn .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:6px}
+.b-espn .sc{font-size:52px;font-weight:900;text-shadow:0 0 10px rgba(255,255,255,.55)}
+.b-espn .to{gap:7px}.b-espn .to b{width:16px;height:5px;border-radius:1px}.b-espn .to b.on{box-shadow:0 0 6px rgba(255,255,255,.7)}
+.b-espn .mid{width:230px;display:flex;flex-direction:column;align-items:center}
+.b-espn .bdd{width:100%;height:34px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:23px;
+  background:linear-gradient(180deg,#e2163a,#8c0b22);clip-path:polygon(0 0,100% 0,95% 100%,5% 100%);text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.b-espn .bdd.empty{background:none}
+.b-espn .pill{margin-top:3px;display:flex;align-items:center;gap:16px;padding:2px 18px;border-radius:999px;background:linear-gradient(180deg,#ffffff,#d9d9d9);color:#111;
+  box-shadow:0 0 0 2px #0b0b0c,0 0 0 3px rgba(255,255,255,.35);font-weight:800;line-height:1.15}
+.b-espn .pd{font-size:16px}.b-espn .ck{font-size:26px;font-variant-numeric:tabular-nums}
+
+/* ---------------- Netflix ---------------- */
+.b-netflix{height:64px;font-family:"Archivo",sans-serif;align-items:flex-start}
+.b-netflix .tm{display:flex;align-items:center;width:290px;height:64px;padding:0 18px;position:relative;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 70%,#fff) 0%,var(--c) 22%,var(--c) 60%,color-mix(in srgb,var(--c) 75%,#000) 100%);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.25)}
+.b-netflix .tm.a{border-radius:10px 0 0 10px}
+.b-netflix .tm.h{border-radius:0 10px 10px 0;justify-content:flex-end}
+.b-netflix .lg{width:118px;height:60px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.b-netflix .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;padding-top:6px;position:relative}
+.b-netflix .col em{position:absolute;left:4px;top:18px;font-style:normal;font-size:20px;color:rgba(255,255,255,.85)}
+.b-netflix .sc{font-size:50px;font-weight:900}
+.b-netflix .to{gap:6px}.b-netflix .to b{width:28px;height:3px}
+.b-netflix .mid{width:240px;height:76px;margin:-4px -2px 0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#38414e,#1d2430);clip-path:polygon(0 0,100% 0,100% 82%,93% 100%,7% 100%,0 82%);font-weight:800;line-height:1}
+.b-netflix .bdd{font-size:24px;min-height:24px}
+.b-netflix .row{display:flex;align-items:baseline;gap:12px;margin-top:5px}
+.b-netflix .pd{font-size:22px;opacity:.9}.b-netflix .ck{font-size:36px;font-variant-numeric:tabular-nums}
+
+/* ---------------- NFL World Feed ---------------- */
+.b-world{height:50px;font-family:"Roboto Condensed",sans-serif;border-radius:3px;overflow:hidden;filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))}
+.b-world .lgl{width:96px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1f3f86,#0f2557)}
+.b-world .lgl .lg{width:44px;height:44px}
+.b-world .tm{display:flex;align-items:stretch;background:var(--c);color:var(--ink)}
+.b-world .lgc{width:120px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 85%,#fff)}
+.b-world .lgc .lg{width:150px;height:150px;object-fit:cover;opacity:.95}
+.b-world .tm.h .lgc{background:#e6e6e6}
+.b-world .id{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;padding:0 12px 0 52px;position:relative;min-width:150px}
+.b-world .id b{font-size:34px;font-weight:800;line-height:1}
+.b-world .id small{position:absolute;left:10px;top:14px;font-size:15px;font-weight:700}
+.b-world .id .to{position:absolute;left:10px;bottom:5px;gap:5px}.b-world .id .to b{width:16px;height:3px;background:color-mix(in srgb,var(--ink) 25%,transparent)}.b-world .id .to b.on{background:var(--ink)}
+.b-world .sc-c{width:84px;display:flex;align-items:center;justify-content:center;gap:4px;background:color-mix(in srgb,var(--c) 82%,#000);border-left:2px solid rgba(255,255,255,.35)}
+.b-world .sc-c em{font-style:normal;font-size:20px}
+.b-world .sc{font-size:42px;font-weight:800}
+.b-world .clk{width:230px;display:flex;align-items:center;gap:30px;padding:0 18px;background:linear-gradient(180deg,#ffffff,#dedede);color:#111;font-weight:800}
+.b-world .pd{font-size:30px}.b-world .ck{font-size:36px;font-variant-numeric:tabular-nums}
+.b-world .wk{width:180px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1f3f86,#0f2557);font-size:30px;font-weight:700;letter-spacing:.02em}
+.b-world .wk:empty{display:none}
