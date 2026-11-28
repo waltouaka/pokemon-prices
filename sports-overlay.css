@@ -623,3 +623,49 @@ body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 
 .skin-neon .side--away .abbr{text-shadow:0 0 12px var(--away)}
 .skin-neon .side--home .abbr{text-shadow:0 0 12px var(--home)}
 .skin-neon .clock{text-shadow:0 0 10px rgba(255,255,255,.35)}
+
+/* ---- TV: NBA-broadcast bug. Team-color blocks with logo + big score, white clock plate,
+        thin black strip underneath with names, fouls/bonus and timeouts ---- */
+.skin-tv .card{border:0;background:#000;border-radius:4px}
+.skin-tv .bar{display:grid;padding:0;gap:0;border:0;background:#000;align-items:stretch;
+  grid-template-columns:max-content minmax(96px,max-content) minmax(118px,max-content) minmax(96px,max-content) max-content;
+  grid-template-rows:62px 24px;
+  grid-template-areas:"la sa c sb lb" "ia ia x ib ib"}
+.skin-tv .bar::before{display:none}
+.skin-tv .side{display:contents}
+.skin-tv .side--away .logo{grid-area:la;background:var(--away)}
+.skin-tv .side--home .logo{grid-area:lb;background:var(--home)}
+.skin-tv .logo,.skin-tv.sb--min .logo{width:auto;height:62px;padding:8px 10px 8px 14px;object-fit:contain;box-sizing:border-box;aspect-ratio:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.skin-tv .side--home .logo{padding:8px 14px 8px 10px}
+.skin-tv .score{border-radius:0;box-shadow:none;display:flex;align-items:center;justify-content:center;font-size:54px;font-weight:900;padding:0 14px}
+.skin-tv .score--away{color:var(--away-ink)}.skin-tv .score--home{color:var(--home-ink)}
+.skin-tv .logo[src=""]{visibility:visible}
+.skin-tv .score--away{grid-area:sa;background:var(--away)}
+.skin-tv .score--home{grid-area:sb;background:var(--home)}
+.skin-tv .score.wide{font-size:48px}
+.skin-tv .center{grid-area:c;background:#fff;color:#0b0b10;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 14px}
+.skin-tv .clock{display:flex;flex-direction:column-reverse;align-items:center;line-height:1;color:#0b0b10}
+.skin-tv .time{margin:0;font-size:34px;font-weight:900;min-width:0;text-align:center;height:1.05em;line-height:1.05em}
+.skin-tv .time__row{height:1.05em;line-height:1.05em}
+.skin-tv .time__track.flip{transform:translateY(-1.05em)}
+.skin-tv .period{font-size:15px;font-weight:800;letter-spacing:.04em;margin-top:2px}
+.skin-tv .sb--noclock .period,.skin-tv.sb--noclock .period{font-size:24px}
+.skin-tv .dd{font-size:12px;color:#0b0b10;margin-top:1px;min-height:0}
+.skin-tv .rz{display:none}
+.skin-tv .ident{display:flex;align-items:center;gap:10px;padding:0 12px;background:#000;min-width:0}
+.skin-tv .side--away .ident{grid-area:ia}
+.skin-tv .side--home .ident{grid-area:ib;flex-direction:row-reverse}
+.skin-tv .abbr,.skin-tv.sb--min .abbr{font-size:17px;font-weight:800;letter-spacing:.06em;line-height:1}
+.skin-tv .meta,.skin-tv.sb--min .meta{margin:0;gap:10px;flex:1}
+.skin-tv .side--away .meta{justify-content:flex-end}
+.skin-tv .side--home .meta{justify-content:flex-start;flex-direction:row-reverse}
+.skin-tv .rec,.skin-tv.sb--min .rec{font-size:13px;opacity:.75}
+.skin-tv .fouls{font-size:12px}
+.skin-tv .fouls b.bonus{background:none;color:#fff;padding:0;letter-spacing:.12em}
+.skin-tv .fouls b.bonus::after{content:" ▸";color:var(--fd)}
+.skin-tv .tos b{width:8px;height:4px}
+.skin-tv .side::after,.skin-tv .poss{display:none}
+.skin-tv .bar::after{content:"";grid-area:x;background:#000}
+.skin-tv .gnote{width:auto;margin:0;border-radius:4px 4px 0 0;background:#000;color:#fff;text-align:center;font-size:12px;padding:4px 10px 3px;letter-spacing:.14em;border-bottom:1px solid #222}
+.skin-tv.sb--min .bar{padding:0;grid-template-columns:max-content minmax(84px,max-content) minmax(108px,max-content) minmax(84px,max-content) max-content}
+.skin-tv.sb--min .score--away,.skin-tv.sb--min .score--home{translate:0 0}
