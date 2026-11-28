@@ -507,7 +507,8 @@ body{background:transparent;overflow:hidden}
 .dd .bases i.on{background:var(--fd);border-color:var(--fd);opacity:1}
 .dd .bases .b1{right:1px;top:7px}.dd .bases .b2{left:10px;top:1px}.dd .bases .b3{left:1px;top:7px}
 /* preview inside the control room */
-body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/24px 24px;padding:24px}
+body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/48px 48px;padding:0;width:1920px;height:1080px}
+body.preview #sb{cursor:grab}
 
 /* playoff / series note, a tab sitting on the top edge of the card */
 .gnote{display:none;width:max-content;max-width:100%;margin:0 auto;padding:3px 14px 2px;background:var(--fd);color:#1a1400;
@@ -765,3 +766,6 @@ body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 
 .bp--chip .bp__name{order:1;font-size:21px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap}
 .bp--chip .bp__name em{display:none}
 .bp--chip .bp__tag{order:2;margin-top:4px;font-size:14px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--fd,#f2c14e);white-space:nowrap}
+
+/* position on the 1920×1080 canvas (set from the control room) */
+#sb{position:absolute;left:var(--pos-x,40px);top:var(--pos-y,40px)}
