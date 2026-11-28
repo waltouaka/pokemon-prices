@@ -246,6 +246,11 @@ export async function onRequest({ request, env, next }) {
     // the Worker's built-in proxy lives on "/" (/?url=… and /?channel=…), which OBS calls without logging in
     const isProxy = path === '/' && (url.searchParams.has('url') || url.searchParams.has('channel'));
     if (path.startsWith('/__clipvid/') && request.method === 'GET') return clipVideo(request, url);
+    // your SpongeBob Flashback title cards (replace the Worker's placeholder videos)
+    if ((path === '/fb-intro.mp4' || path === '/fb-outro.mp4') && env.ASSETS) {
+      const r = await env.ASSETS.fetch(new Request('https://assets.local/replay' + path, { headers: request.headers }));
+      if (r.ok || r.status === 206) { const h = new Headers(r.headers); h.set('content-type', 'video/mp4'); h.set('access-control-allow-origin', '*'); h.set('cache-control', 'public, max-age=300'); return new Response(r.body, { status: r.status, headers: h }); }
+    }
     const ours_ = path === '/api/clip' || path.startsWith('/api/clip/') || path === '/api/upload';
     const locked = ours_ || (!isProxy && (path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html'));
     if (!locked) return toReplay(request, env);
