@@ -28,7 +28,7 @@
   .btn{border:0;border-radius:10px;background:var(--tile);padding:10px 14px;cursor:pointer;font-size:13px}
   .btn:hover{background:var(--tile2)}
   .btn.white{background:#fff;color:#000;font-weight:900}
-  .grid{display:grid;grid-template-columns:minmax(380px,460px) minmax(0,1fr);gap:16px;align-items:start}
+  .grid{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:16px;align-items:start}
   .panel{background:rgba(0,0,0,.25);border-radius:16px;overflow:hidden}
   .tabs{display:flex;gap:4px;padding:6px;background:rgba(0,0,0,.25)}
   .tabs button{flex:1;border:0;border-radius:10px;padding:11px;background:transparent;cursor:pointer;color:var(--muted);font-size:14px}
@@ -89,15 +89,10 @@
   .vis .btn{min-width:84px;font-weight:900}
   .vis .btn.on{background:#3ddc84;color:#000}
   .vis .btn.off.on{background:#ff2a2a;color:#fff}
-  .stage{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:12px;background:#000}
-  .stage iframe{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;transform-origin:0 0;display:block}
-  .stage .res{position:absolute;right:8px;bottom:6px;font-size:11px;color:rgba(255,255,255,.45);pointer-events:none}
-  .posrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-  .posrow label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  iframe{width:100%;height:340px;border:0;border-radius:12px;background:#000;display:block}
+  .posrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+  .posrow label{display:flex;align-items:center;gap:6px}
   .posrow input{width:76px;background:rgba(0,0,0,.4);border:0;border-radius:8px;padding:7px 8px;box-shadow:inset 0 0 0 1px var(--line);color:#fff}
-  .spots{display:grid;grid-template-columns:repeat(3,26px);gap:3px}
-  .spots button{width:26px;height:18px;border:0;border-radius:4px;background:var(--tile);cursor:pointer}
-  .spots button:hover{background:#fff}
   .hint{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.5}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(90px);background:#fff;color:#000;padding:11px 18px;border-radius:12px;transition:.25s;z-index:99;font-weight:800}
   .toast.show{transform:translateX(-50%) translateY(0)}
@@ -136,20 +131,11 @@
     <div class="prevbox">
       <div class="prevhead">
         <span class="lbl">Preview</span>
-        <div class="vis"><button class="btn on" id="zFit">Whole screen</button><button class="btn" id="z100">100%</button></div>
         <div class="vis"><button class="btn on" id="showBtn">Show</button><button class="btn off" id="hideBtn">Hide</button></div>
       </div>
-      <div class="stage" id="stage"><iframe id="prev" title="preview"></iframe><span class="res">1920 × 1080 · drag the scoreboard to move it</span></div>
-      <div class="posrow">
-        <label>X <input type="number" id="posX" step="1"></label>
-        <label>Y <input type="number" id="posY" step="1"></label>
-        <div class="spots" id="spots" title="Quick spots">
-          <button data-s="tl" title="Top left"></button><button data-s="tc" title="Top center"></button><button data-s="tr" title="Top right"></button>
-          <button data-s="ml" title="Middle left"></button><button data-s="mc" title="Center"></button><button data-s="mr" title="Middle right"></button>
-          <button data-s="bl" title="Bottom left"></button><button data-s="bc" title="Bottom center"></button><button data-s="br" title="Bottom right"></button>
-        </div>
-        <button class="btn" id="posReset">Reset</button>
-      </div>
+      <iframe id="prev" title="preview"></iframe>
+      <div class="posrow"><span>Drag the scoreboard in the preview to move it.</span>
+        <label>X <input type="number" id="posX"></label><label>Y <input type="number" id="posY"></label><button class="btn" id="posReset">Reset</button></div>
       <div class="hint">Add the overlay to OBS as a <b>Browser source</b> (1920 × 1080). Paste the URL from <b>Copy overlay URL</b>. Every change here shows up on stream within a second, no refresh needed.</div>
     </div>
   </div>
@@ -267,9 +253,8 @@ function publish() {
   clearTimeout(kvT); kvT = setTimeout(() => fetch('/api/sb-config?key=' + KEY, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload()) }).catch(() => {}), 2500);
   drawCur(); syncVis();
 }
-// position on the 1920×1080 canvas (same as OBS)
-if (C.posX == null) C.posX = 40; if (C.posY == null) C.posY = 40;
-$('prev').src = '/sports-overlay?preview=1&v=1795850453';
+if (C.posX == null) C.posX = 24; if (C.posY == null) C.posY = 24;
+$('prev').src = '/sports-overlay?preview=1&v=1795850780';
 addEventListener('message', e => { if (e.origin === location.origin && e.data?.sbReady) $('prev').contentWindow.postMessage({ sb: payload() }, location.origin); });
 
 $('copyUrl').onclick = async () => { try { await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied. Paste it into an OBS Browser source'); } catch (_) { prompt('Copy this URL', overlayUrl()); } };
@@ -380,38 +365,18 @@ $('p-theme').addEventListener('click', e => { const b = e.target.closest('.sw');
 $('p-theme').addEventListener('input', e => { const el = e.target, k = el.dataset.k; if (!k) return; T[k] = el.dataset.type === 'range' ? +el.value : el.value;
   const out = $('p-theme').querySelector(`[data-out="${k}"]`); if (out) out.textContent = el.value; publish(); });
 
-// ---- move the overlay: drag in the preview, type X / Y, or pick a quick spot ----
-// "Whole screen" fits the 1920×1080 canvas; "100%" shows real size, centered on the scoreboard (scroll/drag around)
-let zoomFull = false;
-function fitStage() {
-  const st = $('stage'), f = $('prev');
-  if (!zoomFull) { st.style.aspectRatio = '16/9'; st.style.height = ''; st.style.overflow = 'hidden'; f.style.transform = `scale(${st.clientWidth / 1920})`; return; }
-  st.style.aspectRatio = 'auto'; st.style.height = '300px'; st.style.overflow = 'auto'; f.style.transform = 'none';
-}
-function centerOnBug() { if (!zoomFull) return; const st = $('stage'); st.scrollLeft = Math.max(0, C.posX - 80); st.scrollTop = Math.max(0, C.posY - 90); }
-$('zFit').onclick = () => { zoomFull = false; $('zFit').classList.add('on'); $('z100').classList.remove('on'); fitStage(); };
-$('z100').onclick = () => { zoomFull = true; $('z100').classList.add('on'); $('zFit').classList.remove('on'); fitStage(); centerOnBug(); };
-new ResizeObserver(fitStage).observe($('stage')); fitStage();
+// ---- move it: drag the scoreboard in the preview (same pixels as OBS), or type X / Y ----
 function syncPos() { $('posX').value = Math.round(C.posX); $('posY').value = Math.round(C.posY); }
-function setPos(x, y, quick) { C.posX = Math.round(x); C.posY = Math.round(y); syncPos(); publish(); }
+function setPos(x, y) { C.posX = Math.round(x); C.posY = Math.round(y); syncPos(); publish(); }
 $('posX').oninput = () => setPos(+$('posX').value || 0, C.posY);
 $('posY').oninput = () => setPos(C.posX, +$('posY').value || 0);
-$('posReset').onclick = () => setPos(40, 40);
-const sbBox = () => { try { const d = $('prev').contentDocument, el = d.querySelector('.sb--bug .bug') || d.querySelector('#sb .card') || d.getElementById('sb'); return el.getBoundingClientRect(); } catch (_) { return { width: 600, height: 80 }; } };
-$('spots').onclick = e => { const b = e.target.closest('[data-s]'); if (!b) return; const r = sbBox(), m = 40, k = b.dataset.s;
-  const x = k[1] === 'l' ? m : k[1] === 'c' ? (1920 - r.width) / 2 : 1920 - r.width - m;
-  const y = k[0] === 't' ? m : k[0] === 'm' ? (1080 - r.height) / 2 : 1080 - r.height - m - 70;
-  setPos(x, y); };
-// dragging happens inside the preview (its coordinates are already 1920×1080)
+$('posReset').onclick = () => setPos(24, 24);
 $('prev').addEventListener('load', () => {
   const d = $('prev').contentDocument; let drag = null;
   d.addEventListener('pointerdown', e => { const sb = d.getElementById('sb'); if (!sb || !sb.contains(e.target)) return;
-    drag = { x: e.clientX, y: e.clientY, px: C.posX, py: C.posY }; d.body.style.cursor = 'grabbing'; e.preventDefault(); });
-  d.addEventListener('pointermove', e => { if (!drag) return;
-    let x = drag.px + e.clientX - drag.x, y = drag.py + e.clientY - drag.y;
-    if (!e.shiftKey) { x = Math.round(x / 10) * 10; y = Math.round(y / 10) * 10; }   // snaps to 10px; hold Shift for free
-    setPos(Math.max(-200, Math.min(1900, x)), Math.max(-100, Math.min(1060, y))); });
-  d.addEventListener('pointerup', () => { drag = null; d.body.style.cursor = ''; });
+    drag = { x: e.clientX, y: e.clientY, px: C.posX, py: C.posY }; e.preventDefault(); });
+  d.addEventListener('pointermove', e => { if (!drag) return; setPos(drag.px + e.clientX - drag.x, drag.py + e.clientY - drag.y); });
+  d.addEventListener('pointerup', () => { drag = null; });
 });
 syncPos();
 buildStyles(); buildCustom(); buildTheme(); drawCur(); syncVis(); loadGames(); publish();

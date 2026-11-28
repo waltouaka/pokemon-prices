@@ -99,8 +99,8 @@
     cfg = JSON.parse(JSON.stringify(DEFAULTS));
     Object.keys(o).forEach(function (k) { if (k in cfg && o[k] !== undefined && o[k] !== "") cfg[k] = o[k]; });
     applyTheme(o.theme || {});
-    root.style.setProperty("--pos-x", (isFinite(+o.posX) ? +o.posX : 40) + "px");
-    root.style.setProperty("--pos-y", (isFinite(+o.posY) ? +o.posY : 40) + "px");
+    root.style.setProperty("--pos-x", (isFinite(+o.posX) ? +o.posX : 24) + "px");
+    root.style.setProperty("--pos-y", (isFinite(+o.posY) ? +o.posY : 24) + "px");
     var sameGame = keep.league === cfg.league && keep.teamId === cfg.teamId && keep.eventId === cfg.eventId;
     if (!sameGame) { prev = { playId: null, away: null, home: null, primed: false }; queue = []; drive = { team: null, start: 0 }; lastPeriodText = null; }
     timers.forEach(clearInterval); timers = [];
