@@ -36,7 +36,7 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
   .it{background:rgba(0,0,0,.28);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
   .it .th{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/18px 18px;cursor:zoom-in}
-  .it .th img{max-width:100%;max-height:100%;object-fit:contain}
+  .it .th img,.it .th video{max-width:100%;max-height:100%;object-fit:contain}
   .it .meta{padding:10px 12px 4px;font-size:12px}
   .it .meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
   .it .meta span{color:var(--muted)}
@@ -62,14 +62,14 @@
 <main>
   <div class="drop" id="drop">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-    <b>Drop images to upload</b>
-    <span>click to browse, or paste with Ctrl+V · PNG, JPG, WebP, GIF, AVIF, SVG · up to 24 MB · links are public, the page is not</span>
+    <b>Drop images or clips to upload</b>
+    <span>click to browse, or paste with Ctrl+V · PNG, JPG, WebP, GIF, AVIF, SVG, MP4, WebM, MOV · up to 24 MB · links are public, the page is not</span>
   </div>
   <div class="stats"><h2>Your images</h2><span id="count">…</span><div class="meter"><i id="meter"></i></div><span id="used"></span><input id="q" placeholder="Search by name…"></div>
   <div class="grid" id="grid"></div>
 </main>
-<input type="file" id="file" accept="image/*" multiple hidden>
-<div class="lb" id="lb"><img id="lbImg" alt=""></div>
+<input type="file" id="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple hidden>
+<div class="lb" id="lb"><img id="lbImg" alt=""><video id="lbVid" controls autoplay playsinline style="display:none;max-width:92vw;max-height:88vh;border-radius:10px;background:#000"></video></div>
 <div class="toast" id="toast"></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -95,14 +95,14 @@ function draw(){
   $('count').textContent=`${items.length} image${items.length===1?'':'s'}`;
   let h=''; for(let n=0;n<pending;n++) h+='<div class="up">Uploading…</div>';
   h+=list.map(i=>`<div class="it" data-id="${esc(i.id)}">
-      <div class="th" data-zoom="${esc(i.url)}"><img loading="lazy" src="/i/${esc(i.id)}" alt=""></div>
+      <div class="th" data-zoom="${esc(i.url)}" data-vid="${(i.type||'').startsWith('video/')?1:''}">${(i.type||'').startsWith('video/')?`<video muted preload="metadata" src="/i/${esc(i.id)}#t=0.5"></video>`:`<img loading="lazy" src="/i/${esc(i.id)}" alt="">`}</div>
       <div class="meta"><b title="${esc(i.name)}">${esc(i.name||i.id)}</b><span>${size(i.size||0)} · ${when(i.ts)}</span></div>
       <div class="acts"><button class="btn copy" data-copy="${esc(i.url)}">Copy link</button><a class="btn" href="/i/${esc(i.id)}" target="_blank" title="Open">↗</a><button class="btn del" data-del="${esc(i.id)}" title="Delete">✕</button></div>
     </div>`).join('');
   $('grid').innerHTML=h||'<div class="empty">No images yet. Drop one above.</div>';
 }
 async function upload(files){
-  files=[...files].filter(f=>f.type.startsWith('image/')); if(!files.length) return;
+  files=[...files].filter(f=>/^(image|video)\//.test(f.type)); if(!files.length) return;
   pending+=files.length; draw(); let last=null;
   await Promise.all(files.map(async f=>{
     try{
@@ -130,9 +130,9 @@ $('grid').onclick=async e=>{
     const id=x.dataset.del; const r=await fetch('/api/img/'+id,{method:'DELETE'});
     if(r.ok){ gone.add(id); fresh.delete(id); items=items.filter(i=>i.id!==id); draw(); toast('Deleted'); } else toast('Delete failed');
   }
-  else if(z){ $('lbImg').src=z.dataset.zoom; $('lb').classList.add('show'); }
+  else if(z){ const v=!!z.dataset.vid; $('lbImg').style.display=v?'none':''; $('lbVid').style.display=v?'':'none'; if(v){$('lbVid').src=z.dataset.zoom;}else{$('lbImg').src=z.dataset.zoom;} $('lb').classList.add('show'); }
 };
-$('lb').onclick=()=>$('lb').classList.remove('show');
+$('lb').onclick=e=>{ if(e.target.id==='lbVid') return; $('lb').classList.remove('show'); $('lbVid').pause(); };
 load();
 </script>
 </body>

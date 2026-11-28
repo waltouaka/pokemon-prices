@@ -50,6 +50,8 @@ button{width:100%;border:0;border-radius:12px;padding:15px;background:#fff;color
 </form></body></html>`;
 
 const ICON = '<link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">';
+// private relay channel between the panel and the OBS overlay (derived from the site password, never in the code)
+const clipTopic = async env => 'akaoutlaw-rclip-' + (await tokenFor('clip:' + (env.SITE_PASSWORD || 'none'))).slice(0, 24);
 async function toReplay(request, env) {
   if (!env.REPLAY) return new Response('Replay is not connected yet (missing REPLAY service binding).', { status: 502 });
   // The replay panel was written to run on *.workers.dev: off that address it points OBS at an old
@@ -62,6 +64,19 @@ async function toReplay(request, env) {
   let html = await res.text();
   html = html.replace(/location\.hostname\.endsWith\((['"])workers\.dev\1\)/g, 'true');
   html = html.includes('</head>') ? html.replace('</head>', ICON + '</head>') : ICON + html;
+  // Clips add-on: Settings → Clips in the panel, and a clip player in the OBS overlay
+  const p = new URL(request.url).pathname.toLowerCase();
+  const which = /^\/panel(\.html|\/)?$/.test(p) ? 'clip-panel' : (p.startsWith('/killcam') ? 'clip-overlay' : null);
+  if (which && env.ASSETS) {
+    try {
+      const r = await env.ASSETS.fetch(new Request(`https://assets.local/replay/${which}.js`));
+      if (r.ok) {
+        const js = (await r.text()).replace('__TOPIC__', await clipTopic(env));
+        const tag = `<script>${js.replace(/<\/script/gi, '<\\/script')}</script>`;
+        html = html.includes('</body>') ? html.replace('</body>', tag + '</body>') : html + tag;
+      }
+    } catch (_) {}
+  }
   const headers = new Headers(res.headers); headers.delete('content-length');
   return new Response(html, { status: res.status, statusText: res.statusText, headers });
 }
@@ -71,18 +86,30 @@ async function toReplay(request, env) {
 // Locked:  /api/upload  POST    body = the image, header x-filename
 //          /api/list    GET
 //          /api/img/<id> DELETE
-const TYPES = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'image/svg+xml': 'svg' };
+const TYPES = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'image/svg+xml': 'svg',
+  'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' };
 const MAX_BYTES = 24 * 1024 * 1024; // KV values max out at 25 MiB
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
 const newId = () => { const a = 'abcdefghijkmnpqrstuvwxyz23456789'; const r = crypto.getRandomValues(new Uint8Array(8)); return [...r].map(b => a[b % a.length]).join(''); };
 const publicUrl = (id) => `https://${ROOT}/i/${id}`;
 
-async function serveImage(url, env) {
+async function serveImage(request, url, env) {
   if (!env.IMAGES) return new Response('Image host not connected', { status: 502 });
   const id = url.pathname.slice(3);
   if (!/^[a-z0-9]{8}\.[a-z]{3,4}$/.test(id)) return new Response('Not found', { status: 404 });
-  const { value, metadata } = await env.IMAGES.getWithMetadata('img:' + id, { type: 'stream', cacheTtl: 300 });
+  const isVideo = /\.(mp4|webm|mov)$/.test(id);
+  const { value, metadata } = await env.IMAGES.getWithMetadata('img:' + id, { type: isVideo ? 'arrayBuffer' : 'stream', cacheTtl: 300 });
   if (!value) return new Response('Not found', { status: 404 });
+  if (isVideo) { // videos need byte ranges so players can seek
+    const total = value.byteLength, base = { 'content-type': metadata?.type || 'video/mp4', 'accept-ranges': 'bytes', 'cache-control': 'public, max-age=3600', 'access-control-allow-origin': '*' };
+    const m = (request.headers.get('range') || '').match(/bytes=(\d*)-(\d*)/);
+    if (m && (m[1] || m[2])) {
+      let a = m[1] ? +m[1] : total - +m[2], b = m[1] && m[2] ? Math.min(+m[2], total - 1) : total - 1;
+      if (a >= total || a > b) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${total}` } });
+      return new Response(value.slice(a, b + 1), { status: 206, headers: { ...base, 'content-range': `bytes ${a}-${b}/${total}`, 'content-length': String(b - a + 1) } });
+    }
+    return new Response(value, { headers: { ...base, 'content-length': String(total) } });
+  }
   const h = { 'content-type': metadata?.type || 'application/octet-stream', 'cache-control': 'public, max-age=3600', 'access-control-allow-origin': '*', 'x-content-type-options': 'nosniff' };
   if (metadata?.type === 'image/svg+xml') h['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'"; // no scripts inside SVGs
   return new Response(value, { headers: h });
@@ -92,7 +119,7 @@ async function imageApi(request, url, env, path) {
   if (!env.IMAGES) return json({ error: 'Image storage is not connected yet (missing IMAGES binding)' }, 502);
   if (path === '/api/upload' && request.method === 'POST') {
     const type = (request.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    const ext = TYPES[type]; if (!ext) return json({ error: 'Only PNG, JPG, WebP, GIF, AVIF or SVG' }, 415);
+    const ext = TYPES[type]; if (!ext) return json({ error: 'Only images (PNG, JPG, WebP, GIF, AVIF, SVG) or clips (MP4, WebM, MOV)' }, 415);
     const buf = await request.arrayBuffer();
     if (!buf.byteLength) return json({ error: 'Empty file' }, 400);
     if (buf.byteLength > MAX_BYTES) return json({ error: 'Too big (max 24 MB)' }, 413);
@@ -115,6 +142,67 @@ async function imageApi(request, url, env, path) {
   }
   const del = path.match(/^\/api\/img\/([a-z0-9]{8}\.[a-z]{3,4})$/);
   if (del && request.method === 'DELETE') { await env.IMAGES.delete('img:' + del[1]); return json({ ok: true }); }
+  return json({ error: 'Not found' }, 404);
+}
+
+// ---------- Twitch clips (link → playable MP4) ----------
+// Uses the same public endpoint twitch.tv's own player uses. Only public clips work.
+const TW_CLIENT = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
+function clipSlug(input) {
+  const s = String(input || '').trim();
+  let m = s.match(/clips\.twitch\.tv\/(?:embed\?clip=)?([A-Za-z0-9_-]+)/) || s.match(/twitch\.tv\/[^/]+\/clip\/([A-Za-z0-9_-]+)/);
+  if (m) return m[1];
+  return /^[A-Za-z0-9_-]{4,100}$/.test(s) ? s : null;
+}
+async function clipInfo(slug) {
+  const gql = body => fetch('https://gql.twitch.tv/gql', { method: 'POST', headers: { 'Client-ID': TW_CLIENT, 'content-type': 'text/plain' }, body: JSON.stringify(body) }).then(r => r.json());
+  const [tok, meta] = await Promise.all([
+    gql({ operationName: 'VideoAccessToken_Clip', variables: { slug }, extensions: { persistedQuery: { version: 1, sha256Hash: '36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11' } } }),
+    gql({ query: `query($slug:ID!){clip(slug:$slug){title durationSeconds thumbnailURL broadcaster{displayName}}}`, variables: { slug } }).catch(() => null),
+  ]);
+  const c = tok?.data?.clip; if (!c) return null;
+  const quals = (c.videoQualities && c.videoQualities.length ? c.videoQualities : (c.assets || []).flatMap(a => a.videoQualities || []))
+    .filter(q => q.sourceURL).sort((a, b) => (parseInt(b.quality) || 0) - (parseInt(a.quality) || 0));
+  if (!quals.length || !c.playbackAccessToken) return null;
+  const t = c.playbackAccessToken;
+  const src = `${quals[0].sourceURL}?sig=${t.signature}&token=${encodeURIComponent(t.value)}`;
+  const m = meta?.data?.clip || {};
+  return { slug, src, quality: quals[0].quality, title: m.title || slug, streamer: m.broadcaster?.displayName || '', seconds: m.durationSeconds || null, thumb: m.thumbnailURL || '' };
+}
+async function clipVideo(request, url) {
+  let slug = ''; try { slug = decodeURIComponent(url.pathname.slice('/__clipvid/'.length)); } catch (_) {}
+  if (!/^[A-Za-z0-9_-]{4,100}$/.test(slug)) return new Response('Not found', { status: 404 });
+  const info = await clipInfo(slug); if (!info) return new Response('Clip not found', { status: 404 });
+  const range = request.headers.get('range');
+  const vid = await fetch(info.src, range ? { headers: { range } } : {});
+  const h = new Headers({ 'content-type': 'video/mp4', 'accept-ranges': 'bytes', 'access-control-allow-origin': '*', 'cache-control': 'no-store' });
+  for (const k of ['content-length', 'content-range']) { const v = vid.headers.get(k); if (v) h.set(k, v); }
+  return new Response(vid.body, { status: vid.status, headers: h });
+}
+const fileSafe = s => String(s).replace(/[^\w\- ]+/g, '').trim().slice(0, 80) || 'clip';
+async function clipApi(request, url, env, path) {
+  const slug = clipSlug(url.searchParams.get('url'));
+  if (!slug) return json({ error: "That doesn't look like a Twitch clip link" }, 400);
+  const info = await clipInfo(slug);
+  if (!info) return json({ error: "Couldn't get that clip (deleted, private, or Twitch changed something)" }, 404);
+  if (path === '/api/clip') { const { src, ...pub } = info; return json(pub); }
+  const vid = await fetch(info.src);
+  if (!vid.ok) return json({ error: 'Twitch refused the download (' + vid.status + ')' }, 502);
+  const name = `${fileSafe(info.streamer ? info.streamer + ' - ' + info.title : info.title)}.mp4`;
+  if (path === '/api/clip/download') {
+    const h = new Headers({ 'content-type': 'video/mp4', 'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'no-store' });
+    const len = vid.headers.get('content-length'); if (len) h.set('content-length', len);
+    return new Response(vid.body, { headers: h });
+  }
+  if (path === '/api/clip/save' && request.method === 'POST') {
+    if (!env.IMAGES) return json({ error: 'Storage not connected' }, 502);
+    if (+vid.headers.get('content-length') > MAX_BYTES) return json({ error: 'Clip is over 24 MB, too big for free storage. Use Download instead' }, 413);
+    const buf = await vid.arrayBuffer();
+    if (buf.byteLength > MAX_BYTES) return json({ error: 'Clip is over 24 MB, too big for free storage. Use Download instead' }, 413);
+    const id = `${newId()}.mp4`; const meta = { type: 'video/mp4', name, size: buf.byteLength, ts: Date.now() };
+    await env.IMAGES.put('img:' + id, buf, { metadata: meta });
+    return json({ id, url: publicUrl(id), ...meta });
+  }
   return json({ error: 'Not found' }, 404);
 }
 
@@ -143,20 +231,23 @@ export async function onRequest({ request, env, next }) {
 
   // what runs once someone is allowed in
   const pass = () => {
-    if (isReplay) return toReplay(request, env);
+    if (path === '/api/clip' || path.startsWith('/api/clip/')) return clipApi(request, url, env, path);
+    if (isReplay && path !== '/api/upload') return toReplay(request, env);
     if (path.startsWith('/api/')) return imageApi(request, url, env, path);
     if (isHome && (path === '/' || path === '/index.html')) return env.ASSETS.fetch(new Request(new URL('/home', url), request));
     return next();
   };
 
   // hosted image links are public on the main site and cards site
-  if (!isReplay && path.startsWith('/i/') && request.method === 'GET') return serveImage(url, env);
+  if (!isReplay && path.startsWith('/i/') && request.method === 'GET') return serveImage(request, url, env);
 
   // always open (OBS needs these)
   if (isReplay) {
     // the Worker's built-in proxy lives on "/" (/?url=… and /?channel=…), which OBS calls without logging in
     const isProxy = path === '/' && (url.searchParams.has('url') || url.searchParams.has('channel'));
-    const locked = !isProxy && (path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html');
+    if (path.startsWith('/__clipvid/') && request.method === 'GET') return clipVideo(request, url);
+    const ours_ = path === '/api/clip' || path.startsWith('/api/clip/') || path === '/api/upload';
+    const locked = ours_ || (!isProxy && (path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html'));
     if (!locked) return toReplay(request, env);
   } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
     return next();
