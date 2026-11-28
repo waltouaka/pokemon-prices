@@ -114,3 +114,29 @@
 .bug .fx{font-size:12px}
 .b-cbs .col,.b-espn .col{gap:4px;padding-top:0}
 .b-cbs .col:has(.fx) .sc,.b-espn .col:has(.fx) .sc{font-size:44px}
+/* Netflix: shorter */
+.b-netflix .tm{width:248px;padding:0 16px 0 4px}
+.b-netflix .tm.h{padding:0 4px 0 16px}
+.b-netflix .lg{width:92px;height:64px}
+.b-netflix .nums{gap:16px}
+.b-netflix .rc{font-size:18px}
+.b-netflix .sc{font-size:50px;min-width:52px}
+.b-netflix .to b{width:32px}
+.b-netflix .mid{width:206px}
+.b-netflix .mid.nodd .ck{font-size:44px}
+.b-netflix .ck{font-size:34px}
+/* Netflix: compact */
+.b-netflix{height:64px}
+.b-netflix .tm{width:206px;padding:0 12px 0 2px}
+.b-netflix .tm.h{padding:0 2px 0 12px}
+.b-netflix .lg{width:78px;height:56px}
+.b-netflix .nums{gap:12px}
+.b-netflix .rc{font-size:16px}
+.b-netflix .sc{font-size:44px;min-width:46px;margin-top:-4px}
+.b-netflix .to{gap:5px}.b-netflix .to b{width:24px}
+.b-netflix .mid{width:172px;margin-top:-4px}
+.b-netflix .top{height:24px}.b-netflix .bdd{font-size:19px}
+.b-netflix .pd{font-size:19px}.b-netflix .ck{font-size:30px}
+.b-netflix .mid.nodd .pd{font-size:22px}.b-netflix .mid.nodd .ck{font-size:38px}
+.b-netflix .fx{font-size:11px}
+.b-netflix .sc{margin-top:-10px}.b-netflix .tofx{bottom:3px}
