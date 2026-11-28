@@ -419,6 +419,7 @@
     timeouts($("awayTos"), g.situation ? g.situation.awayTos : null);
     timeouts($("homeTos"), g.situation ? g.situation.homeTos : null);
 
+    var sbx = $("sb"); sbx.setAttribute("data-sport", sport()); sbx.setAttribute("data-state", g.state || "");
     var nt = $("gameNote");
     if (nt) { var nx = truthy(cfg.showNote) ? (g.note || "") : ""; nt.textContent = nx; nt.classList.toggle("on", !!nx); }
     drawStatus(g);
@@ -447,7 +448,7 @@
      ESPN's primary color is often near-black (Steelers, Bears, Ravens),
      which vanishes against the dark panel. Anything too dark falls back
      to the team's alternate color, or a lightened version of itself. */
-  var MIN_LUM = 0.03;
+  var MIN_LUM = 0.012;   // only near-black colors (Raiders, Nets...) swap to the alternate; navy stays navy
 
   function hexToRgb(hex) {
     var h = String(hex || "").replace("#", "");
@@ -582,9 +583,10 @@
 
   function kickoff(iso) {
     try {
-      return new Date(iso).toLocaleString(undefined, {
-        weekday: "short", hour: "numeric", minute: "2-digit"
-      }).toUpperCase();
+      // short like the networks: "7:30 PM" today, "FRI 7:30" another day
+      var d = new Date(iso), today = d.toDateString() === new Date().toDateString();
+      var t = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).toUpperCase();
+      return today ? t : (d.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase() + " " + t.replace(/\s?[AP]M$/, ""));
     } catch (e) { return ""; }
   }
 
@@ -601,7 +603,7 @@
     var sp = sport();
     if (g.state === "post") {
       var regular = sp === "hockey" ? 3 : sp === "ncaab" ? 2 : sp === "baseball" ? 9 : sp === "soccer" ? 2 : 4;
-      setPeriod(g.period > regular ? (sp === "baseball" ? "FINAL / " + g.period : sp === "hockey" && /SO/.test(g.detail) ? "FINAL / SO" : "FINAL / OT") : "FINAL");
+      setPeriod(g.period > regular ? (sp === "baseball" ? "FINAL/" + g.period : sp === "hockey" && /SO/.test(g.detail) ? "FINAL/SO" : "FINAL/OT") : "FINAL");
       setClockDisplay(""); dd.textContent = "";
       poss(null, g);
       return;
@@ -613,7 +615,7 @@
       return;
     }
 
-    if (g.breakText && sp !== "baseball") { setPeriod(g.breakText.toUpperCase()); setClockDisplay(""); dd.textContent = ""; poss(null, g); return; }
+    if (g.breakText && sp !== "baseball") { setPeriod(/end/i.test(g.breakText) ? "END " + ordinal(g.period) : g.breakText.toUpperCase()); setClockDisplay(""); dd.textContent = ""; poss(null, g); return; }
 
     if (sp === "baseball") {
       // "Top 5th" etc. No clock; count, outs and runners go in the line under it
@@ -952,7 +954,7 @@
       var c = t.accent || t.color;
       // very bright team colors (Broncos orange, etc.) swallow a logo of the same color: tone them down behind the logo
       if (lum(c) > 0.18) c = shade(c, lum(c) > 0.35 ? -0.42 : -0.3);
-      return { abbr: t.abbr, logo: logoFor(t), color: c, color2: t.alt && lum(t.alt) > 0.03 ? t.alt : c, ink: inkFor(c), score: t.score, rec: t.record, rank: t.rank,
+      return { abbr: t.abbr, logo: logoFor(t), color: c, color2: t.alt && lum(t.alt) > 0.03 ? t.alt : c, ink: inkFor(c), score: g.state === "pre" ? "" : t.score, rec: t.record, rank: t.rank,
         to: foot && s && truthy(cfg.showTimeouts) ? (k === "a" ? s.awayTos : s.homeTos) : null,
         toMax: 3,
         // basketball: "TOL 6 · FOULS 3" (or BONUS), short like the NBA broadcasts

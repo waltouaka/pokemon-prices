@@ -864,3 +864,49 @@ body.preview #sb{cursor:grab}
 .drive--home{background:linear-gradient(270deg,color-mix(in srgb,var(--home) 25%,transparent),var(--home))}
 .drive.rev.drive--away{background:linear-gradient(270deg,color-mix(in srgb,var(--away) 25%,transparent),var(--away))}
 .drive.rev.drive--home{background:linear-gradient(90deg,color-mix(in srgb,var(--home) 25%,transparent),var(--home))}
+
+/* TV: no down & distance on the plate (it doesn't fit, the NBA broadcast doesn't show it); long labels shrink */
+.skin-tv .dd{display:none}
+.skin-tv .period{white-space:nowrap}
+.skin-tv.sb--noclock .period{font-size:19px}
+.skin-tv .bar{grid-template-columns:120px 118px 150px 118px 120px !important}
+
+/* ===== QA revamp: fixed geometry for the custom styles so nothing grows or shifts between states/sports ===== */
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass).sb--min{
+  --min-cols:206px 96px 172px 96px 206px;min-width:0;width:max-content}
+.skin-jumbo.sb--min{--min-cols:206px 116px 172px 116px 206px}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass,.skin-stack) .center{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;align-self:stretch;min-width:0}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass,.skin-stack) .clock{
+  display:flex;align-items:baseline;justify-content:center;gap:8px;white-space:nowrap}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass,.skin-stack) .time{margin-left:0}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass,.skin-stack) .dd{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass,.skin-stack) .dd:empty{display:none}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass) .side{min-width:0;overflow:hidden}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass) .side--home{justify-content:flex-end}
+:is(.skin-block,.skin-classic,.skin-jumbo,.skin-slant,.skin-neon,.skin-glass) .score{justify-self:center}
+.sb .meta{white-space:nowrap}
+/* basketball: during the game the record makes way for timeouts + fouls, kept compact */
+.sb[data-sport="basketball"]:not([data-state="pre"]):not([data-state="post"]) .rec{display:none}
+.sb[data-sport="basketball"] .tos b{width:8px}
+.sb[data-sport="basketball"] .fouls{font-size:11px;letter-spacing:.04em}
+.sb[data-sport="basketball"] .meta{gap:8px}
+/* stack: fixed column widths too */
+.skin-stack.sb--min .bar,.skin-stack .bar{grid-template-columns:200px 84px 150px}
+
+:is(.skin-block,.skin-classic,.skin-slant,.skin-neon,.skin-glass).sb--min .bar{grid-template-columns:206px 96px 172px 96px 206px !important}
+.skin-jumbo.sb--min .bar{grid-template-columns:206px 116px 172px 116px 206px !important}
+.skin-stack .bar{grid-template-columns:200px 84px 150px !important}
+
+/* classic = no skin class */
+.sb.sb--min:not([class*="skin-"]) .bar{grid-template-columns:206px 96px 172px 96px 206px !important}
+.sb:not([class*="skin-"]) .center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;align-self:stretch}
+.sb:not([class*="skin-"]) .clock{display:flex;align-items:baseline;justify-content:center;gap:8px;white-space:nowrap}
+.sb:not([class*="skin-"]) .time{margin-left:0}
+.sb:not([class*="skin-"]) .dd:empty{display:none}
+.sb:not([class*="skin-"]) .side{min-width:0;overflow:hidden}
+.sb:not([class*="skin-"]) .side--home{justify-content:flex-end}
+.sb[data-sport="basketball"] .tos{gap:2px}
+.sb[data-sport="basketball"] .tos b{width:6px}
+.sb[data-sport="basketball"] .fouls{font-size:10px}
