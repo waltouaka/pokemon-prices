@@ -1123,6 +1123,15 @@
     $("bpMark").src = logo || "";
     bp.className = "bp bp--" + (["chip", "clean", "tab", "takeover"].indexOf(cfg.bigLook) > -1 ? cfg.bigLook : "chip") + (photo ? "" : " nophoto");
     $("bpTag").textContent = String(item.tag || "BIG PLAY");
+    // pop-up goes above the scoreboard unless it's too close to the top of the screen
+    var r = $("sb").getBoundingClientRect();
+    var anchor = ($("sb").classList.contains("sb--bug") && $("bugwrap").firstElementChild) || $("card");
+    var ar = anchor.getBoundingClientRect();
+    var below = ar.top < 80;
+    bp.classList.toggle("below", below);
+    // sit flush on the scoreboard's own edge (some styles keep extra room above themselves)
+    bp.style.bottom = below ? "" : "calc(100% - " + Math.round(ar.top - r.top) + "px)";
+    bp.style.top = below ? Math.round(ar.bottom - r.top) + "px" : "";
     void bp.offsetWidth; bp.classList.add("on");
     setTimeout(function () { bp.classList.remove("on"); setTimeout(done, 450); }, 5200);
   }

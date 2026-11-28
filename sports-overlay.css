@@ -769,3 +769,44 @@ body.preview #sb{cursor:grab}
 
 /* position on the 1920×1080 canvas (set from the control room) */
 #sb{position:absolute;left:var(--pos-x,40px);top:var(--pos-y,40px)}
+
+/* ---- the BIG PLAY pop-up dresses like the scoreboard style it's under ---- */
+/* classic / block / jumbo / slant / neon / glass / stack: your Theme colors */
+.bp--chip{background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 92%,#fff),var(--panel));border-color:var(--panel-edge);font-family:var(--font)}
+.bp--chip .bp__name{color:var(--ink)}
+/* TV (NBA broadcast): black strip with the wide font, play in white with ▶ */
+.skin-tv .bp--chip{background:linear-gradient(180deg,rgba(38,38,40,.98),rgba(16,16,18,.96));border:0;border-radius:0 0 10px 10px;font-family:"Archivo",sans-serif}
+.skin-tv .bp--chip .bp__name{font-stretch:118%;color:#fff}
+.skin-tv .bp--chip .bp__tag{color:#fff;font-stretch:112%}
+.skin-tv .bp--chip .bp__tag::after{content:" ▶";font-size:.8em}
+/* CBS: black with the CBS blue band on top, square corners */
+.sb--bug:has(.b-cbs) .bp--chip{background:#0b0b0d;border:0;border-top:4px solid #2c5bc4;border-radius:0 0 3px 3px;font-family:"Archivo",sans-serif;padding-right:22px}
+.sb--bug:has(.b-cbs) .bp--chip .bp__tag{color:#8fb0ff}
+/* FOX: navy box, italic like its down & distance bar */
+.sb--bug:has(.b-fox) .bp--chip{background:#0b1b3a;border:0;border-radius:0;font-family:"Archivo",sans-serif;font-style:italic}
+.sb--bug:has(.b-fox) .bp--chip .bp__tag{color:#ffc72c}
+/* ESPN / NFL Network: dark glossy with the red tab look */
+.sb--bug:has(.b-espn) .bp--chip{background:linear-gradient(180deg,#3c3c3e,#1d1d1f 48%,#0b0b0c);border:0;border-bottom:3px solid #e2163a;border-radius:0 0 8px 8px;font-family:"Roboto Condensed",sans-serif}
+.sb--bug:has(.b-espn) .bp--chip .bp__tag{color:#ff5a72}
+/* Netflix: the same slate as its center tab, hanging trapezoid */
+.sb--bug:has(.b-netflix) .bp--chip{background:linear-gradient(180deg,#2e3036,#141518);border:0;border-radius:0;padding:6px 26px 8px 10px;
+  clip-path:polygon(0 0,100% 0,96% 100%,4% 100%);font-family:"Archivo",sans-serif}
+.sb--bug:has(.b-netflix) .bp--chip .bp__tag{color:#c9ccd2}
+
+/* ---- BIG PLAY pop-up: sits ABOVE the scoreboard in a darker shade of the team's color ---- */
+.bp--chip,.sb--bug .bp--chip{top:auto !important;bottom:100%;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--bp) 66%,#000),color-mix(in srgb,var(--bp) 48%,#000)) !important;
+  border:0 !important;border-top:3px solid color-mix(in srgb,var(--bp) 80%,#fff) !important;border-radius:10px 10px 0 0 !important;
+  clip-path:none !important;padding:7px 22px 7px 7px !important;transform:translate(-50%,12px)}
+.bp--chip.on{transform:translate(-50%,0)}
+.bp--chip .bp__name{color:#fff !important}
+.bp--chip .bp__tag{color:color-mix(in srgb,var(--bp) 35%,#fff) !important}
+.bp--chip .bp__photo{box-shadow:0 0 0 2px rgba(255,255,255,.85),0 0 0 4px rgba(0,0,0,.25)}
+/* shapes that match the style it's on */
+.sb--bug:has(.b-cbs) .bp--chip,.sb--bug:has(.b-fox) .bp--chip{border-radius:3px 3px 0 0 !important}
+.sb--bug:has(.b-netflix) .bp--chip{clip-path:polygon(4% 0,96% 0,100% 100%,0 100%) !important;border-radius:0 !important;padding:7px 30px 7px 16px !important}
+/* not enough room above (scoreboard near the top of the screen): drop below instead */
+.bp--chip.below,.sb--bug .bp--chip.below{bottom:auto !important;top:100% !important;border-radius:0 0 10px 10px !important;border-top:0 !important;
+  border-bottom:3px solid color-mix(in srgb,var(--bp) 80%,#fff) !important;transform:translate(-50%,-12px)}
+.bp--chip.below.on{transform:translate(-50%,0)}
+.sb--bug:has(.b-netflix) .bp--chip.below{clip-path:polygon(0 0,100% 0,96% 100%,4% 100%) !important}

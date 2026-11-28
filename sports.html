@@ -82,6 +82,7 @@
   .mini{height:34px;border-radius:7px;display:flex;overflow:hidden;min-width:0;align-items:stretch;font-weight:900;font-size:15px}
   .mini span{display:flex;align-items:center;justify-content:center;padding:0 8px}
   .seg2{display:flex;gap:6px;margin-bottom:12px}.seg2 .btn{flex:1}.seg2 .btn.on{background:#fff;color:#000}
+  .grid > .prevbox{grid-column:1 / -1;order:-1;position:static}
   .prevbox{background:rgba(0,0,0,.25);border-radius:16px;padding:12px;position:sticky;top:12px}
   .prevhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .prevhead .lbl{color:var(--muted);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;margin-right:auto}
@@ -136,6 +137,7 @@
     <div class="prevbox">
       <div class="prevhead">
         <span class="lbl">Preview</span>
+        <div class="vis"><button class="btn on" id="zFit">Whole screen</button><button class="btn" id="z100">100%</button></div>
         <div class="vis"><button class="btn on" id="showBtn">Show</button><button class="btn off" id="hideBtn">Hide</button></div>
       </div>
       <div class="stage" id="stage"><iframe id="prev" title="preview"></iframe><span class="res">1920 × 1080 · drag the scoreboard to move it</span></div>
@@ -380,7 +382,16 @@ $('p-theme').addEventListener('input', e => { const el = e.target, k = el.datase
   const out = $('p-theme').querySelector(`[data-out="${k}"]`); if (out) out.textContent = el.value; publish(); });
 
 // ---- move the overlay: drag in the preview, type X / Y, or pick a quick spot ----
-function fitStage() { const w = $('stage').clientWidth; $('prev').style.transform = `scale(${w / 1920})`; }
+// "Whole screen" fits the 1920×1080 canvas; "100%" shows real size, centered on the scoreboard (scroll/drag around)
+let zoomFull = false;
+function fitStage() {
+  const st = $('stage'), f = $('prev');
+  if (!zoomFull) { st.style.aspectRatio = '16/9'; st.style.height = ''; st.style.overflow = 'hidden'; f.style.transform = `scale(${st.clientWidth / 1920})`; return; }
+  st.style.aspectRatio = 'auto'; st.style.height = '300px'; st.style.overflow = 'auto'; f.style.transform = 'none';
+}
+function centerOnBug() { if (!zoomFull) return; const st = $('stage'); st.scrollLeft = Math.max(0, C.posX - 80); st.scrollTop = Math.max(0, C.posY - 90); }
+$('zFit').onclick = () => { zoomFull = false; $('zFit').classList.add('on'); $('z100').classList.remove('on'); fitStage(); };
+$('z100').onclick = () => { zoomFull = true; $('z100').classList.add('on'); $('zFit').classList.remove('on'); fitStage(); centerOnBug(); };
 new ResizeObserver(fitStage).observe($('stage')); fitStage();
 function syncPos() { $('posX').value = Math.round(C.posX); $('posY').value = Math.round(C.posY); }
 function setPos(x, y, quick) { C.posX = Math.round(x); C.posY = Math.round(y); syncPos(); publish(); }
