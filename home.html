@@ -31,6 +31,10 @@
   .tool .go{position:absolute;right:22px;top:26px;font-size:22px;color:#a99cc0;transition:transform .15s,color .15s}
   a.tool:hover .go{transform:translateX(4px);color:#fff}
   .links{margin-top:34px;display:flex;gap:10px}
+  .who{display:flex;align-items:center;gap:10px;margin:-22px 0 30px;padding:8px 14px 8px 8px;border-radius:999px;background:rgba(255,255,255,.07);font-size:14px}
+  .who img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+  .who .tw{color:#bf94ff;display:flex;align-items:center;gap:6px}
+  .who .adm{background:#fff;color:#000;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:900;letter-spacing:.5px}
   .links a{color:#a99cc0;text-decoration:none;font-size:14px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.05)}
   .links a:hover{color:#fff;background:rgba(255,255,255,.1)}
 </style>
@@ -40,6 +44,7 @@
   <img class="pfp" src="https://unavatar.io/twitch/akaoutlaw" alt="akaoutlaw" onerror="this.style.visibility='hidden'">
   <h1>akaoutlaw</h1>
   <div class="sub">Stream tools</div>
+  <div class="who" id="who" hidden></div>
   <div class="tools">
     <a class="tool" href="https://replay.outlawswitchmyshit.com/panel">
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg></div>
@@ -67,5 +72,10 @@
     </a>
   </div>
   <div class="links"><a id="twlink" href="https://twitch.tv/akaoutlaw" target="_blank" rel="noopener">twitch.tv/akaoutlaw ↗</a><a href="/__logout">Log out</a></div>
+<script>
+(function(){ var M=window.__ME, w=document.getElementById('who'); if(!M||M.id==='admin'||!w) return;
+  w.innerHTML='<img alt=""><span>Signed in as <b></b></span><span class="tw"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.3 3 3 6.5v13.1h4.5V22h2.5l2.4-2.4h3.6l4.9-4.9V3H4.3zm14.9 10.9-2.8 2.8h-4.5L9.5 19.1v-2.4H5.8V4.6h13.4v9.3zm-2.8-5.7v4.9h-1.6V8.2h1.6zm-4.5 0v4.9h-1.6V8.2h1.6z"/></svg>Twitch</span>'+(M.admin?'<span class="adm">ADMIN</span>':'');
+  w.querySelector('img').src=M.pfp||''; w.querySelector('b').textContent=M.name; w.hidden=false; })();
+</script>
 </body>
 </html>
