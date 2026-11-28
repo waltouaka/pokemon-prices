@@ -10,6 +10,8 @@
 .sb--bug.sb--testing .bugwrap::after{content:"TEST DRIVE";position:absolute;left:50%;top:-18px;transform:translateX(-50%);background:#f2c14e;color:#1a1400;font:700 11px/1 Arial;letter-spacing:.14em;padding:3px 8px;border-radius:4px}
 .bug{position:relative;display:flex;align-items:stretch;color:#fff;-webkit-font-smoothing:antialiased;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
 .bug .lg{object-fit:contain;display:block}
+/* soft dark outline so every logo separates from its panel */
+.bug .tm .lg{filter:drop-shadow(0 0 1px rgba(0,0,0,.75)) drop-shadow(0 0 6px rgba(0,0,0,.45)) !important}
 .bug small{font-size:.66em;letter-spacing:.02em;margin-right:.12em}
 .bug .sc{font-variant-numeric:tabular-nums;line-height:1}
 .bug .sc.bump{animation:bugBump .7s ease-out}

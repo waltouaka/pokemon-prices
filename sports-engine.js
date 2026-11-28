@@ -919,6 +919,8 @@
     var s = g.situation, foot = sport() === "football";
     var team = function (t, k) {
       var c = t.accent || t.color;
+      // very bright team colors (Broncos orange, etc.) swallow a logo of the same color: tone them down behind the logo
+      if (lum(c) > 0.18) c = shade(c, lum(c) > 0.35 ? -0.42 : -0.3);
       return { abbr: t.abbr, logo: logoFor(t), color: c, color2: t.alt && lum(t.alt) > 0.03 ? t.alt : c, ink: inkFor(c), score: t.score, rec: t.record, rank: t.rank,
         to: foot && s && truthy(cfg.showTimeouts) ? (k === "a" ? s.awayTos : s.homeTos) : null,
         ball: foot && g.state === "in" && !!(s && s.possessionId) && String(s.possessionId) === String(t.id) };
