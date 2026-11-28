@@ -65,7 +65,7 @@
     <b>Drop images or clips to upload</b>
     <span>click to browse, or paste with Ctrl+V · PNG, JPG, WebP, GIF, AVIF, SVG, MP4, WebM, MOV · up to 24 MB · links are public, the page is not</span>
   </div>
-  <div class="stats"><h2>Your images</h2><span id="count">…</span><div class="meter"><i id="meter"></i></div><span id="used"></span><input id="q" placeholder="Search by name…"></div>
+  <div class="stats"><h2>Your images</h2><span id="count">…</span><div class="meter"><i id="meter"></i></div><span id="used"></span><label id="allWrap" style="display:none;align-items:center;gap:6px;color:#fff"><input type="checkbox" id="all"> Everyone's uploads</label><input id="q" placeholder="Search by name…"></div>
   <div class="grid" id="grid"></div>
 </main>
 <input type="file" id="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple hidden>
@@ -82,7 +82,7 @@ let items=[], pending=0; const gone=new Set(), fresh=new Map(); // Cloudflare's 
 
 async function load(){
   try{
-    const r=await fetch('/api/list',{cache:'no-store'}); const j=await r.json();
+    const r=await fetch('/api/list'+($('all').checked?'?all=1':''),{cache:'no-store'}); const j=await r.json(); if(j.admin) $('allWrap').style.display='flex';
     if(!r.ok) throw new Error(j.error||r.status);
     items=j.items.filter(i=>!gone.has(i.id)); for(const [id,f] of fresh){ if(!items.some(i=>i.id===id)) items.unshift(f); } items.sort((a,b)=>(b.ts||0)-(a.ts||0)); $('meter').style.width=Math.min(100,j.total/LIMIT*100)+'%';
     $('used').textContent=`${size(j.total)} of 1 GB free storage`;
@@ -96,7 +96,7 @@ function draw(){
   let h=''; for(let n=0;n<pending;n++) h+='<div class="up">Uploading…</div>';
   h+=list.map(i=>`<div class="it" data-id="${esc(i.id)}">
       <div class="th" data-zoom="${esc(i.url)}" data-vid="${(i.type||'').startsWith('video/')?1:''}">${(i.type||'').startsWith('video/')?`<video muted preload="metadata" src="/i/${esc(i.id)}#t=0.5"></video>`:`<img loading="lazy" src="/i/${esc(i.id)}" alt="">`}</div>
-      <div class="meta"><b title="${esc(i.name)}">${esc(i.name||i.id)}</b><span>${size(i.size||0)} · ${when(i.ts)}</span></div>
+      <div class="meta"><b title="${esc(i.name)}">${esc(i.name||i.id)}</b><span>${size(i.size||0)} · ${when(i.ts)}${$('all').checked&&i.by?' · '+esc(i.by):''}</span></div>
       <div class="acts"><button class="btn copy" data-copy="${esc(i.url)}">Copy link</button><a class="btn" href="/i/${esc(i.id)}" target="_blank" title="Open">↗</a><button class="btn del" data-del="${esc(i.id)}" title="Delete">✕</button></div>
     </div>`).join('');
   $('grid').innerHTML=h||'<div class="empty">No images yet. Drop one above.</div>';
@@ -121,7 +121,7 @@ const d=$('drop');
 ['dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||!e.relatedTarget)d.classList.remove('over')}));
 document.addEventListener('drop',e=>upload(e.dataTransfer.files));
 window.addEventListener('paste',e=>{const f=[...(e.clipboardData?.items||[])].filter(i=>i.type.startsWith('image/')).map(i=>i.getAsFile());if(f.length)upload(f)});
-$('q').oninput=draw;
+$('q').oninput=draw; $('all').onchange=load;
 $('grid').onclick=async e=>{
   const c=e.target.closest('[data-copy]'), x=e.target.closest('[data-del]'), z=e.target.closest('[data-zoom]');
   if(c){ try{ await navigator.clipboard.writeText(c.dataset.copy); toast('Link copied'); }catch(_){ prompt('Copy this link',c.dataset.copy); } }

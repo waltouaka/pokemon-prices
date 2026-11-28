@@ -4,7 +4,11 @@
 // speed and slow-mo ending all apply. Falls back to a plain full-screen player if that pipeline
 // isn't available.
 (() => {
-  const TOPIC = '__TOPIC__';
+  // private channel between your panel and your overlay, made from your replay key
+  let TOPIC = null;
+  const topicReady = (async () => { const key = ((typeof P==='object'&&P&&P.key)||new URLSearchParams(location.search).get('key')||'') || ''; if (!key) return null;
+    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('clip:' + key));
+    TOPIC = 'aorclip-' + [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 24); return TOPIC; })();
   let lastLook = null, clipRun = null, seen = 0;
 
   // remember the style the overlay is currently set to (the panel pushes it with applyLook)
@@ -79,7 +83,8 @@
     try { const p = doReplay(c); if (p && p.catch) p.catch(() => plainPlay(m.src)); } catch (_) { plainPlay(m.src); }
   }
 
-  function connect() {
+  async function connect() {
+    if (!(await topicReady)) return; // no key in the OBS link
     const es = new EventSource('https://ntfy.sh/' + TOPIC + '/sse');
     es.onmessage = e => {
       try {

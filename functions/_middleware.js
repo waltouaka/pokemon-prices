@@ -23,7 +23,7 @@ const cookieAttrs = (host, age) => `Path=/; Max-Age=${age}; HttpOnly; Secure; Sa
 const safeNext = n => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//')) ? n : '/';
 const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
-const loginPage = (wrong, next) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
+const loginPage = (wrong, next, env, msg) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>akaoutlaw</title>
 <link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
@@ -40,6 +40,8 @@ input{width:100%;background:rgba(0,0,0,.45);color:#fff;border:0;border-radius:12
 input:focus{box-shadow:inset 0 0 0 2px #fff}
 button{width:100%;border:0;border-radius:12px;padding:15px;background:#fff;color:#000;font:inherit;font-weight:900;font-size:16px;cursor:pointer}
 .err{color:#ff8a8a;font-size:14px;min-height:18px}
+.tw{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:12px;padding:15px;background:#9146FF;color:#fff;font-weight:900;font-size:16px;text-decoration:none}
+.tw:hover{filter:brightness(1.1)}
 </style></head><body>
 <form method="POST" action="/__login?next=${encodeURIComponent(next)}">
   <img src="https://unavatar.io/twitch/akaoutlaw" alt="">
@@ -47,12 +49,15 @@ button{width:100%;border:0;border-radius:12px;padding:15px;background:#fff;color
   <input type="password" name="password" placeholder="Password" autocomplete="current-password" autofocus required>
   <button type="submit">Enter</button>
   <div class="err">${wrong ? 'Wrong password, try again.' : ''}</div>
-</form></body></html>`;
+</form></body></html>`.replace(/<form method="POST"[\s\S]*<\/form>/, env && twitchOn(env) ? `<form onsubmit="return false">
+  <img src="https://unavatar.io/twitch/akaoutlaw" alt="">
+  <h1>Stream tools</h1><p>Card prices, replays, background remover &amp; image host.</p>
+  <a class="tw" href="https://${ROOT}/__auth/login?next=${encodeURIComponent(next)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M4.3 3 3 6.5v13.1h4.5V22h2.5l2.4-2.4h3.6l4.9-4.9V3H4.3zm14.9 10.9-2.8 2.8h-4.5L9.5 19.1v-2.4H5.8V4.6h13.4v9.3zm-2.8-5.7v4.9h-1.6V8.2h1.6zm-4.5 0v4.9h-1.6V8.2h1.6z"/></svg>Sign in with Twitch</a>
+  <div class="err">${msg ? esc(msg) : ''}</div>
+</form>` : '$&');
 
 const ICON = '<link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">';
-// private relay channel between the panel and the OBS overlay (derived from the site password, never in the code)
-const clipTopic = async env => 'akaoutlaw-rclip-' + (await tokenFor('clip:' + (env.SITE_PASSWORD || 'none'))).slice(0, 24);
-async function toReplay(request, env) {
+async function toReplay(request, env, me) {
   if (!env.REPLAY) return new Response('Replay is not connected yet (missing REPLAY service binding).', { status: 502 });
   // The replay panel was written to run on *.workers.dev: off that address it points OBS at an old
   // "killcam-v4.html" page the Worker doesn't have. Send those links to the real overlay (/killcam).
@@ -67,11 +72,12 @@ async function toReplay(request, env) {
   // Clips add-on: Settings → Clips in the panel, and a clip player in the OBS overlay
   const p = new URL(request.url).pathname.toLowerCase();
   const which = /^\/panel(\.html|\/)?$/.test(p) ? 'clip-panel' : (p.startsWith('/killcam') ? 'clip-overlay' : null);
+  if (which === 'clip-panel' && me) { const hs = await headScript(env, me, 'replay'); html = html.includes('<head>') ? html.replace('<head>', '<head>' + hs) : hs + html; }
   if (which && env.ASSETS) {
     try {
       const r = await env.ASSETS.fetch(new Request(`https://assets.local/replay/${which}.js`));
       if (r.ok) {
-        let js = (await r.text()).replace('__TOPIC__', await clipTopic(env));
+        let js = await r.text();
         if (which === 'clip-panel') { const b = await env.ASSETS.fetch(new Request('https://assets.local/replay/back-button.js')); if (b.ok) js += '\n' + await b.text(); }
         const tag = `<script>${js.replace(/<\/script/gi, '<\\/script')}</script>`;
         html = html.includes('</body>') ? html.replace('</body>', tag + '</body>') : html + tag;
@@ -116,7 +122,8 @@ async function serveImage(request, url, env) {
   return new Response(value, { headers: h });
 }
 
-async function imageApi(request, url, env, path) {
+async function imageApi(request, url, env, path, me) {
+  const mine = meta => me.admin ? (url.searchParams.get('all') === '1' || !meta?.owner || meta.owner === 'admin' || meta.owner === me.id) : meta?.owner === me.id;
   if (!env.IMAGES) return json({ error: 'Image storage is not connected yet (missing IMAGES binding)' }, 502);
   if (path === '/api/upload' && request.method === 'POST') {
     const type = (request.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
@@ -127,7 +134,7 @@ async function imageApi(request, url, env, path) {
     let name = 'image'; try { name = decodeURIComponent(request.headers.get('x-filename') || 'image'); } catch (_) {}
     name = name.slice(0, 120);
     const id = `${newId()}.${ext}`;
-    const meta = { type, name, size: buf.byteLength, ts: Date.now() };
+    const meta = { type, name, size: buf.byteLength, ts: Date.now(), owner: me.id, by: me.login };
     await env.IMAGES.put('img:' + id, buf, { metadata: meta });
     return json({ id, url: publicUrl(id), ...meta });
   }
@@ -135,14 +142,18 @@ async function imageApi(request, url, env, path) {
     const items = []; let cursor;
     do {
       const r = await env.IMAGES.list({ prefix: 'img:', cursor, limit: 1000 });
-      for (const k of r.keys) { const id = k.name.slice(4); items.push({ id, url: publicUrl(id), ...(k.metadata || {}) }); }
+      for (const k of r.keys) { if (!mine(k.metadata)) continue; const id = k.name.slice(4); items.push({ id, url: publicUrl(id), ...(k.metadata || {}) }); }
       cursor = r.list_complete ? null : r.cursor;
     } while (cursor && items.length < 5000);
     items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-    return json({ items, total: items.reduce((s, i) => s + (i.size || 0), 0) });
+    return json({ items, total: items.reduce((s, i) => s + (i.size || 0), 0), admin: !!me.admin });
   }
   const del = path.match(/^\/api\/img\/([a-z0-9]{8}\.[a-z]{3,4})$/);
-  if (del && request.method === 'DELETE') { await env.IMAGES.delete('img:' + del[1]); return json({ ok: true }); }
+  if (del && request.method === 'DELETE') {
+    const { metadata } = await env.IMAGES.getWithMetadata('img:' + del[1], { type: 'stream' });
+    if (!me.admin && metadata?.owner !== me.id) return json({ error: "That's not your file" }, 403);
+    await env.IMAGES.delete('img:' + del[1]); return json({ ok: true });
+  }
   return json({ error: 'Not found' }, 404);
 }
 
@@ -181,7 +192,7 @@ async function clipVideo(request, url) {
   return new Response(vid.body, { status: vid.status, headers: h });
 }
 const fileSafe = s => String(s).replace(/[^\w\- ]+/g, '').trim().slice(0, 80) || 'clip';
-async function clipApi(request, url, env, path) {
+async function clipApi(request, url, env, path, me) {
   const slug = clipSlug(url.searchParams.get('url'));
   if (!slug) return json({ error: "That doesn't look like a Twitch clip link" }, 400);
   const info = await clipInfo(slug);
@@ -200,11 +211,119 @@ async function clipApi(request, url, env, path) {
     if (+vid.headers.get('content-length') > MAX_BYTES) return json({ error: 'Clip is over 24 MB, too big for free storage. Use Download instead' }, 413);
     const buf = await vid.arrayBuffer();
     if (buf.byteLength > MAX_BYTES) return json({ error: 'Clip is over 24 MB, too big for free storage. Use Download instead' }, 413);
-    const id = `${newId()}.mp4`; const meta = { type: 'video/mp4', name, size: buf.byteLength, ts: Date.now() };
+    const id = `${newId()}.mp4`; const meta = { type: 'video/mp4', name, size: buf.byteLength, ts: Date.now(), owner: me?.id, by: me?.login };
     await env.IMAGES.put('img:' + id, buf, { metadata: meta });
     return json({ id, url: publicUrl(id), ...meta });
   }
   return json({ error: 'Not found' }, 404);
+}
+
+// ---------- Twitch sign-in (turns on when TWITCH_CLIENT_SECRET is set) ----------
+const TWITCH_APP_ID = 'rndn5mewt781e8ii0gqfptq4tnqxdl';                 // public Client ID of the Twitch app (or set TWITCH_CLIENT_ID)
+const ADMIN = env => (env.ADMIN_LOGIN || 'akaoutlaw').toLowerCase();
+const SESSION = 'op_sess';
+const clientId = env => env.TWITCH_CLIENT_ID || TWITCH_APP_ID;
+const twitchOn = env => !!(env.TWITCH_CLIENT_SECRET && clientId(env));
+const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64uStr = str => b64u(new TextEncoder().encode(str));
+const unb64u = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)));
+async function hmac(env, data) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode('sess:' + env.TWITCH_CLIENT_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return b64u(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(data)));
+}
+async function makeSession(env, u) {
+  const body = b64uStr(JSON.stringify({ ...u, exp: Date.now() + MONTH * 1000 }));
+  return body + '.' + await hmac(env, body);
+}
+async function readSession(request, env) {
+  const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)op_sess=([\w-]+)\.([\w-]+)/);
+  if (!m) return null;
+  if (!same(m[2], await hmac(env, m[1]))) return null;
+  try { const u = JSON.parse(unb64u(m[1])); return u.exp > Date.now() ? u : null; } catch (_) { return null; }
+}
+const okNext = n => { try { const u = new URL(n); return u.protocol === 'https:' && ours(u.hostname) ? u.href : null; } catch (_) { return null; } };
+const sessCookie = (v, age) => `${SESSION}=${v}; Path=/; Max-Age=${age}; HttpOnly; Secure; SameSite=Lax; Domain=.${ROOT}`;
+
+async function authRoutes(request, env, url, path) {
+  const redirectUri = `https://${ROOT}/__auth/callback`;
+  if (path === '/__auth/login') {
+    const next = okNext(url.searchParams.get('next')) || `https://${ROOT}/`;
+    const state = b64u(crypto.getRandomValues(new Uint8Array(16)));
+    const go = new URL('https://id.twitch.tv/oauth2/authorize');
+    go.search = new URLSearchParams({ client_id: clientId(env), redirect_uri: redirectUri, response_type: 'code', scope: '', state }).toString();
+    const h = new Headers({ Location: go.href });
+    h.append('Set-Cookie', `op_state=${state}.${b64uStr(next)}; Path=/; Max-Age=600; HttpOnly; Secure; SameSite=Lax; Domain=.${ROOT}`);
+    return new Response(null, { status: 302, headers: h });
+  }
+  if (path === '/__auth/callback') {
+    const fail = msg => new Response(loginPage(false, `https://${ROOT}/`, env, msg), { status: 400, headers: { 'content-type': 'text/html; charset=utf-8' } });
+    const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)op_state=([\w-]+)\.([\w-]+)/);
+    const code = url.searchParams.get('code'), state = url.searchParams.get('state');
+    if (!m || !code || !state || !same(m[1], state)) return fail('Sign-in expired. Try again.');
+    let next = `https://${ROOT}/`; try { next = okNext(unb64u(m[2])) || next; } catch (_) {}
+    const tok = await fetch('https://id.twitch.tv/oauth2/token', { method: 'POST', body: new URLSearchParams({ client_id: clientId(env), client_secret: env.TWITCH_CLIENT_SECRET, code, grant_type: 'authorization_code', redirect_uri: redirectUri }) }).then(r => r.json()).catch(() => ({}));
+    if (!tok.access_token) return fail("Twitch didn't accept the sign-in. Try again.");
+    const me = await fetch('https://api.twitch.tv/helix/users', { headers: { Authorization: 'Bearer ' + tok.access_token, 'Client-Id': clientId(env) } }).then(r => r.json()).catch(() => ({}));
+    const u = me?.data?.[0]; if (!u) return fail("Couldn't read your Twitch account.");
+    const user = { id: u.id, login: u.login, name: u.display_name || u.login, pfp: u.profile_image_url || '' };
+    const h = new Headers({ Location: next });
+    h.append('Set-Cookie', sessCookie(await makeSession(env, user), MONTH));
+    h.append('Set-Cookie', `op_state=; Path=/; Max-Age=0; Secure; Domain=.${ROOT}`);
+    return new Response(null, { status: 302, headers: h });
+  }
+  return null;
+}
+
+// ---------- per-user settings (cards + replay), synced to the account ----------
+const APPS = { cards: { pre: 'pkmn_', skip: '^pkmn_state_' }, replay: { pre: 'aor_', skip: '^$' } };
+async function settingsApi(request, env, url, me) {
+  const app = url.searchParams.get('app'); if (!APPS[app]) return json({ error: 'bad app' }, 400);
+  if (!env.IMAGES) return json({ error: 'storage not connected' }, 502);
+  const key = `set:${me.id}:${app}`;
+  if (request.method === 'GET') return json((await env.IMAGES.get(key, 'json')) || {});
+  if (request.method === 'POST') {
+    const txt = await request.text(); if (txt.length > 200000) return json({ error: 'too big' }, 413);
+    let o; try { o = JSON.parse(txt); } catch (_) { return json({ error: 'bad json' }, 400); }
+    const clean = {}; for (const [k, v] of Object.entries(o || {})) if (k.startsWith(APPS[app].pre) && typeof v === 'string') clean[k] = v;
+    await env.IMAGES.put(key, JSON.stringify(clean));
+    return json({ ok: true });
+  }
+  return json({ error: 'method' }, 405);
+}
+const jsStr = o => JSON.stringify(o).replace(/</g, '\\u003c');
+// put the signed-in user + their saved settings into the page before the app's own code runs
+async function headScript(env, me, app) {
+  let data = null;
+  if (app && me && me.id !== 'admin' && env.IMAGES) data = await env.IMAGES.get(`set:${me.id}:${app}`, 'json');
+  const pub = me ? { id: me.id, login: me.login, name: me.name, pfp: me.pfp || '', admin: !!me.admin } : null;
+  let js = `window.__ME=${jsStr(pub)};`;
+  if (app && me && me.id !== 'admin') {
+    const A = APPS[app];
+    js += `(function(){try{var ME=window.__ME,APP=${jsStr(app)},PRE=${jsStr(A.pre)},SKIP=new RegExp(${jsStr(A.skip)}),DATA=${jsStr(data)},ls=localStorage,owner=ls.getItem('__owner');
+if(owner&&owner!==ME.id){for(var i=ls.length-1;i>=0;i--){var k=ls.key(i);if(k&&k.indexOf(PRE)===0)ls.removeItem(k);}}
+if(DATA){for(var k in DATA)if(k.indexOf(PRE)===0)ls.setItem(k,DATA[k]);}
+ls.setItem('__owner',ME.id);
+var snap=function(){var o={};for(var i=0;i<ls.length;i++){var k=ls.key(i);if(k.indexOf(PRE)===0&&!SKIP.test(k))o[k]=ls.getItem(k);}return o;};
+var last=JSON.stringify(DATA?snap():{}),t=0;
+var save=function(){var cur=JSON.stringify(snap());if(cur===last)return;last=cur;fetch('/__me/settings?app='+APP,{method:'POST',headers:{'content-type':'application/json'},body:cur,keepalive:true});};
+var sched=function(){clearTimeout(t);t=setTimeout(save,8000);};
+var si=Storage.prototype.setItem,ri=Storage.prototype.removeItem;
+Storage.prototype.setItem=function(k){si.apply(this,arguments);if(this===ls&&String(k).indexOf(PRE)===0&&!SKIP.test(k))sched();};
+Storage.prototype.removeItem=function(k){ri.apply(this,arguments);if(this===ls&&String(k).indexOf(PRE)===0)sched();};
+addEventListener('pagehide',save);if(!DATA)setTimeout(save,3000);}catch(e){}})();`;
+  }
+  // show the signed-in person's pfp + name wherever the pages say akaoutlaw
+  if (pub && !pub.admin) js += `document.addEventListener('DOMContentLoaded',function(){var M=window.__ME;try{document.title=document.title.replace(/akaoutlaw/g,M.name);
+document.querySelectorAll('img').forEach(function(i){if(/unavatar\\.io\\/twitch\\/akaoutlaw|logos\\/pfp\\.png/.test(i.getAttribute('src')||'')&&M.pfp){i.onerror=null;i.src=M.pfp;}});
+var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);var n;while(n=w.nextNode()){if(n.nodeValue.trim()==='akaoutlaw')n.nodeValue=n.nodeValue.replace('akaoutlaw',M.name);}
+var l=document.getElementById('twlink');if(l){l.href='https://twitch.tv/'+M.login;l.textContent='twitch.tv/'+M.login+' ↗';}
+document.querySelectorAll('link[rel~=icon]').forEach(function(x){if(M.pfp)x.href=M.pfp;});}catch(e){}});`;
+  return `<script>${js}</script>`;
+}
+async function withHead(res, env, me, app) {
+  if (!(res.headers.get('content-type') || '').includes('text/html')) return res;
+  const tag = await headScript(env, me, app);
+  return new HTMLRewriter().on('head', { element(e) { e.prepend(tag, { html: true }); } }).transform(res);
 }
 
 export async function onRequest({ request, env, next }) {
@@ -216,27 +335,37 @@ export async function onRequest({ request, env, next }) {
   const html = (body, status) => new Response(body, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   const pw = env.SITE_PASSWORD;
 
-  // log in / log out (same on every address)
-  if (path === '/__login' && request.method === 'POST' && pw) {
+  const TW = twitchOn(env);
+
+  // Twitch sign-in routes
+  if (TW && path.startsWith('/__auth/')) { const r = await authRoutes(request, env, url, path); if (r) return r; }
+
+  // password log in (only while Twitch sign-in isn't set up)
+  if (!TW && path === '/__login' && request.method === 'POST' && pw) {
     const nxt = safeNext(url.searchParams.get('next'));
     const form = await request.formData();
     const good = await tokenFor(pw);
     if (same(await tokenFor(String(form.get('password') || '')), good)) {
       return new Response(null, { status: 303, headers: { Location: nxt, 'Set-Cookie': `${COOKIE}=${good}; ${cookieAttrs(host, MONTH)}` } });
     }
-    return html(loginPage(true, nxt), 401);
+    return html(loginPage(true, nxt, env), 401);
   }
   if (path === '/__logout') {
-    return new Response(null, { status: 303, headers: { Location: '/', 'Set-Cookie': `${COOKIE}=; ${cookieAttrs(host, 0)}` } });
+    const h = new Headers({ Location: `https://${ROOT}/` });
+    h.append('Set-Cookie', `${COOKIE}=; ${cookieAttrs(host, 0)}`);
+    h.append('Set-Cookie', sessCookie('', 0));
+    return new Response(null, { status: 303, headers: h });
   }
 
   // what runs once someone is allowed in
-  const pass = () => {
-    if (path === '/api/clip' || path.startsWith('/api/clip/')) return clipApi(request, url, env, path);
-    if (isReplay && path !== '/api/upload') return toReplay(request, env);
-    if (path.startsWith('/api/')) return imageApi(request, url, env, path);
-    if (isHome && (path === '/' || path === '/index.html')) return env.ASSETS.fetch(new Request(new URL('/home', url), request));
-    return next();
+  const pass = async (me) => {
+    if (path === '/__me/settings') return settingsApi(request, env, url, me);
+    if (path === '/api/clip' || path.startsWith('/api/clip/')) return clipApi(request, url, env, path, me);
+    if (isReplay && path !== '/api/upload') return toReplay(request, env, me);
+    if (path.startsWith('/api/')) return imageApi(request, url, env, path, me);
+    const app = host === 'cards.' + ROOT ? 'cards' : null;
+    if (isHome && (path === '/' || path === '/index.html')) return withHead(await env.ASSETS.fetch(new Request(new URL('/home', url), request)), env, me, null);
+    return withHead(await next(), env, me, app);
   };
 
   // hosted image links are public on the main site and cards site
@@ -252,15 +381,23 @@ export async function onRequest({ request, env, next }) {
       const r = await env.ASSETS.fetch(new Request('https://assets.local/replay' + path, { headers: request.headers }));
       if (r.ok || r.status === 206) { const h = new Headers(r.headers); h.set('content-type', 'video/mp4'); h.set('access-control-allow-origin', '*'); h.set('cache-control', 'public, max-age=300'); return new Response(r.body, { status: r.status, headers: h }); }
     }
-    const ours_ = path === '/api/clip' || path.startsWith('/api/clip/') || path === '/api/upload';
+    const ours_ = path === '/api/clip' || path.startsWith('/api/clip/') || path === '/api/upload' || path === '/__me/settings';
     const locked = ours_ || (!isProxy && (path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html'));
-    if (!locked) return toReplay(request, env);
+    if (!locked) return toReplay(request, env, null);
   } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
     return next();
   }
 
-  if (!pw) return pass();
+  // who is this?
+  if (TW) {
+    const u = await readSession(request, env);
+    if (u) return pass({ ...u, admin: u.login.toLowerCase() === ADMIN(env) });
+    if (path.startsWith('/api/') || path.startsWith('/__me/')) return json({ error: 'Signed out. Reload the page and sign in.' }, 401);
+    return html(loginPage(false, url.href, env), 401);
+  }
+  const solo = { id: 'admin', login: ADMIN(env), name: 'akaoutlaw', admin: true };
+  if (!pw) return pass(solo);
   const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)cp_auth=([a-f0-9]{64})/);
-  if (m && same(m[1], await tokenFor(pw))) return pass();
-  return html(loginPage(false, url.pathname + url.search), 401);
+  if (m && same(m[1], await tokenFor(pw))) return pass(solo);
+  return html(loginPage(false, url.pathname + url.search, env), 401);
 }

@@ -1,6 +1,10 @@
 // Added to the replay panel by the site gate: a "Clips" section in Settings (on/off toggle).
 (() => {
-  const TOPIC = '__TOPIC__';
+  // private channel between your panel and your overlay, made from your replay key
+  let TOPIC = null;
+  const topicReady = (async () => { const key = localStorage.getItem('aor_key') || ''; if (!key) return null;
+    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('clip:' + key));
+    TOPIC = 'aorclip-' + [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 24); return TOPIC; })();
   const $ = id => document.getElementById(id);
   const css = `
   #olClips .ol-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
@@ -103,10 +107,10 @@
     } catch (err) { info('Upload failed: ' + err.message); }
     e.target.value = '';
   };
-  const send = msg => fetch('https://ntfy.sh/' + TOPIC, { method: 'POST', body: JSON.stringify({ ...msg, ts: Date.now() }) });
+  const send = async msg => { if (!(await topicReady)) throw new Error('no replay key yet'); return fetch('https://ntfy.sh/' + TOPIC, { method: 'POST', body: JSON.stringify({ ...msg, ts: Date.now() }) }); };
   $('olClipSend').onclick = async () => {
     if (!clipSrc) return;
     try { await send({ t: 'clip', src: clipSrc, ...replayOpts() }); info('Sent to stream ✓'); } catch (_) { info("Couldn't reach the overlay"); }
   };
-  $('olClipStop').onclick = () => send({ t: 'stop' }).then(() => info('Stopped'));
+  $('olClipStop').onclick = () => send({ t: 'stop' }).then(() => info('Stopped'), () => info("Couldn't reach the overlay"));
 })();
