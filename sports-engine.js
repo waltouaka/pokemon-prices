@@ -778,6 +778,10 @@
       place(fd, fdPos); fd.classList.add("on");
     }
     rz.classList.toggle("on", !!s.redZone);
+    // red zone glow on the end the offense is attacking
+    field.classList.toggle("rz-r", !!s.redZone && dir > 0);
+    field.classList.toggle("rz-l", !!s.redZone && dir < 0);
+    band.classList.toggle("rev", dir < 0);
   }
 
   // 0 = away goal line (left), 100 = home goal line (right)
@@ -803,7 +807,9 @@
     numbersPainted = true;
     var html = "";
     for (var y = 10; y <= 90; y += 10) {
-      html += '<i style="left:' + y + '%">' + (y <= 50 ? y : 100 - y) + "</i>";
+      // broadcast-style yard numbers with the little arrow pointing toward the nearer goal line
+      var n = y <= 50 ? y : 100 - y, arrow = y < 50 ? '<u class="al"></u>' : y > 50 ? '<u class="ar"></u>' : "";
+      html += '<i style="left:' + y + '%">' + (y < 50 ? arrow : "") + n + (y > 50 ? arrow : "") + "</i>";
     }
     $("numbers").innerHTML = html;
   }
