@@ -134,7 +134,7 @@
         <div class="vis"><button class="btn on" id="showBtn">Show</button><button class="btn off" id="hideBtn">Hide</button></div>
       </div>
       <iframe id="prev" title="preview"></iframe>
-      <div class="posrow"><span>Drag the scoreboard in the preview to move it.</span>
+      <div class="posrow"><span>Drag the scoreboard in the preview to move it (scroll the preview to see the rest of the screen).</span>
         <label>X <input type="number" id="posX"></label><label>Y <input type="number" id="posY"></label><button class="btn" id="posReset">Reset</button></div>
       <div class="hint">Add the overlay to OBS as a <b>Browser source</b> (1920 × 1080). Paste the URL from <b>Copy overlay URL</b>. Every change here shows up on stream within a second, no refresh needed.</div>
     </div>
@@ -254,7 +254,7 @@ function publish() {
   drawCur(); syncVis();
 }
 if (C.posX == null) C.posX = 24; if (C.posY == null) C.posY = 24;
-$('prev').src = '/sports-overlay?preview=1&v=1795850780';
+$('prev').src = '/sports-overlay?preview=1&v=1795850895';
 addEventListener('message', e => { if (e.origin === location.origin && e.data?.sbReady) $('prev').contentWindow.postMessage({ sb: payload() }, location.origin); });
 
 $('copyUrl').onclick = async () => { try { await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied. Paste it into an OBS Browser source'); } catch (_) { prompt('Copy this URL', overlayUrl()); } };
@@ -377,7 +377,11 @@ $('prev').addEventListener('load', () => {
     drag = { x: e.clientX, y: e.clientY, px: C.posX, py: C.posY }; e.preventDefault(); });
   d.addEventListener('pointermove', e => { if (!drag) return; setPos(drag.px + e.clientX - drag.x, drag.py + e.clientY - drag.y); });
   d.addEventListener('pointerup', () => { drag = null; });
+  setTimeout(showBug, 600);
 });
+// the preview is the full 1920×1080 screen at real size; scroll it so the scoreboard is in view
+function showBug() { try { $('prev').contentWindow.scrollTo(Math.max(0, C.posX - 40), Math.max(0, C.posY - 60)); } catch (_) {} }
+$('posX').addEventListener('change', showBug); $('posY').addEventListener('change', showBug); $('posReset').addEventListener('click', () => setTimeout(showBug, 50));
 syncPos();
 buildStyles(); buildCustom(); buildTheme(); drawCur(); syncVis(); loadGames(); publish();
 </script>

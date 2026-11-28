@@ -507,7 +507,9 @@ body{background:transparent;overflow:hidden}
 .dd .bases i.on{background:var(--fd);border-color:var(--fd);opacity:1}
 .dd .bases .b1{right:1px;top:7px}.dd .bases .b2{left:10px;top:1px}.dd .bases .b3{left:1px;top:7px}
 /* preview inside the control room */
-body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/24px 24px;padding:0;min-height:100vh}
+html:has(body.preview){overflow:auto}
+body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/24px 24px;padding:0;width:1920px;height:1080px;overflow:visible}
+body.preview #sb{cursor:grab}
 body.preview #sb{cursor:grab}
 
 /* playoff / series note, a tab sitting on the top edge of the card */
