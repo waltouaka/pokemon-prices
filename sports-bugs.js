@@ -24,16 +24,9 @@ window.SBBugs = (() => {
       <div class="sc-wrap scb">${sco(v.h, 'h')}${tos(v.h.to)}</div>${img(v.h.logo, 'lg lb')}
     </div>`,
 
-    nbc: v => `<div class="bug b-nbc">
-      ${tm(v.a, 'a', `${img(v.a.logo)}<div class="id">${rank(v.a)}<b>${esc(v.a.abbr)}</b><small>${esc(v.a.rec)}</small></div><div class="col">${sco(v.a, 'a')}${tos(v.a.to)}</div>`)}
-      <div class="med"><div class="peacock"><i></i><i></i><i></i><i></i><i></i><i></i></div>${v.clock ? `<b>${esc(v.clock)}</b>` : ''}<span>${sc(v.period)}</span></div>
-      ${tm(v.h, 'h', `<div class="col">${sco(v.h, 'h')}${tos(v.h.to)}</div><div class="id">${v.h.ball ? '<em>▸</em>' : ''}${rank(v.h)}<b>${esc(v.h.abbr)}</b><small>${esc(v.h.rec)}</small></div>${img(v.h.logo)}`)}
-      ${v.dd ? `<div class="bddrow"><em>▸</em>${esc(v.dd.toUpperCase())}<em>▸</em></div>` : ''}
-    </div>`,
-
     prime: v => `<div class="bug b-prime">
       ${tm(v.a, 'a', `<div class="lgc">${img(v.a.logo)}</div><div class="sc-c">${sco(v.a, 'a')}</div>`)}
-      <div class="mid"><div class="top"><span class="net">${esc(v.net)}</span><span class="bdd">${v.dd ? esc(v.dd) : esc(v.status)}</span></div>
+      <div class="mid"><div class="top"><span class="net">${esc(v.net)}</span>${v.dd ? `<span class="bdd">${esc(v.dd)}</span>` : ''}</div>
         <div class="bot"><span class="pd">${sc(v.period)}</span><span class="ck">${esc(v.clock)}</span></div></div>
       ${tm(v.h, 'h', `<div class="sc-c">${sco(v.h, 'h')}</div><div class="lgc">${img(v.h.logo)}</div>`)}
     </div>`,
@@ -46,9 +39,10 @@ window.SBBugs = (() => {
     </div>`,
 
     netflix: v => `<div class="bug b-netflix">
-      ${tm(v.a, 'a', `${img(v.a.logo)}<div class="col">${v.a.ball ? '<em>▸</em>' : ''}${sco(v.a, 'a')}${tos(v.a.to)}</div>`)}
-      <div class="mid"><div class="bdd">${v.dd ? sc(v.dd) : ''}</div><div class="row"><span class="pd">${sc(v.period)}</span><span class="ck">${esc(v.clock)}</span></div></div>
-      ${tm(v.h, 'h', `<div class="col">${v.h.ball ? '<em>▸</em>' : ''}${sco(v.h, 'h')}${tos(v.h.to)}</div>${img(v.h.logo)}`)}
+      ${tm(v.a, 'a', `${img(v.a.logo)}<div class="nums"><span class="rc">${esc(v.a.rec)}</span>${sco(v.a, 'a')}${tos(v.a.to)}</div>`)}
+      <div class="mid"><div class="top">${v.dd ? `<span class="bdd">${sc(v.dd)}</span>` : '<span class="nflx">NETFLIX</span>'}</div>
+        <div class="row"><span class="pd">${sc(v.period)}</span><span class="ck">${esc(v.clock)}</span></div></div>
+      ${tm(v.h, 'h', `<div class="nums">${sco(v.h, 'h')}<span class="rc">${esc(v.h.rec)}</span>${tos(v.h.to)}</div>${img(v.h.logo)}`)}
     </div>`,
 
     world: v => `<div class="bug b-world">

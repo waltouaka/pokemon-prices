@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,600..900&family=Roboto+Condensed:wght@700;800;900&family=Barlow:wght@700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,600..900&family=Roboto+Condensed:wght@700;800;900&family=Barlow:wght@700;800;900&family=Bebas+Neue&display=swap");
 /* ============================================================
    BROADCAST SCOREBUGS, each one copied from its network
    ============================================================ */
@@ -51,42 +51,12 @@
 .b-fox .ck b{font-size:34px;font-variant-numeric:tabular-nums}
 .b-fox .ck span{font-size:22px;margin-top:2px}
 
-/* ---------------- NBC (glossy bar, round clock medallion in the middle) ---------------- */
-.b-nbc{height:56px;margin:22px 0 26px;font-family:"Barlow",sans-serif;align-items:stretch}
-.b-nbc .tm{display:flex;align-items:center;gap:10px;width:300px;padding:0 16px;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 55%,#fff) 0%,var(--c) 38%,color-mix(in srgb,var(--c) 70%,#000) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
-.b-nbc .tm.a{border-radius:60px 0 0 6px / 56px 0 0 6px;padding-left:22px}
-.b-nbc .tm.h{border-radius:0 60px 6px 0 / 0 56px 6px 0;justify-content:flex-end;padding-right:22px}
-.b-nbc .lg{width:86px;height:52px}
-.b-nbc .id{display:flex;flex-direction:column;align-items:flex-end;line-height:1;position:relative}
-.b-nbc .tm.h .id{align-items:flex-start}
-.b-nbc .id b{font-size:32px;font-weight:900;letter-spacing:.01em}
-.b-nbc .id small{font-size:15px;font-weight:700;opacity:.9;margin-top:2px}
-.b-nbc .id sup.rk{position:absolute;left:-12px;top:-2px;font-size:15px}
-.b-nbc .tm.h .id sup.rk{left:-12px}
-.b-nbc .id em{position:absolute;left:-26px;top:6px;font-style:normal;font-size:18px}
-.b-nbc .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:8px;border-left:1px solid rgba(255,255,255,.25)}
-.b-nbc .tm.h .col{border-left:0;border-right:1px solid rgba(255,255,255,.25)}
-.b-nbc .sc{font-size:42px;font-weight:800}
-.b-nbc .to b{width:20px;height:3px}
-.b-nbc .med{position:relative;z-index:2;width:112px;height:112px;margin:-28px -14px 0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(circle at 50% 30%,#6b7079,#30343b 70%);border:3px solid #9aa0a8;box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,255,255,.25);font-weight:800;line-height:1}
-.b-nbc .med b{font-size:28px;font-variant-numeric:tabular-nums}
-.b-nbc .med span{font-size:17px;margin-top:3px}
-.b-nbc .peacock{position:relative;width:34px;height:16px;margin-bottom:3px}
-.b-nbc .peacock i{position:absolute;bottom:0;left:15px;width:5px;height:16px;border-radius:3px 3px 1px 1px;background:#e9ecef;transform-origin:50% 100%}
-.b-nbc .peacock i:nth-child(1){transform:rotate(-62deg)}.b-nbc .peacock i:nth-child(2){transform:rotate(-37deg)}.b-nbc .peacock i:nth-child(3){transform:rotate(-12deg)}
-.b-nbc .peacock i:nth-child(4){transform:rotate(12deg)}.b-nbc .peacock i:nth-child(5){transform:rotate(37deg)}.b-nbc .peacock i:nth-child(6){transform:rotate(62deg)}
-.b-nbc .bddrow{position:absolute;right:20px;left:calc(50% + 40px);bottom:-24px;height:24px;display:flex;align-items:center;justify-content:center;gap:20px;
-  background:linear-gradient(180deg,#22364f,#132339);border-radius:0 0 10px 0;font-weight:800;font-size:17px;letter-spacing:.04em}
-.b-nbc .bddrow em{font-style:normal;font-size:11px;opacity:.7}
-
 /* ---------------- Prime Video TNF ---------------- */
 .b-prime{height:56px;font-family:"Archivo",sans-serif;clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);filter:none;box-shadow:none}
 .b-prime .tm{display:flex;align-items:stretch}
 .b-prime .lgc{width:150px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(115deg,var(--c) 0 58%,#e9edf2 58% 100%)}
-.b-prime .tm.h .lgc{background:linear-gradient(115deg,#e9edf2 0 22%,var(--c) 22% 100%)}
+  background:linear-gradient(115deg,color-mix(in srgb,var(--c) 85%,#fff) 0 72%,#e9edf2 72% 76%,var(--c) 76% 100%)}
+.b-prime .tm.h .lgc{background:linear-gradient(115deg,var(--c) 0 24%,#e9edf2 24% 28%,color-mix(in srgb,var(--c) 85%,#fff) 28% 100%)}
 .b-prime .lg{width:110px;height:54px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
 .b-prime .sc-c{width:120px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1b3a70,#0c2147)}
 .b-prime .sc{font-size:44px;font-weight:800}
@@ -95,7 +65,8 @@
 .b-prime .top{flex:1;display:flex;align-items:stretch}
 .b-prime .net{width:86px;display:flex;align-items:center;justify-content:center;font-weight:900;font-style:italic;font-size:22px;letter-spacing:-.02em}
 .b-prime .bdd{flex:1;display:flex;align-items:center;justify-content:center;margin:3px 6px 0 0;background:linear-gradient(180deg,#f3f6fa,#b9c4d3);color:#0b1630;font-weight:800;font-size:20px}
-.b-prime .bot{flex:1;display:flex;align-items:center;gap:26px;padding-left:44px;font-weight:800}
+.b-prime .bot{flex:1;display:flex;align-items:center;justify-content:center;gap:26px;font-weight:800}
+.b-prime .top:not(:has(.bdd)){justify-content:center}
 .b-prime .pd{font-size:16px;opacity:.9}.b-prime .ck{font-size:24px;font-variant-numeric:tabular-nums}
 
 /* ---------------- ESPN / NFL Network ---------------- */
@@ -117,22 +88,29 @@
 .b-espn .pd{font-size:16px}.b-espn .ck{font-size:26px;font-variant-numeric:tabular-nums}
 
 /* ---------------- Netflix ---------------- */
-.b-netflix{height:64px;font-family:"Archivo",sans-serif;align-items:flex-start}
-.b-netflix .tm{display:flex;align-items:center;width:290px;height:64px;padding:0 18px;position:relative;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 70%,#fff) 0%,var(--c) 22%,var(--c) 60%,color-mix(in srgb,var(--c) 75%,#000) 100%);
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.25)}
-.b-netflix .tm.a{border-radius:10px 0 0 10px}
-.b-netflix .tm.h{border-radius:0 10px 10px 0;justify-content:flex-end}
-.b-netflix .lg{width:118px;height:60px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
-.b-netflix .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;padding-top:6px;position:relative}
-.b-netflix .col em{position:absolute;left:4px;top:18px;font-style:normal;font-size:20px;color:rgba(255,255,255,.85)}
-.b-netflix .sc{font-size:50px;font-weight:900}
-.b-netflix .to{gap:6px}.b-netflix .to b{width:28px;height:3px}
-.b-netflix .mid{width:240px;height:76px;margin:-4px -2px 0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,#38414e,#1d2430);clip-path:polygon(0 0,100% 0,100% 82%,93% 100%,7% 100%,0 82%);font-weight:800;line-height:1}
-.b-netflix .bdd{font-size:24px;min-height:24px}
-.b-netflix .row{display:flex;align-items:baseline;gap:12px;margin-top:5px}
-.b-netflix .pd{font-size:22px;opacity:.9}.b-netflix .ck{font-size:36px;font-variant-numeric:tabular-nums}
+.b-netflix{height:74px;padding:3px;border-radius:12px;font-family:"Archivo",sans-serif;align-items:stretch;
+  background:linear-gradient(180deg,#3a3d44,#16181c);box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+.b-netflix .tm{display:flex;align-items:center;width:318px;padding:0 22px 0 6px;position:relative;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 78%,#fff) 0%,var(--c) 18%,var(--c) 55%,color-mix(in srgb,var(--c) 70%,#000) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -3px 6px rgba(0,0,0,.35)}
+.b-netflix .tm.a{border-radius:9px 0 0 9px}
+.b-netflix .tm.h{border-radius:0 9px 9px 0;justify-content:flex-end;padding:0 6px 0 22px}
+.b-netflix .lg{width:124px;height:68px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.b-netflix .nums{flex:1;position:relative;display:flex;align-items:center;justify-content:flex-end;gap:34px;height:100%}
+.b-netflix .tm.h .nums{justify-content:flex-start}
+.b-netflix .rc{font-size:22px;font-weight:800;color:color-mix(in srgb,var(--c) 45%,#cfe);letter-spacing:.02em}
+.b-netflix .sc{font-size:54px;font-weight:900;font-stretch:110%;min-width:60px;text-align:center;margin-top:-6px}
+.b-netflix .to{position:absolute;bottom:2px;right:0;gap:8px}
+.b-netflix .tm.h .to{left:0;right:auto}
+.b-netflix .to b{width:44px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--c) 55%,#fff);opacity:.25}
+.b-netflix .to b.on{opacity:.95}
+.b-netflix .mid{width:250px;margin:-5px 2px 0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
+  background:linear-gradient(180deg,#2e3036 0%,#1c1d21 60%,#141518 100%);clip-path:polygon(0 0,100% 0,97% 100%,3% 100%);border-top:1px solid rgba(255,255,255,.18)}
+.b-netflix .top{height:34px;display:flex;align-items:center}
+.b-netflix .nflx{font-family:"Bebas Neue","Oswald",sans-serif;font-size:36px;color:#e50914;letter-spacing:.02em;line-height:1}
+.b-netflix .bdd{font-size:24px;font-weight:800}
+.b-netflix .row{display:flex;align-items:baseline;gap:12px}
+.b-netflix .pd{font-size:24px;font-weight:800;color:#c9ccd2}.b-netflix .ck{font-size:38px;font-weight:900;font-variant-numeric:tabular-nums}
 
 /* ---------------- NFL World Feed ---------------- */
 .b-world{height:50px;font-family:"Roboto Condensed",sans-serif;border-radius:3px;overflow:hidden;filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))}
