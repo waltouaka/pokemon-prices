@@ -181,3 +181,15 @@
 .b-fox .bdd{grid-area:1/2/2/5 !important;justify-self:center !important;margin:0 !important;min-width:240px;justify-content:center}
 .sb--bug .bp{top:calc(100% + 12px)}
 .sb--bug .bp--chip{top:calc(100% - 3px)}
+
+/* 3-digit scores (basketball) shrink to fit instead of spilling into the middle */
+.bug .sc.wide{letter-spacing:-.02em}
+.b-netflix .sc.wide{font-size:31px;min-width:56px}
+.b-netflix .tm{width:188px}
+.b-cbs .sc.wide{font-size:40px}
+.b-fox .sc.wide{font-size:52px}
+.b-espn .sc.wide{font-size:42px}
+/* empty clock (FINAL, halftime, pregame): the period label centers on its own */
+.bug .ck:empty,.bug .sep:has(+ .ck:empty){display:none}
+.b-netflix .row:not(:has(.ck:not(:empty))) .pd{font-size:24px;color:#fff;letter-spacing:.04em}
+.b-espn .bdd.empty{display:none}.b-espn .mid{justify-content:center}.b-espn .mid:not(:has(.bdd:not(.empty))) .pill{margin-top:0;padding:4px 22px}

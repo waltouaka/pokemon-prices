@@ -9,7 +9,7 @@ window.SBBugs = (() => {
   const img = (src, cls = 'lg') => `<img class="${cls}" src="${esc(src)}" alt="" onerror="this.style.visibility='hidden'">`;
   const tm = (t, side, inner) => `<div class="tm ${side}${t.ball ? ' hb' : ''}" style="--c:${t.color};--ink:${t.ink};--c2:${t.color2}">${inner}</div>`;
   const rank = t => t.rank ? `<sup class="rk">${t.rank}</sup>` : '';
-  const sco = (t, k) => `<div class="sc${t.bump ? ' bump' : ''}" data-k="${k}">${esc(t.score)}</div>`;
+  const sco = (t, k) => `<div class="sc${t.bump ? ' bump' : ''}${String(t.score).length >= 3 ? ' wide' : ''}" data-k="${k}">${esc(t.score)}</div>`;
 
   const B = {
     cbs: v => `<div class="bug b-cbs">
