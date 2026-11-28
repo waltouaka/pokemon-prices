@@ -607,7 +607,7 @@
     var lbl = ordinal(g.period);
     if (sp === "hockey") lbl = g.period > 3 ? (g.period === 4 ? "OT" : "SO") : ordinal(g.period);
     if (sp === "ncaab") lbl = g.period > 2 ? (g.period === 3 ? "OT" : (g.period - 2) + "OT") : (g.period === 1 ? "1ST HALF" : "2ND HALF");
-    if (sp === "basketball") lbl = g.period > 4 ? (g.period === 5 ? "OT" : (g.period - 4) + "OT") : "Q" + g.period;
+    if (sp === "basketball") lbl = g.period > 4 ? (g.period === 5 ? "OT" : (g.period - 4) + "OT") : (cfg.skin === "tv" ? ordinal(g.period) : "Q" + g.period);
     setPeriod(lbl);
     syncClock(g.clock);
     // under a minute basketball/hockey send "45.6" instead of "0:45"; show that as-is
@@ -899,7 +899,7 @@
       var d = data && data[x[1].id];
       if (!d) { el.innerHTML = ""; if (sport() === "basketball" || sport() === "ncaab") timeouts($(x[0] + "Tos"), null); return; }
       if (d.to !== null) timeouts($(x[0] + "Tos"), d.to, 7);
-      el.innerHTML = d.bonus ? '<b class="bonus">BONUS</b>' : 'FOULS <b>' + d.fouls + "</b>";
+      el.innerHTML = d.bonus ? '<b class="bonus">BONUS</b>' : 'FOULS: <b>' + d.fouls + "</b>";
     });
   }
 
