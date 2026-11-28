@@ -29,7 +29,7 @@
     eventId: "",              // set by the control room when showing one specific game
     show: true,               // Show / Hide from the control room
     showNote: false,          // playoff / series note above the bar
-    skin: "block"             // overall style: block, jumbo, slant, neon, glass, stack, classic
+    skin: "block"             // overall style: tv, espn, fox, cbs, snf, nhl, block, jumbo, slant, neon, glass, stack, classic
   };
   var DEFAULTS = JSON.parse(JSON.stringify(cfg));
 
@@ -364,6 +364,7 @@
       color: "#" + (t.color || "444444"),
       alt: t.alternateColor ? "#" + t.alternateColor : "",
       record: (c.records && c.records[0] && c.records[0].summary) || "",
+      rank: (c.curatedRank && c.curatedRank.current > 0 && c.curatedRank.current < 26) ? c.curatedRank.current : null,
       score: (c.score !== undefined && c.score !== null) ? String(c.score) : "0"
     };
   }
@@ -488,7 +489,9 @@
   function fill(logoEl, abbrEl, recEl, scoreEl, t, key) {
     setLogo(logoEl, t);
     scoreEl.classList.toggle("wide", String(t.score).length >= 3);
-    abbrEl.textContent = t.abbr;
+    // college rankings sit in front of the name, like on TV ("12 OSU")
+    var ab = (t.rank ? '<span class="rk">' + t.rank + "</span>" : "") + String(t.abbr).replace(/[&<>]/g, "");
+    if (abbrEl.innerHTML !== ab) abbrEl.innerHTML = ab;
     recEl.textContent = t.record;
     if (scoreEl.textContent !== t.score) {
       scoreEl.textContent = t.score;

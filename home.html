@@ -21,7 +21,10 @@
   .pfp{width:112px;height:112px;border-radius:50%;border:3px solid #fff;object-fit:cover;background:#1a1426}
   h1{margin:18px 0 4px;font-weight:900;font-size:clamp(40px,7vw,64px);font-stretch:125%;letter-spacing:-2px;line-height:1}
   .sub{color:#a99cc0;font-size:16px;margin-bottom:40px}
-  .tools{width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .tools{width:100%;max-width:1100px;display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+  .tools a.tool{flex:0 0 calc((100% - 28px) / 3);box-sizing:border-box}
+  @media(max-width:900px){.tools a.tool{flex-basis:calc((100% - 14px) / 2)}}
+  @media(max-width:600px){.tools a.tool{flex-basis:100%}}
   a.tool{display:flex;flex-direction:column;gap:10px;padding:26px 24px;border-radius:18px;background:rgba(255,255,255,.07);color:#fff;text-decoration:none;transition:background .15s,transform .15s;position:relative;overflow:hidden}
   a.tool:hover{background:rgba(255,255,255,.13);transform:translateY(-3px)}
   .tool .ico{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:#fff;color:#000}
