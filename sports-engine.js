@@ -16,7 +16,7 @@
     fieldOnlyLive: false,
     hideWhenNoGame: true,
     useTeamColors: true,
-    enableAlerts: true,
+    enableAlerts: false,
     myTeamOnly: false,        // only alert on plays by the team you follow
     bigPlayYards: 40,         // yardage threshold for the big-play ribbon (deep pass / long run)
     showBigPlayRibbon: true,  // banner that slides over the field on big plays
