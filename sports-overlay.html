@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scoreboard</title>
+<link rel="stylesheet" href="/sports-overlay.css">
+</head>
+<body>
+<div id="sb" class="sb sb--hidden">
+  <div class="gnote" id="gameNote"></div>
+  <div class="card" id="card">
+    <div class="testtag" id="testTag">TEST DRIVE</div>
+    <div class="bar">
+      <div class="side side--away">
+        <img class="logo" id="awayLogo" alt="">
+        <div class="ident">
+          <div class="abbr" id="awayAbbr">—</div>
+          <div class="meta"><span class="rec" id="awayRec"></span><span class="tos" id="awayTos"></span></div>
+          <div class="poss" id="awayPoss"></div>
+        </div>
+      </div>
+      <div class="score score--away" id="awayScore">0</div>
+      <div class="center">
+        <div class="clock">
+          <span class="period" id="period"></span>
+          <span class="time" id="time"><span class="time__track" id="timeTrack"><span class="time__row" id="timeCur"></span><span class="time__row" id="timeNext"></span></span></span>
+        </div>
+        <div class="dd" id="downDistance"></div>
+        <div class="rz" id="rzFlag">Red Zone</div>
+      </div>
+      <div class="score score--home" id="homeScore">0</div>
+      <div class="side side--home">
+        <div class="ident ident--r">
+          <div class="abbr" id="homeAbbr">—</div>
+          <div class="meta meta--r"><span class="tos" id="homeTos"></span><span class="rec" id="homeRec"></span></div>
+          <div class="poss" id="homePoss"></div>
+        </div>
+        <img class="logo" id="homeLogo" alt="">
+      </div>
+    </div>
+    <div class="field" id="field">
+      <div class="ez ez--l" id="ezAway"><span id="ezAwayTxt"></span></div>
+      <div class="turf" id="turf">
+        <img class="turf-logo" id="turfLogo" alt="">
+        <div class="drive" id="driveBand"></div>
+        <div class="numbers" id="numbers"></div>
+        <div class="line line--los" id="losLine"></div>
+        <div class="line line--fd" id="fdLine"></div>
+        <div class="ball" id="ball"></div>
+      </div>
+      <div class="ez ez--r" id="ezHome"><span id="ezHomeTxt"></span></div>
+      <div class="ribbon" id="ribbon">
+        <img class="ribbon__img" id="ribbonImg" alt="">
+        <div class="ribbon__body"><div class="ribbon__name" id="ribbonTxt"></div><div class="ribbon__tag" id="ribbonTag">BIG PLAY</div></div>
+      </div>
+    </div>
+    <div class="alert" id="alert">
+      <div class="alert__heads" id="alertHeads"></div>
+      <div class="alert__body"><div class="alert__name" id="alertName"></div><div class="alert__play" id="alertPlay"></div></div>
+      <div class="alert__mark" id="alertMark"><img id="alertLogo" alt=""></div>
+    </div>
+  </div>
+</div>
+<script>
+// settings come from your Scoreboard control room (key in the URL), or ?team=…&league=… for quick tests
+const Q = new URLSearchParams(location.search), KEY = (Q.get('key') || '').toUpperCase(), PREVIEW = Q.has('preview');
+window.SB_REMOTE = !!(KEY || PREVIEW);
+if (PREVIEW) document.body.classList.add('preview');
+</script>
+<script src="/sports-engine.js"></script>
+<script>
+(() => {
+  let lastTs = 0;
+  const apply = c => { if (!c || (c.ts && c.ts < lastTs)) return; lastTs = c.ts || lastTs; window.SBApply(c); };
+  if (PREVIEW) { addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.sb) apply(e.data.sb); }); parent.postMessage({ sbReady: 1 }, location.origin); return; }
+  if (!KEY) return;
+  const topic = 'akaoutlaw-sb-' + KEY;
+  // saved settings first (survive restarts), then live changes over ntfy
+  fetch('/sbcfg/' + KEY, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(c => { if (c && c.ts) apply(c); }).catch(() => {});
+  (function connect() {
+    const es = new EventSource(`https://ntfy.sh/${topic}/sse`);
+    es.onmessage = e => { try { apply(JSON.parse(JSON.parse(e.data).message)); } catch (_) {} };
+    es.onerror = () => { es.close(); setTimeout(connect, 3000); };
+  })();
+  try { const bc = new BroadcastChannel('sb-' + KEY); bc.onmessage = e => apply(e.data); } catch (_) {}
+})();
+</script>
+</body>
+</html>

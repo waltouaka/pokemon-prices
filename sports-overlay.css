@@ -1,0 +1,503 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&display=swap");
+
+/* ============================================================
+   SCOREBOARD THEME
+   Everything you're likely to tweak lives in this block. The rules
+   below only consume these variables, so a re-skin should never
+   need to touch anything past :root.
+   ============================================================ */
+:root{
+  /* --- typeface (swap for any condensed font you like) --- */
+  --font: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+
+  /* --- layout --- */
+  --w: 700px;               /* base overlay width (also a widget setting) */
+  --scale: 1;               /* overall scale multiplier (also a widget setting) */
+  --radius: 12px;           /* card corner radius */
+
+  /* --- panel colors --- */
+  --panel: #111117;         /* main card background */
+  --panel-edge: #2a2a38;    /* card border */
+  --field-bg: #0f0f16;      /* strip behind the field */
+
+  /* --- text --- */
+  --ink: #f4f4f7;           /* primary text */
+  --muted: #ffffff;         /* secondary text (records, down & distance) */
+
+  /* --- team colors: set at runtime from ESPN, with dark colors swapped
+         for the team's alternate color so nothing disappears into the panel.
+         --away-ink / --home-ink are the readable text color on top of each. --- */
+  --away: #6b7280;
+  --home: #6b7280;
+  --away-ink: #ffffff;
+  --home-ink: #ffffff;
+
+  /* --- field --- */
+  --turf-a: #1c3d22;        /* mowing stripe 1 */
+  --turf-b: #214726;        /* mowing stripe 2 */
+  --los: #3b82f6;           /* line of scrimmage */
+  --fd: #f2c14e;            /* first-down line / accent */
+  --drive-opacity: .4;      /* how strong the drive-progress shading is */
+
+  /* --- end zone lettering ---
+     Font size = base / letter count, clamped between min and max, so
+     long names (COMMANDERS) shrink and short ones (49ERS) stay big.
+     Raise --ez-font-base to make ALL end zone text larger. */
+  --ez-font-base: 150px;
+  --ez-font-min: 12px;
+  --ez-font-max: 24px;
+
+  /* --- scoring alert (set at runtime from the scoring team) --- */
+  --alert: #b3202f;         /* alert background */
+  --alert-dark: #6f121c;    /* backdrop behind the player photo */
+  --alert-ink: #ffffff;     /* alert text */
+
+  /* --- red zone --- */
+  --redzone: #e04b45;
+
+  /* --- motion --- */
+  --t-fast: .18s;
+  --t-med: .35s;
+  --t-slide: .5s;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:transparent;overflow:hidden}
+
+.sb{
+  width:var(--w);
+  transform:scale(var(--scale));
+  transform-origin:top left;
+  font-family:var(--font);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  transition:opacity var(--t-med) ease;
+}
+.sb--hidden{opacity:0;pointer-events:none}
+
+.card{
+  position:relative;
+  border:1px solid var(--panel-edge);
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:var(--panel);
+  box-shadow:0 14px 34px rgba(0,0,0,.55);
+}
+
+/* shown only while the "Test drive" setting is on, so a forgotten
+   test can't be mistaken for a live game */
+.testtag{
+  display:none;position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:8;
+  font-size:11px;font-weight:700;letter-spacing:.16em;line-height:1;
+  background:var(--fd);color:#1a1400;padding:2px 9px 2px;border-radius:0 0 5px 5px;
+}
+.testtag.on{display:block}
+
+/* ============================================================
+   ENTRANCE — bar drops in, then the field unrolls beneath it.
+   JS adds .enter to .sb for ~1.2s whenever the overlay appears.
+   ============================================================ */
+.sb.enter .bar{animation:barIn .55s cubic-bezier(.2,.9,.25,1) both}
+.sb.enter .field{animation:fieldIn .6s .3s cubic-bezier(.2,.9,.25,1) both}
+@keyframes barIn{
+  from{transform:translateY(-110%);opacity:0}
+  to{transform:none;opacity:1}
+}
+@keyframes fieldIn{
+  from{clip-path:inset(0 0 100% 0)}
+  to{clip-path:inset(0 0 0 0)}
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.bar{
+  display:grid;
+  grid-template-columns:1fr 78px minmax(160px,1.1fr) 78px 1fr;
+  align-items:center;
+  gap:8px;
+  padding:14px 18px;
+  background:var(--panel);
+  border-bottom:2px solid var(--panel-edge);
+}
+/* team-color strip across the top edge */
+.bar::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:6px;
+  background:linear-gradient(90deg, var(--away) 0 50%, var(--home) 50% 100%);
+}
+
+/* each side stretches to the full bar height so the possession
+   underline can sit on the bar's bottom edge */
+.side{
+  position:relative;align-self:stretch;
+  display:flex;align-items:center;gap:12px;min-width:0;
+}
+.side--home{justify-content:flex-end}
+
+/* possession underline — grows out from the outer edge of the team with the ball */
+.side::after{
+  content:"";position:absolute;left:0;right:0;bottom:-14px;height:4px;
+  background:var(--away);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform var(--t-slide) cubic-bezier(.2,.9,.25,1);
+}
+.side--home::after{background:var(--home);transform-origin:right}
+.side.has-ball::after{transform:scaleX(1)}
+
+.logo{width:50px;height:50px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.logo[src=""]{visibility:hidden}
+
+.ident{min-width:0;position:relative}
+.ident--r{text-align:right}
+
+.abbr{
+  font-size:38px;font-weight:900;letter-spacing:.01em;line-height:.95;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;
+}
+.meta{display:flex;align-items:center;gap:10px;margin-top:5px}
+.meta--r{justify-content:flex-end}
+.rec{font-size:15px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+
+/* timeout dashes */
+.tos{display:inline-flex;gap:3px}
+.tos b{
+  display:block;width:12px;height:3px;border-radius:1px;
+  background:rgba(244,244,247,.18);transition:background var(--t-fast);
+}
+.tos b.on{background:rgba(244,244,247,.8)}
+
+/* little football beside the team that has possession */
+.poss{
+  position:absolute;top:9px;width:19px;height:11px;border-radius:50%;
+  background:#8a4b24;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+  opacity:0;transform:scale(.4);
+  transition:opacity var(--t-fast) ease, transform var(--t-med) cubic-bezier(.2,1.4,.3,1);
+}
+.poss::after{
+  content:"";position:absolute;left:50%;top:50%;width:7px;height:1.5px;
+  transform:translate(-50%,-50%);background:#f1e7da;border-radius:1px;
+}
+.ident .poss{left:100%;margin-left:10px}
+.ident--r .poss{left:auto;right:100%;margin-right:10px}
+.poss.on{opacity:1;transform:none}
+
+/* score — solid block in the team's color */
+.score{
+  font-size:56px;font-weight:900;text-align:center;line-height:1;
+  padding:4px 0 2px;border-radius:8px;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.25), inset 0 2px 0 rgba(255,255,255,.15);
+  font-variant-numeric:tabular-nums;
+}
+.score--away{background:var(--away);color:var(--away-ink)}
+.score--home{background:var(--home);color:var(--home-ink)}
+.score.bump{animation:scoreBump .7s ease-out}
+@keyframes scoreBump{
+  0%{transform:scale(1)}
+  30%{transform:scale(1.14);filter:brightness(1.35)}
+  100%{transform:scale(1);filter:none}
+}
+
+.center{text-align:center;line-height:1.1}
+.clock{font-size:32px;font-weight:800;white-space:nowrap}
+.dd{
+  font-size:18px;color:var(--muted);margin-top:4px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;min-height:20px;
+}
+
+/* quarter indicator pulses when the period changes */
+.period{display:inline-block}
+.period.pulse{animation:periodPulse .5s ease-out}
+@keyframes periodPulse{
+  0%{opacity:.3;transform:translateY(-3px)}
+  100%{opacity:1;transform:none}
+}
+
+/* game clock — flip transition whenever the polled value changes.
+   .time is a small window; .time__track holds the old value on top and
+   the new one directly below, then slides up one row. */
+.time{
+  display:inline-block;overflow:hidden;
+  height:1.15em;line-height:1.15em;vertical-align:top;
+  margin-left:10px;min-width:3.4ch;text-align:left;
+  font-variant-numeric:tabular-nums;
+}
+.time.none{display:none}
+.time__track{display:block}
+.time__row{display:block;height:1.15em;line-height:1.15em}
+.time__track.flip{
+  transition:transform var(--t-med) cubic-bezier(.3,.85,.3,1);
+  transform:translateY(-1.15em);
+}
+
+/* red-zone badge — static, sits under the down & distance */
+.rz{
+  display:inline-block;margin-top:5px;
+  font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--redzone);
+  padding:1px 9px;border:1px solid var(--redzone);border-radius:4px;
+  opacity:0;transition:opacity var(--t-fast) ease;
+}
+.rz.on{opacity:1}
+
+/* ============================================================
+   FIELD STRIP
+   ============================================================ */
+.field{
+  position:relative;display:flex;height:84px;background:var(--field-bg);
+  overflow:hidden;
+}
+.field.off{display:none}
+
+/* end zones: solid team color with a white goal line on the inside edge */
+.ez{
+  position:relative;
+  width:11%;flex:none;display:grid;place-items:center;padding:6px 0;
+  background:var(--away);color:var(--away-ink);
+}
+.ez--l{border-right:3px solid rgba(255,255,255,.85)}
+.ez--r{background:var(--home);color:var(--home-ink);border-left:3px solid rgba(255,255,255,.85)}
+.ez span{
+  writing-mode:vertical-rl;
+  text-transform:uppercase;
+  font-weight:700;
+  letter-spacing:.1em;
+  line-height:1;
+  /* --ez-len (letter count) is set per team by JS; sizing is tuned in :root */
+  font-size:clamp(var(--ez-font-min), calc(var(--ez-font-base) / var(--ez-len, 8)), var(--ez-font-max));
+}
+.ez--l span{transform:rotate(180deg)}
+
+/* turf: 5-yard mowing stripes, yard lines every 10, faint 5s */
+.turf{
+  position:relative;flex:1;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 10%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 1px, transparent 1px 5%),
+    repeating-linear-gradient(90deg, var(--turf-a) 0 5%, var(--turf-b) 5% 10%);
+}
+/* hash ticks every yard along the top and bottom edges */
+.turf::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.32) 0 1px, transparent 1px 1%);
+  -webkit-mask:linear-gradient(to bottom, #000 0 6px, transparent 6px calc(100% - 6px), #000 calc(100% - 6px) 100%);
+          mask:linear-gradient(to bottom, #000 0 6px, transparent 6px calc(100% - 6px), #000 calc(100% - 6px) 100%);
+}
+
+.numbers{position:absolute;inset:0}
+.numbers i{
+  position:absolute;bottom:10px;transform:translateX(-50%);
+  font-style:normal;font-size:20px;font-weight:700;letter-spacing:.02em;
+  color:rgba(255,255,255,.55);
+}
+
+/* home team logo painted at midfield */
+.turf-logo{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:48px;height:48px;object-fit:contain;
+  opacity:.16;pointer-events:none;
+}
+.turf-logo[src=""]{display:none}
+
+/* drive progress: shaded from where the drive started to the ball */
+.drive{
+  position:absolute;top:0;bottom:0;left:0;width:0;
+  opacity:0;pointer-events:none;
+  transition:left var(--t-slide) ease, width var(--t-slide) ease, opacity var(--t-med) ease;
+}
+.drive.on{opacity:var(--drive-opacity)}
+.drive--away{background:var(--away);border-right:2px solid var(--away)}
+.drive--home{background:var(--home);border-left:2px solid var(--home)}
+
+.line{
+  position:absolute;top:0;bottom:0;width:3px;transform:translateX(-50%);opacity:0;
+  transition:left var(--t-slide) ease, opacity var(--t-fast);
+}
+.line--los{background:var(--los)}
+.line--fd{background:var(--fd)}
+.line.on{opacity:1}
+
+.ball{
+  position:absolute;top:50%;width:20px;height:12px;
+  transform:translate(-50%,-50%);
+  background:#7a4526;box-shadow:0 1px 2px rgba(0,0,0,.5);
+  border-radius:50%/50%;
+  opacity:0;transition:left var(--t-slide) ease, opacity var(--t-fast);
+}
+.ball::after{
+  content:"";position:absolute;left:50%;top:50%;width:7px;height:1.5px;
+  transform:translate(-50%,-50%);background:#e9ded1;border-radius:1px;
+}
+.ball.on{opacity:1}
+/* short hop when a big play lands */
+.ball.snap{animation:ballHop .4s ease-out}
+@keyframes ballHop{
+  0%,100%{transform:translate(-50%,-50%)}
+  50%{transform:translate(-50%,-70%)}
+}
+
+/* ============================================================
+   BIG-PLAY RIBBON — slides over the field strip only
+   ============================================================ */
+.ribbon{
+  position:absolute;top:0;left:50%;z-index:3;
+  display:flex;align-items:center;gap:9px;
+  padding:5px 16px 5px 6px;
+  background:var(--panel);
+  border:1px solid var(--panel-edge);border-top:0;
+  border-bottom:3px solid var(--fd);
+  border-radius:0 0 10px 10px;
+  transform:translate(-50%,-110%);
+  transition:transform var(--t-med) cubic-bezier(.2,.9,.3,1.1);
+}
+.ribbon.on{transform:translate(-50%,0)}
+.ribbon__img{
+  flex:none;width:36px;height:36px;border-radius:50%;
+  object-fit:cover;object-position:center top;
+  background:var(--panel-edge);
+}
+.ribbon__img.off{display:none}
+.ribbon__body{min-width:0;line-height:1}
+.ribbon__name{
+  font-size:18px;font-weight:700;color:var(--ink);text-transform:uppercase;
+  letter-spacing:.02em;white-space:nowrap;max-width:230px;overflow:hidden;text-overflow:ellipsis;
+}
+.ribbon__tag{
+  margin-top:3px;font-size:14px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--fd);
+}
+
+/* ============================================================
+   SCORING ALERT — covers the whole card, diagonal wipe in/out
+   ============================================================ */
+.alert{
+  position:absolute;inset:0;z-index:6;
+  display:flex;align-items:center;gap:16px;padding:0 26px 0 0;
+  background:var(--alert);color:var(--alert-ink);
+  pointer-events:none;
+  clip-path:polygon(0 0, 0 0, -30% 100%, 0 100%);
+  transition:clip-path .55s cubic-bezier(.7,0,.2,1);
+}
+.alert.on{clip-path:polygon(0 0, 130% 0, 100% 100%, 0 100%)}
+
+/* player photo on a darker team-color backdrop, slanted inner edge */
+.alert__heads{
+  position:relative;flex:none;align-self:stretch;width:190px;
+  background:var(--alert-dark);
+  clip-path:polygon(0 0, 100% 0, 86% 100%, 0 100%);
+}
+.alert__heads img{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  height:100%;width:auto;max-width:none;
+}
+.alert__heads img.logo{
+  bottom:auto;top:50%;transform:translate(-50%,-50%);
+  height:62%;opacity:.95;
+}
+.alert.on .alert__heads img{animation:headIn .55s .25s cubic-bezier(.2,1,.3,1) both}
+@keyframes headIn{
+  from{opacity:0;bottom:-26px}
+  to{opacity:1;bottom:0}
+}
+.alert.on .alert__heads img.logo{animation:logoIn .4s .25s ease both}
+@keyframes logoIn{from{opacity:0}to{opacity:.95}}
+
+.alert__body{min-width:0;flex:1}
+.alert__name{
+  font-size:42px;font-weight:900;letter-spacing:.01em;line-height:1;
+  text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.alert__play{
+  font-size:26px;font-weight:600;margin-top:6px;letter-spacing:.05em;
+  text-transform:uppercase;opacity:.92;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.alert__mark{flex:none}
+.alert__mark img{width:56px;height:56px;object-fit:contain}
+.alert__mark img[src=""]{display:none}
+.alert__mark.off{display:none}
+
+/* ============================================================
+   MINIMAL LAYOUT — the "Layout: Minimal" setting adds .sb--min.
+   One slim bar: logos, abbreviations, scores, clock, down & distance.
+   No field, records or timeouts. Everything here only overrides the
+   full layout, so delete this block and nothing else changes.
+   ============================================================ */
+.sb--min{width:var(--w-min,460px)}   /* minimal width: set by the "Minimal width" setting */
+.sb--min .card{overflow:visible}
+.sb--min .bar{
+  position:relative;overflow:hidden;
+  grid-template-columns:auto 46px 1fr 46px auto;   /* scores hug the team names */
+  padding:8px 12px;gap:8px;
+  border:0;border-radius:var(--radius);
+}
+.sb--min .bar::before{height:3px}
+.sb--min .logo{width:36px;height:36px}
+.sb--min .abbr{font-size:24px;max-width:none;overflow:visible}
+.sb--min .rz,.sb--min .rec{display:none}
+.sb--min .meta{margin-top:3px}   /* timeouts stay, shown as small dashes under the name */
+.sb--min .tos b{width:10px;height:3px}
+.sb--min .score{font-size:30px;padding:3px 0 2px;border-radius:5px}
+/* nudge the scores toward the middle; raise the number to move them further in */
+.sb--min .score--away{translate:22px 0}
+.sb--min .score--home{translate:-22px 0}
+/* pre-game / final have a long label and no clock, so the scores stay put */
+.sb--min.sb--noclock .score--away,.sb--min.sb--noclock .score--home{translate:0 0}
+.sb--min .clock{font-size:20px}
+.sb--min .time{margin-left:6px}
+.sb--min .dd{font-size:14px;margin-top:2px;min-height:16px}
+.sb--min .side{gap:7px}
+.sb--min .side::after{bottom:-9px;height:3px}
+.sb--min .poss{display:none}   /* too narrow for the ball; the underline marks possession */
+
+/* field strip collapses to nothing; it only anchors the big-play chip,
+   and the overlay keeps headroom above the bar (--chip-room) for the
+   big-play chip to pop up into */
+.sb--min{padding-top:var(--chip-room,34px)}
+.sb--min .field{display:block;position:absolute;top:0;left:0;right:0;height:0;overflow:visible;background:none;pointer-events:none}
+.sb--min.enter .field{animation:none}
+.sb--min .ez,.sb--min .turf{display:none}
+.sb--min .ribbon{
+  top:auto;bottom:100%;              /* a little tab sitting on top of the bar */
+  gap:7px;padding:3px 12px 3px 4px;
+  border:1px solid var(--panel-edge);border-bottom:0;border-top:3px solid var(--fd);
+  border-radius:8px 8px 0 0;
+  opacity:0;transform:translate(-50%,0);
+  transition:opacity .2s ease;                 /* leaves by fading, doesn't sink */
+}
+.sb--min .ribbon.on{opacity:1;animation:tabUp .35s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes tabUp{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
+.sb--min .ribbon__img{width:24px;height:24px}
+.sb--min .ribbon__body{display:flex;align-items:baseline;gap:7px}
+.sb--min .ribbon__name{font-size:15px;max-width:none;overflow:visible}
+.sb--min .ribbon__tag{font-size:12px;margin-top:0;white-space:nowrap}
+.sb--min .alert{border-radius:var(--radius);gap:12px;padding-right:16px}
+.sb--min .alert__heads{width:84px}
+.sb--min .alert__name{font-size:24px}
+.sb--min .alert__play{font-size:15px;margin-top:3px}
+.sb--min .alert__mark img{width:32px;height:32px}
+.sb--min .testtag{left:14px;transform:none}
+
+@media (prefers-reduced-motion: reduce){
+  .sb.enter .bar,.sb.enter .field,
+  .score.bump,.ball.snap,
+  .alert.on .alert__heads img{animation:none}
+  .line,.ball,.ribbon,.alert,.rz,.drive,.side::after,.poss{transition-duration:.08s}
+}
+/* ============================================================
+   OTHER SPORTS (added for the Scoreboard control room)
+   ============================================================ */
+/* baseball: runners diamond + count/outs, shown in the down & distance line */
+.dd .bases{display:inline-block;position:relative;width:28px;height:18px;margin-right:9px;vertical-align:-3px}
+.dd .bases i{position:absolute;width:8px;height:8px;border:1.5px solid var(--muted);transform:rotate(45deg);opacity:.85}
+.dd .bases i.on{background:var(--fd);border-color:var(--fd);opacity:1}
+.dd .bases .b1{right:1px;top:7px}.dd .bases .b2{left:10px;top:1px}.dd .bases .b3{left:1px;top:7px}
+/* preview inside the control room */
+body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 0/24px 24px;padding:24px}
+
+/* playoff / series note, a tab sitting on the top edge of the card */
+.gnote{display:none;width:max-content;max-width:100%;margin:0 auto;padding:3px 14px 2px;background:var(--fd);color:#1a1400;
+  font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border-radius:6px 6px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gnote.on{display:block}
+.sb--min .gnote{margin:0 0 0 14px}

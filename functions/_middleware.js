@@ -275,7 +275,7 @@ async function authRoutes(request, env, url, path) {
 }
 
 // ---------- per-user settings (cards + replay), synced to the account ----------
-const APPS = { cards: { pre: 'pkmn_', skip: '^pkmn_state_' }, replay: { pre: 'aor_', skip: '^$' } };
+const APPS = { cards: { pre: 'pkmn_', skip: '^pkmn_state_' }, replay: { pre: 'aor_', skip: '^$' }, sports: { pre: 'sb_', skip: '^$' } };
 async function settingsApi(request, env, url, me) {
   const app = url.searchParams.get('app'); if (!APPS[app]) return json({ error: 'bad app' }, 400);
   if (!env.IMAGES) return json({ error: 'storage not connected' }, 502);
@@ -326,6 +326,34 @@ async function withHead(res, env, me, app) {
   return new HTMLRewriter().on('head', { element(e) { e.prepend(tag, { html: true }); } }).transform(res);
 }
 
+// ---------- Scoreboard ----------
+// ESPN's public scoreboard API, through our domain (cached a few seconds so many overlays = few ESPN calls)
+async function espnProxy(url) {
+  const rest = url.pathname.slice('/espn/'.length);
+  if (!/^[a-z0-9.\-]+\/[a-z0-9.\-]+\/(scoreboard|summary)$/i.test(rest)) return new Response('Not found', { status: 404 });
+  const q = new URLSearchParams();
+  for (const [k, v] of url.searchParams) if (['event', 'dates', 'groups', 'limit'].includes(k) && /^[\w,-]{1,40}$/.test(v)) q.set(k, v);
+  const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${rest}${q.toString() ? '?' + q : ''}`, { cf: { cacheTtl: 5, cacheEverything: true } });
+  return new Response(r.body, { status: r.status, headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=5', 'access-control-allow-origin': '*' } });
+}
+const SBKEY = /^[A-Z0-9]{6,12}$/;
+async function sbConfigGet(url, env) {
+  const key = url.pathname.slice('/sbcfg/'.length).toUpperCase();
+  if (!SBKEY.test(key) || !env.IMAGES) return json({}, 404);
+  const v = await env.IMAGES.get('sbcfg:' + key, { type: 'json', cacheTtl: 30 });
+  return v ? json(v.cfg || {}) : json({}, 404);
+}
+async function sbConfigPut(request, url, env, me) {
+  const key = (url.searchParams.get('key') || '').toUpperCase();
+  if (!SBKEY.test(key) || !env.IMAGES) return json({ error: 'bad key' }, 400);
+  const txt = await request.text(); if (txt.length > 16000) return json({ error: 'too big' }, 413);
+  let cfg; try { cfg = JSON.parse(txt); } catch (_) { return json({ error: 'bad json' }, 400); }
+  const old = await env.IMAGES.get('sbcfg:' + key, 'json');
+  if (old && old.owner && old.owner !== me.id && !me.admin) return json({ error: 'not your key' }, 403);
+  await env.IMAGES.put('sbcfg:' + key, JSON.stringify({ owner: me.id, cfg }));
+  return json({ ok: true });
+}
+
 export async function onRequest({ request, env, next }) {
   const url = new URL(request.url);
   const host = url.hostname;
@@ -360,10 +388,11 @@ export async function onRequest({ request, env, next }) {
   // what runs once someone is allowed in
   const pass = async (me) => {
     if (path === '/__me/settings') return settingsApi(request, env, url, me);
+    if (path === '/api/sb-config' && request.method === 'POST') return sbConfigPut(request, url, env, me);
     if (path === '/api/clip' || path.startsWith('/api/clip/')) return clipApi(request, url, env, path, me);
     if (isReplay && path !== '/api/upload') return toReplay(request, env, me);
     if (path.startsWith('/api/')) return imageApi(request, url, env, path, me);
-    const app = host === 'cards.' + ROOT ? 'cards' : null;
+    const app = host === 'cards.' + ROOT ? 'cards' : (path === '/sports' || path === '/sports.html') ? 'sports' : null;
     if (isHome && (path === '/' || path === '/index.html')) return withHead(await env.ASSETS.fetch(new Request(new URL('/home', url), request)), env, me, null);
     return withHead(await next(), env, me, app);
   };
@@ -386,6 +415,12 @@ export async function onRequest({ request, env, next }) {
     if (!locked) return toReplay(request, env, null);
   } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
     return next();
+  } else if (path === '/sports-overlay' || path === '/sports-overlay.html' || path === '/sports-overlay.css' || path === '/sports-engine.js') {
+    return next();   // the scoreboard OBS overlay is public; its key picks the settings
+  } else if (path.startsWith('/espn/') && request.method === 'GET') {
+    return espnProxy(url);
+  } else if (path.startsWith('/sbcfg/') && request.method === 'GET') {
+    return sbConfigGet(url, env);
   }
 
   // who is this?

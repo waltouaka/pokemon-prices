@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="https://unavatar.io/twitch/akaoutlaw">
+<title>akaoutlaw · Scoreboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<style>
+  :root{--tile:rgba(255,255,255,.07);--tile2:rgba(255,255,255,.12);--line:rgba(255,255,255,.08);--muted:#a99cc0}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:Archivo,system-ui,sans-serif;font-weight:700;font-size:14px;color:#fff;background:#1E1A34}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(125deg,#1E1A34 0%,#2b1f5c 22%,#1E1A34 45%,#3a1d63 68%,#15122a 85%,#1E1A34 100%);background-size:300% 300%;animation:bg 22s ease-in-out infinite}
+  @keyframes bg{0%{background-position:0% 30%}50%{background-position:100% 70%}100%{background-position:0% 30%}}
+  button,input,select{font-family:inherit;font-weight:700;color:inherit}
+  .wrap{max-width:1500px;margin:0 auto;padding:16px 18px 40px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .backhome{display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 14px;border-radius:10px;background:var(--tile);color:#fff;text-decoration:none;font-weight:800}
+  .backhome:hover{background:var(--tile2)}
+  .pfp{width:48px;height:48px;border-radius:50%;border:2px solid #fff;object-fit:cover}
+  .bn{font-weight:900;font-size:26px;font-stretch:120%;letter-spacing:-.6px;line-height:1}
+  .bs{color:var(--muted);font-size:13px;margin-top:3px}
+  .hright{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .pill{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:var(--tile);font-size:13px}
+  .pill b{font-family:ui-monospace,monospace;letter-spacing:1px}
+  .btn{border:0;border-radius:10px;background:var(--tile);padding:10px 14px;cursor:pointer;font-size:13px}
+  .btn:hover{background:var(--tile2)}
+  .btn.white{background:#fff;color:#000;font-weight:900}
+  .grid{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:16px;align-items:start}
+  .panel{background:rgba(0,0,0,.25);border-radius:16px;overflow:hidden}
+  .tabs{display:flex;gap:4px;padding:6px;background:rgba(0,0,0,.25)}
+  .tabs button{flex:1;border:0;border-radius:10px;padding:11px;background:transparent;cursor:pointer;color:var(--muted);font-size:14px}
+  .tabs button.on{background:#fff;color:#000;font-weight:900}
+  .pane{padding:14px;max-height:calc(100vh - 150px);overflow:auto}
+  .pane[hidden]{display:none}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{border:0;border-radius:999px;padding:8px 13px;background:var(--tile);cursor:pointer;font-size:13px}
+  .chip.on{background:#fff;color:#000}
+  .datebar{display:flex;align-items:center;gap:6px;margin:12px 0}
+  .datebar .d{flex:1;text-align:center;font-size:14px}
+  .games{display:flex;flex-direction:column;gap:8px}
+  .g{background:var(--tile);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+  .g.sel{box-shadow:inset 0 0 0 2px #fff}
+  .g .tms{display:flex;flex-direction:column;gap:5px}
+  .g .t{display:flex;align-items:center;gap:8px}
+  .g .t img{width:24px;height:24px;object-fit:contain}
+  .g .t .a{width:52px}
+  .g .t .s{font-variant-numeric:tabular-nums;font-size:16px}
+  .g .st{font-size:12px;color:var(--muted);text-align:right}
+  .g .st.live{color:#ff5a5a}
+  .g .acts{grid-column:1 / 3;display:flex;gap:6px}
+  .g .acts .btn{flex:1;padding:8px;font-size:12px}
+  .g .acts .btn.on{background:#fff;color:#000}
+  .empty{color:var(--muted);text-align:center;padding:28px}
+  .cur{background:rgba(255,255,255,.05);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--muted)}
+  .cur b{color:#fff}
+  .sec{margin:4px 0 14px}
+  .sec h4{margin:0 0 8px;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+  .row{display:grid;grid-template-columns:1fr 160px;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .row:last-child{border-bottom:0}
+  .row small{display:block;color:var(--muted);font-weight:600;font-size:11.5px;margin-top:2px}
+  .row input[type=number],.row select,.row input[type=text]{width:100%;background:rgba(0,0,0,.4);border:0;border-radius:9px;padding:8px 10px;box-shadow:inset 0 0 0 1px var(--line)}
+  .row input[type=range]{width:100%;accent-color:#fff}
+  .row input[type=color]{width:46px;height:30px;border:0;background:none;padding:0;justify-self:end}
+  .row .tg{justify-self:end}
+  select option{background:#1E1A34}
+  .sw{position:relative;width:44px;height:24px;border-radius:999px;background:rgba(255,255,255,.15);cursor:pointer;border:0;padding:0;justify-self:end;transition:.15s}
+  .sw::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+  .sw.on{background:#3ddc84}.sw.on::after{left:23px}
+  .presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .preset{border:0;border-radius:10px;padding:10px;cursor:pointer;font-size:12px;color:#fff;text-align:left}
+  .preset i{display:flex;gap:3px;margin-top:6px}.preset i b{width:14px;height:8px;border-radius:2px}
+  .prevbox{background:rgba(0,0,0,.25);border-radius:16px;padding:12px;position:sticky;top:12px}
+  .prevhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .prevhead .lbl{color:var(--muted);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;margin-right:auto}
+  .vis{display:flex;gap:6px}
+  .vis .btn{min-width:84px;font-weight:900}
+  .vis .btn.on{background:#3ddc84;color:#000}
+  .vis .btn.off.on{background:#ff2a2a;color:#fff}
+  iframe{width:100%;height:340px;border:0;border-radius:12px;background:#000;display:block}
+  .hint{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.5}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(90px);background:#fff;color:#000;padding:11px 18px;border-radius:12px;transition:.25s;z-index:99;font-weight:800}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}.prevbox{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="backhome" href="/" title="Back to home">← Home</a>
+    <img class="pfp" src="https://unavatar.io/twitch/akaoutlaw" alt="">
+    <div><div class="bn">akaoutlaw</div><div class="bs">Scoreboard</div></div>
+    <div class="hright">
+      <div class="pill">Key <b id="keyTxt"></b></div>
+      <button class="btn white" id="copyUrl">Copy overlay URL</button>
+      <button class="btn" id="newKey">New key</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="tabs"><button data-t="games" class="on">Games</button><button data-t="custom">Customize</button><button data-t="theme">Theme</button></div>
+
+      <div class="pane" id="p-games">
+        <div class="cur" id="cur"></div>
+        <div class="chips" id="leagues"></div>
+        <div class="datebar"><button class="btn" id="dPrev">◀</button><div class="d" id="dTxt"></div><button class="btn" id="dNext">▶</button><button class="btn" id="dToday">Today</button></div>
+        <div class="games" id="games"><div class="empty">Loading…</div></div>
+      </div>
+
+      <div class="pane" id="p-custom" hidden></div>
+      <div class="pane" id="p-theme" hidden></div>
+    </div>
+
+    <div class="prevbox">
+      <div class="prevhead">
+        <span class="lbl">Preview</span>
+        <div class="vis"><button class="btn on" id="showBtn">Show</button><button class="btn off" id="hideBtn">Hide</button></div>
+      </div>
+      <iframe id="prev" title="preview"></iframe>
+      <div class="hint">Add the overlay to OBS as a <b>Browser source</b> (1920 × 1080). Paste the URL from <b>Copy overlay URL</b>. Every change here shows up on stream within a second, no refresh needed.</div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const toast = t => { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2200); };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const ls = { get: (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} } };
+
+const LEAGUES = [
+  ['nfl', 'NFL', 'football/nfl'], ['ncaaf', 'NCAAF', 'football/college-football', 'groups=80'], ['ufl', 'UFL', 'football/ufl'], ['cfl', 'CFL', 'football/cfl'],
+  ['nba', 'NBA', 'basketball/nba'], ['wnba', 'WNBA', 'basketball/wnba'], ['ncaam', 'NCAAM', 'basketball/mens-college-basketball', 'groups=50'], ['ncaaw', 'NCAAW', 'basketball/womens-college-basketball', 'groups=50'],
+  ['nhl', 'NHL', 'hockey/nhl'], ['mlb', 'MLB', 'baseball/mlb'], ['mls', 'MLS', 'soccer/usa.1'], ['epl', 'EPL', 'soccer/eng.1'], ['ucl', 'UCL', 'soccer/uefa.champions'],
+];
+const L = Object.fromEntries(LEAGUES.map(([k, n, p, q]) => [k, { n, p, q }]));
+
+// ---- settings (saved in this browser + your account) ----
+const CUSTOM = [
+  ['Game', [
+    ['hideWhenNoGame', 'Hide overlay when there\'s no game', 'bool', true],
+    ['refresh', 'Refresh every (seconds)', 'num', 8, 5, 120],
+    ['liveClock', 'Approximate tick between refreshes', 'bool', false, 'Smoother clock, may jump when corrected'],
+    ['showNote', 'Playoff / series note above the bar', 'bool', true],
+  ]],
+  ['Alerts', [
+    ['enableAlerts', 'Alerts for scores & big plays', 'bool', true],
+    ['myTeamOnly', 'Only alert for the team I follow', 'bool', false],
+    ['showBigPlayRibbon', 'Big-play banner (football)', 'bool', true],
+    ['bigPlayYards', 'Big play = this many yards or more', 'num', 40, 10, 60],
+    ['alertDuration', 'Scoring alert stays up (seconds)', 'num', 7, 3, 20],
+  ]],
+  ['Layout', [
+    ['layout', 'Layout', 'sel', 'full', { full: 'Full (bar + field)', minimal: 'Minimal (slim bar)' }],
+    ['width', 'Width (px)', 'num', 700, 380, 1400],
+    ['minWidth', 'Minimal layout width (px)', 'num', 460, 300, 800],
+    ['scale', 'Scale', 'range', 1, 0.4, 2, 0.05],
+    ['useTeamColors', 'Team colors on the bar & end zones', 'bool', true],
+    ['showTimeouts', 'Show timeouts', 'bool', true],
+    ['showField', 'Show the field strip (football)', 'bool', true],
+    ['fieldOnlyLive', 'Field only while the game is live', 'bool', false],
+  ]],
+  ['Test', [
+    ['testDrive', 'TEST DRIVE: simulated Vikings @ Packers', 'bool', false, 'Shows a TEST DRIVE tag. Turn off before going live.'],
+    ['testDriveSpeed', 'Test drive seconds per play', 'num', 4, 1, 15],
+  ]],
+];
+const THEME = [
+  ['font', 'Font', 'sel', 'Barlow Condensed', { 'Barlow Condensed': 'Barlow Condensed', 'Oswald': 'Oswald', 'Bebas Neue': 'Bebas Neue', 'Teko': 'Teko', 'Anton': 'Anton', 'Roboto Condensed': 'Roboto Condensed', 'Archivo Narrow': 'Archivo Narrow', 'Saira Condensed': 'Saira Condensed', 'Arial Black': 'Arial Black' }],
+  ['radius', 'Corner radius', 'range', 10, 0, 24, 1],
+  ['panel', 'Panel', 'color', '#15151d'], ['panelEdge', 'Panel border', 'color', '#2a2a38'], ['fieldBg', 'Behind the field', 'color', '#0f0f16'],
+  ['ink', 'Main text', 'color', '#f4f4f7'], ['muted', 'Small text', 'color', '#ffffff'],
+  ['fd', 'Accent / first-down line', 'color', '#f2c14e'], ['los', 'Line of scrimmage', 'color', '#3b82f6'], ['redzone', 'Red zone', 'color', '#e04b45'],
+  ['turfA', 'Turf stripe 1', 'color', '#1c3d22'], ['turfB', 'Turf stripe 2', 'color', '#214726'],
+  ['driveOpacity', 'Drive shading strength', 'range', 0.4, 0, 1, 0.05],
+];
+const PRESETS = {
+  'Default':   {},
+  'Midnight':  { panel: '#0b1020', panelEdge: '#1d2745', fieldBg: '#070b16', fd: '#38bdf8', los: '#a78bfa' },
+  'Purple':    { panel: '#1E1A34', panelEdge: '#3a2f63', fieldBg: '#15122a', fd: '#c084fc', los: '#60a5fa', font: 'Oswald' },
+  'Black ops': { panel: '#000000', panelEdge: '#222222', fieldBg: '#050505', fd: '#ffffff', los: '#ff2a2a', redzone: '#ff2a2a', radius: 2, font: 'Bebas Neue' },
+  'Gold':      { panel: '#141210', panelEdge: '#3b2f14', fieldBg: '#0d0b08', fd: '#ffd400', los: '#ffffff', font: 'Teko' },
+  'Light':     { panel: '#f4f4f7', panelEdge: '#d6d6e0', fieldBg: '#e7e7ee', ink: '#111118', muted: '#3a3a48', fd: '#d97706', turfA: '#2f6b3a', turfB: '#357841' },
+};
+
+let S = Object.assign({ league: 'nfl', teamId: '', team: '', eventId: '', label: '', show: true }, ls.get('sb_state', {}));
+let C = Object.assign({}, ...CUSTOM.flatMap(([, rows]) => rows.map(r => ({ [r[0]]: r[3] }))), ls.get('sb_custom', {}));
+let T = Object.assign({}, ls.get('sb_theme', {}));
+let KEY = ls.get('sb_key', '');
+const makeKey = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return [...crypto.getRandomValues(new Uint8Array(8))].map(b => a[b % a.length]).join(''); };
+if (!KEY) { KEY = makeKey(); ls.set('sb_key', KEY); }
+$('keyTxt').textContent = KEY;
+const overlayUrl = () => `${location.origin}/sports-overlay?key=${KEY}`;
+
+// ---- send settings to the overlay ----
+let bc; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
+const payload = () => ({ ts: Date.now(), ...C, ...S, theme: T });
+let ntfyT = 0, kvT = 0;
+function publish() {
+  ls.set('sb_state', S); ls.set('sb_custom', C); ls.set('sb_theme', T);
+  const p = payload();
+  $('prev').contentWindow?.postMessage({ sb: p }, location.origin);
+  try { bc && bc.postMessage(p); } catch (_) {}
+  clearTimeout(ntfyT); ntfyT = setTimeout(() => fetch('https://ntfy.sh/akaoutlaw-sb-' + KEY, { method: 'POST', body: JSON.stringify(payload()) }).catch(() => {}), 350);
+  clearTimeout(kvT); kvT = setTimeout(() => fetch('/api/sb-config?key=' + KEY, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload()) }).catch(() => {}), 2500);
+  drawCur(); syncVis();
+}
+$('prev').src = '/sports-overlay?preview=1';
+addEventListener('message', e => { if (e.origin === location.origin && e.data?.sbReady) $('prev').contentWindow.postMessage({ sb: payload() }, location.origin); });
+
+$('copyUrl').onclick = async () => { try { await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied. Paste it into an OBS Browser source'); } catch (_) { prompt('Copy this URL', overlayUrl()); } };
+$('newKey').onclick = () => {
+  if ($('newKey').dataset.armed !== '1') { $('newKey').dataset.armed = '1'; $('newKey').textContent = 'Sure? Old OBS link stops'; setTimeout(() => { $('newKey').dataset.armed = ''; $('newKey').textContent = 'New key'; }, 3000); return; }
+  KEY = makeKey(); ls.set('sb_key', KEY); $('keyTxt').textContent = KEY; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
+  $('newKey').dataset.armed = ''; $('newKey').textContent = 'New key'; publish(); toast('New key. Copy the new overlay URL into OBS');
+};
+function syncVis() { $('showBtn').classList.toggle('on', S.show !== false); $('hideBtn').classList.toggle('on', S.show === false); }
+$('showBtn').onclick = () => { S.show = true; publish(); };
+$('hideBtn').onclick = () => { S.show = false; publish(); };
+
+// ---- tabs ----
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  ['games', 'custom', 'theme'].forEach(t => $('p-' + t).hidden = t !== b.dataset.t);
+});
+
+// ---- Games panel ----
+let viewLeague = S.league || 'nfl', day = new Date(), games = [];
+const ymd = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+$('leagues').innerHTML = LEAGUES.map(([k, n]) => `<button class="chip" data-l="${k}">${n}</button>`).join('');
+$('leagues').onclick = e => { const b = e.target.closest('[data-l]'); if (!b) return; viewLeague = b.dataset.l; loadGames(); };
+$('dPrev').onclick = () => { day.setDate(day.getDate() - 1); loadGames(); };
+$('dNext').onclick = () => { day.setDate(day.getDate() + 1); loadGames(); };
+$('dToday').onclick = () => { day = new Date(); loadGames(); };
+function drawCur() {
+  const lg = L[S.league]?.n || S.league;
+  $('cur').innerHTML = S.testDrive || C.testDrive ? '<b>TEST DRIVE</b> is on (Customize → Test). Turn it off to show real games.'
+    : S.eventId ? `On stream: <b>${esc(S.label || 'one game')}</b> · ${esc(lg)}`
+    : S.teamId ? `Following <b>${esc(S.team)}</b> · ${esc(lg)}. Picks their game automatically every day.`
+    : 'Pick a game below, or follow a team so it finds their game every day.';
+}
+async function loadGames() {
+  document.querySelectorAll('#leagues .chip').forEach(c => c.classList.toggle('on', c.dataset.l === viewLeague));
+  const today = ymd(new Date()) === ymd(day);
+  $('dTxt').textContent = today ? 'Today' : day.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  $('games').innerHTML = '<div class="empty">Loading…</div>';
+  const lg = L[viewLeague], q = [lg.q, 'limit=300', 'dates=' + ymd(day)].filter(Boolean).join('&');
+  try {
+    const r = await fetch(`/espn/${lg.p}/scoreboard?${q}`, { cache: 'no-store' }); const j = await r.json();
+    games = (j.events || []).map(ev => {
+      const c = ev.competitions?.[0] || {}, t = (c.status || ev.status || {}).type || {};
+      const side = ha => { const x = (c.competitors || []).find(k => k.homeAway === ha) || {}, tm = x.team || {}; return { id: tm.id, abbr: tm.abbreviation, name: tm.displayName, short: tm.shortDisplayName || tm.name, logo: tm.logo, score: x.score }; };
+      return { id: ev.id, state: t.state, detail: t.shortDetail || '', date: ev.date, away: side('away'), home: side('home') };
+    }).sort((a, b) => ({ in: 0, pre: 1, post: 2 }[a.state] - { in: 0, pre: 1, post: 2 }[b.state]) || new Date(a.date) - new Date(b.date));
+    drawGames();
+  } catch (_) { $('games').innerHTML = '<div class="empty">Couldn\'t reach ESPN. Try again in a moment.</div>'; }
+}
+function drawGames() {
+  if (!games.length) { $('games').innerHTML = `<div class="empty">No ${esc(L[viewLeague].n)} games on this day.</div>`; return; }
+  $('games').innerHTML = games.map(g => {
+    const live = g.state === 'in', pre = g.state === 'pre';
+    const st = pre ? new Date(g.date).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : g.detail;
+    const sel = S.league === viewLeague && S.eventId === g.id;
+    const fol = id => S.league === viewLeague && !S.eventId && S.teamId === id;
+    const t = x => `<div class="t"><img src="${esc(x.logo)}" alt=""><span class="a">${esc(x.abbr)}</span><span class="s">${pre ? '' : esc(x.score)}</span></div>`;
+    return `<div class="g ${sel ? 'sel' : ''}"><div class="tms">${t(g.away)}${t(g.home)}</div><div class="st ${live ? 'live' : ''}">${live ? '● ' : ''}${esc(st)}</div>
+      <div class="acts"><button class="btn ${sel ? 'on' : ''}" data-ev="${g.id}">Show this game</button>
+      <button class="btn ${fol(g.away.id) ? 'on' : ''}" data-tm="${g.away.id}" data-g="${g.id}" data-side="away">Follow ${esc(g.away.abbr)}</button>
+      <button class="btn ${fol(g.home.id) ? 'on' : ''}" data-tm="${g.home.id}" data-g="${g.id}" data-side="home">Follow ${esc(g.home.abbr)}</button></div></div>`;
+  }).join('');
+}
+$('games').onclick = e => {
+  const ev = e.target.closest('[data-ev]'), tm = e.target.closest('[data-tm]');
+  if (ev) { const g = games.find(x => x.id === ev.dataset.ev); S = { ...S, league: viewLeague, eventId: g.id, teamId: g.home.id, team: g.home.short, label: `${g.away.abbr} @ ${g.home.abbr}`, show: true }; C.testDrive = false; }
+  else if (tm) { const g = games.find(x => x.id === tm.dataset.g), t = g[tm.dataset.side]; S = { ...S, league: viewLeague, eventId: '', teamId: t.id, team: t.short || t.name, label: '', show: true }; C.testDrive = false; }
+  else return;
+  drawGames(); buildCustom(); publish(); toast('On stream');
+};
+setInterval(() => { if (!$('p-games').hidden && ymd(day) === ymd(new Date())) loadGames(); }, 30000);
+
+// ---- generic settings form ----
+function field(store, [k, label, type, def, a, b, step], onchange) {
+  const v = store[k] ?? def, sub = typeof a === 'string' && type === 'bool' ? `<small>${esc(a)}</small>` : '';
+  let input = '';
+  if (type === 'bool') input = `<button class="sw ${v ? 'on' : ''}" data-k="${k}" data-type="bool"></button>`;
+  else if (type === 'num') input = `<input type="number" data-k="${k}" data-type="num" min="${a}" max="${b}" value="${esc(v)}">`;
+  else if (type === 'range') input = `<input type="range" data-k="${k}" data-type="range" min="${a}" max="${b}" step="${step}" value="${esc(v)}">`;
+  else if (type === 'color') input = `<input type="color" data-k="${k}" data-type="color" value="${esc(v)}">`;
+  else if (type === 'sel') input = `<select data-k="${k}" data-type="sel">${Object.entries(a).map(([o, n]) => `<option value="${esc(o)}" ${String(v) === o ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
+  return `<div class="row"><div>${esc(label)}${type === 'range' ? ` <span style="color:var(--muted)" data-out="${k}">${esc(v)}</span>` : ''}${sub}</div>${input}</div>`;
+}
+function wire(pane, store) {
+  pane.onclick = e => { const b = e.target.closest('.sw'); if (!b) return; store[b.dataset.k] = !b.classList.contains('on'); b.classList.toggle('on'); if (b.dataset.k === 'testDrive' && store.testDrive) S.show = true; publish(); };
+  pane.oninput = e => { const el = e.target, k = el.dataset.k; if (!k) return;
+    store[k] = el.dataset.type === 'num' || el.dataset.type === 'range' ? +el.value : el.value;
+    const out = pane.querySelector(`[data-out="${k}"]`); if (out) out.textContent = el.value; publish(); };
+}
+function buildCustom() {
+  $('p-custom').innerHTML = CUSTOM.map(([h, rows]) => `<div class="sec"><h4>${h}</h4>${rows.map(r => field(C, r)).join('')}</div>`).join('');
+}
+function buildTheme() {
+  const def = Object.fromEntries(THEME.map(r => [r[0], r[3]]));
+  $('p-theme').innerHTML = `<div class="sec"><h4>Presets</h4><div class="presets">${Object.entries(PRESETS).map(([n, p]) => { const x = { ...def, ...p };
+      return `<button class="preset" data-p="${esc(n)}" style="background:${x.panel};color:${x.ink};box-shadow:inset 0 0 0 1px ${x.panelEdge}">${esc(n)}<i><b style="background:${x.fd}"></b><b style="background:${x.los}"></b><b style="background:${x.turfA}"></b></i></button>`; }).join('')}</div></div>
+    <div class="sec"><h4>Custom</h4>${THEME.map(r => field({ ...def, ...T }, r)).join('')}</div>
+    <button class="btn" id="themeReset">Reset theme</button>`;
+  $('p-theme').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { T = { ...PRESETS[b.dataset.p] }; buildTheme(); publish(); });
+  $('themeReset').onclick = () => { T = {}; buildTheme(); publish(); };
+}
+wire($('p-custom'), C);
+$('p-theme').addEventListener('click', e => { const b = e.target.closest('.sw'); if (b) { T[b.dataset.k] = !b.classList.contains('on'); b.classList.toggle('on'); publish(); } });
+$('p-theme').addEventListener('input', e => { const el = e.target, k = el.dataset.k; if (!k) return; T[k] = el.dataset.type === 'range' ? +el.value : el.value;
+  const out = $('p-theme').querySelector(`[data-out="${k}"]`); if (out) out.textContent = el.value; publish(); });
+
+buildCustom(); buildTheme(); drawCur(); syncVis(); loadGames(); publish();
+</script>
+</body>
+</html>
