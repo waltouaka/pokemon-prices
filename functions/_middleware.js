@@ -228,7 +228,7 @@ const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\
 const b64uStr = str => b64u(new TextEncoder().encode(str));
 const unb64u = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)));
 async function hmac(env, data) {
-  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode('sess:' + env.TWITCH_CLIENT_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode('sess:' + String(env.TWITCH_CLIENT_SECRET).trim()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return b64u(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(data)));
 }
 async function makeSession(env, u) {
@@ -261,9 +261,9 @@ async function authRoutes(request, env, url, path) {
     const code = url.searchParams.get('code'), state = url.searchParams.get('state');
     if (!m || !code || !state || !same(m[1], state)) return fail('Sign-in expired. Try again.');
     let next = `https://${ROOT}/`; try { next = okNext(unb64u(m[2])) || next; } catch (_) {}
-    const tok = await fetch('https://id.twitch.tv/oauth2/token', { method: 'POST', body: new URLSearchParams({ client_id: clientId(env), client_secret: env.TWITCH_CLIENT_SECRET, code, grant_type: 'authorization_code', redirect_uri: redirectUri }) }).then(r => r.json()).catch(() => ({}));
-    if (!tok.access_token) return fail("Twitch didn't accept the sign-in. Try again.");
-    const me = await fetch('https://api.twitch.tv/helix/users', { headers: { Authorization: 'Bearer ' + tok.access_token, 'Client-Id': clientId(env) } }).then(r => r.json()).catch(() => ({}));
+    const tok = await fetch('https://id.twitch.tv/oauth2/token', { method: 'POST', body: new URLSearchParams({ client_id: clientId(env).trim(), client_secret: String(env.TWITCH_CLIENT_SECRET).trim(), code, grant_type: 'authorization_code', redirect_uri: redirectUri }) }).then(r => r.json()).catch(e => ({ message: 'network: ' + e.message }));
+    if (!tok.access_token) return fail(`Twitch didn't accept the sign-in (${tok.status || ''} ${tok.message || 'no reason given'}). Try again.`);
+    const me = await fetch('https://api.twitch.tv/helix/users', { headers: { Authorization: 'Bearer ' + tok.access_token, 'Client-Id': clientId(env).trim() } }).then(r => r.json()).catch(() => ({}));
     const u = me?.data?.[0]; if (!u) return fail("Couldn't read your Twitch account.");
     const user = { id: u.id, login: u.login, name: u.display_name || u.login, pfp: u.profile_image_url || '' };
     const h = new Headers({ Location: next });
