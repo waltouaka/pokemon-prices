@@ -140,3 +140,26 @@
 .b-netflix .mid.nodd .pd{font-size:22px}.b-netflix .mid.nodd .ck{font-size:38px}
 .b-netflix .fx{font-size:11px}
 .b-netflix .sc{margin-top:-10px}.b-netflix .tofx{bottom:3px}
+/* Netflix: extra compact */
+.b-netflix{height:56px;padding:2px;border-radius:10px}
+.b-netflix .tm{width:164px;padding:0 10px 0 2px}
+.b-netflix .tm.h{padding:0 2px 0 10px}
+.b-netflix .lg{width:62px;height:48px}
+.b-netflix .nums{gap:8px}
+.b-netflix .rc{font-size:14px}
+.b-netflix .sc{font-size:38px;min-width:40px;margin-top:-8px}
+.b-netflix .to{gap:4px}.b-netflix .to b{width:18px;height:3px}
+.b-netflix .tofx{bottom:2px}
+.b-netflix .mid{width:140px;margin-top:-3px}
+.b-netflix .top{height:20px}.b-netflix .bdd{font-size:16px}
+.b-netflix .row{gap:8px}
+.b-netflix .pd{font-size:16px}.b-netflix .ck{font-size:26px}
+.b-netflix .mid.nodd .pd{font-size:18px}.b-netflix .mid.nodd .ck{font-size:32px}
+.b-netflix .fx{font-size:10px}
+/* Netflix: no dead space, every part hugs its content */
+.b-netflix .tm{width:auto;gap:8px;padding:0 12px 0 4px}
+.b-netflix .tm.h{padding:0 4px 0 12px}
+.b-netflix .nums{flex:none;gap:10px;padding-bottom:4px}
+.b-netflix .tofx{left:auto;right:0}
+.b-netflix .tm.h .tofx{left:0;right:auto}
+.b-netflix .mid{width:auto;min-width:118px;padding:0 14px}
