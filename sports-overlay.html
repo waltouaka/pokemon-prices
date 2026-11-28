@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Scoreboard</title>
-<link rel="stylesheet" href="/sports-bugs.css?v=1795850057">
-<link rel="stylesheet" href="/sports-overlay.css?v=1795849085">
+<link rel="stylesheet" href="/sports-bugs.css?v=1795850224">
+<link rel="stylesheet" href="/sports-overlay.css?v=1795850224">
 </head>
 <body>
 <div id="sb" class="sb sb--hidden">
@@ -64,13 +64,23 @@
   </div>
 </div>
 <script>
+(function () {
+  // BIG PLAY card lives inside #sb, under the scoreboard
+  var bp = document.createElement('div'); bp.className = 'bp'; bp.id = 'bigPlay';
+  bp.innerHTML = '<div class="bp__photo"><img class="bp__mark" id="bpMark" alt=""><img class="bp__img" id="bpImg" alt=""></div>' +
+    '<div class="bp__body"><div class="bp__eyebrow"><i></i>BIG PLAY<i></i></div><div class="bp__tag" id="bpTag"></div><div class="bp__name"><span id="bpName"></span><em id="bpTeam"></em></div></div>' +
+    '<img class="bp__logo" id="bpLogo" alt="">';
+  document.getElementById('sb').appendChild(bp);
+})();
+</script>
+<script>
 // settings come from your Scoreboard control room (key in the URL), or ?team=…&league=… for quick tests
 const Q = new URLSearchParams(location.search), KEY = (Q.get('key') || '').toUpperCase(), PREVIEW = Q.has('preview');
 window.SB_REMOTE = !!(KEY || PREVIEW);
 if (PREVIEW) document.body.classList.add('preview');
 </script>
-<script src="/sports-bugs.js?v=1795849655"></script>
-<script src="/sports-engine.js?v=1795849704"></script>
+<script src="/sports-bugs.js?v=1795850138"></script>
+<script src="/sports-engine.js?v=1795850240"></script>
 <script>
 (() => {
   let lastTs = 0;

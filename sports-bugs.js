@@ -41,15 +41,22 @@ window.SBBugs = (() => {
 
   };
 
-  let last = { a: null, h: null };
+  let last = { a: null, h: null }, lastHtml = '';
   return {
     has: k => !!B[k],
     render(el, k, v) {
       // score bump only when the number actually changed
       v.a.bump = last.a !== null && last.a !== v.a.score; v.h.bump = last.h !== null && last.h !== v.h.score;
       last = { a: v.a.score, h: v.h.score };
-      el.innerHTML = B[k](v);
+      const html = B[k](v);
+      if (html === lastHtml && el.firstChild) return;   // nothing changed: don't redraw (no logo flicker)
+      lastHtml = html;
+      // logos stay the same element between updates so they never reload
+      const keep = {}; el.querySelectorAll('img').forEach((im, i) => { keep[i] = im; });
+      el.innerHTML = html;
+      el.querySelectorAll('img').forEach((im, i) => { const o = keep[i]; if (o && o.getAttribute('src') === im.getAttribute('src') && o.complete) { o.className = im.className; im.replaceWith(o); } });
+      // the bump class stays in lastHtml, so a later identical render won't replay it
     },
-    reset() { last = { a: null, h: null }; },
+    reset() { last = { a: null, h: null }; lastHtml = ''; },
   };
 })();

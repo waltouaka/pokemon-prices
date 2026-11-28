@@ -74,6 +74,15 @@
   // one-off test alerts from the control room (Customize → Test)
   var lastFire = 0;
   window.SBFire = function (kind) {
+    if (kind === "bigplay") {
+      var min = { id: "min", name: "Minnesota Vikings", abbr: "MIN", logo: "https://a.espncdn.com/i/teamlogos/nfl/500/min.png", color: "#4f2683", accent: "#4f2683" };
+      var keep = current; var sb0 = $("sb"), hid = sb0.classList.contains("sb--hidden"); if (hid) sb0.classList.remove("sb--hidden");
+      current = { home: min, away: min };
+      enqueue({ kind: "ribbon", tag: "54 YD PASS", name: "Justin Jefferson", exact: true,
+        play: { teamId: "min", text: "", athletes: [{ name: "Justin Jefferson", headshot: "https://a.espncdn.com/i/headshots/nfl/players/full/4262921.png" }] } });
+      setTimeout(function () { current = keep; if (hid && !keep) sb0.classList.add("sb--hidden"); }, 400);
+      return;
+    }
     if (kind !== "goal") return;
     var edm = { id: "edm", name: "Edmonton Oilers", abbr: "EDM", logo: "https://a.espncdn.com/i/teamlogos/nhl/500/edm.png", color: "#041e42", alt: "#ff4c00", accent: "#ff4c00" };
     var sb = $("sb"), wasHidden = sb.classList.contains("sb--hidden");
@@ -844,7 +853,7 @@
       if (cfg.myTeamOnly && defTeam && String(defTeam.id) !== String(g.myId)) return;
       // small chip; interceptions get the defender's photo, fumble recoveries and sacks don't
       enqueue({
-        kind: "ribbon", tag: isInt ? "INTERCEPTION" : "FUMBLE RECOVERY",
+        kind: "ribbon", def: true, tag: isInt ? "INTERCEPTION" : "FUMBLE RECOVERY",
         play: lp, name: who, exact: true, noPhoto: !isInt
       });
       return;
@@ -855,7 +864,7 @@
         var sackTeam = team ? (team === g.home ? g.away : g.home) : null;
         if (!(cfg.myTeamOnly && sackTeam && String(sackTeam.id) !== String(g.myId))) {
           var loss = !isNaN(lp.yards) && lp.yards ? " " + "-" + Math.abs(lp.yards) + " YDS" : "";
-          enqueue({ kind: "ribbon", tag: "SACK" + loss, play: lp, name: sacker, exact: true, noPhoto: true });
+          enqueue({ kind: "ribbon", def: true, tag: "SACK" + loss, play: lp, name: sacker, exact: true });
         }
       }
       return;
@@ -1087,20 +1096,30 @@
     });
   }
 
+  // BIG PLAY card: slides in under the scoreboard, headshot cutout on the team's colors
   function showRibbon(item, done) {
-    var r = $("ribbon");
-    var lp = item.play;
+    var bp = $("bigPlay"); if (!bp) { done(); return; }
+    var lp = item.play || {}, g = current;
+    var off = g && (String(lp.teamId) === String(g.home.id) ? g.home : String(lp.teamId) === String(g.away.id) ? g.away : null);
+    var team = off && item.def ? (off === g.home ? g.away : g.home) : off;
     var textName = item.name || parsePlayName(lp.text);
     var athlete = matchAthlete(lp.athletes || [], textName) || (item.exact ? null : (lp.athletes || [])[0]);
-    $("ribbonTag").textContent = item.tag;
-    $("ribbonTxt").textContent = (athlete && athlete.name) || textName || "Big play";
-    var img = $("ribbonImg");
-    img.classList.add("off");
-    img.onerror = function () { img.classList.add("off"); };
-    img.onload = function () { img.classList.remove("off"); };
-    img.src = (!item.noPhoto && athlete && athlete.headshot) || "";
-    r.classList.add("on");
-    setTimeout(function () { r.classList.remove("on"); done(); }, 4500);
+    var c = team ? (team.accent || team.color) : "#b3202f";
+    bp.style.setProperty("--bp", c);
+    bp.style.setProperty("--bp-ink", inkFor(c));
+    var m = String(item.tag || "BIG PLAY").match(/^(-?\d+)\s*YDS?\s*(.*)$/i);
+    $("bpTag").innerHTML = m ? '<b>' + m[1] + '</b><span>YD</span> ' + m[2] : String(item.tag || "BIG PLAY").replace(/[<>&]/g, "");
+    $("bpName").textContent = (athlete && athlete.name) || textName || (team ? team.name : "Big play");
+    $("bpTeam").textContent = team ? (team.name || team.abbr || "") : "";
+    var logo = team ? logoFor(team) : "";
+    $("bpLogo").src = logo || ""; $("bpLogo").style.visibility = logo ? "visible" : "hidden";
+    var img = $("bpImg"), photo = athlete && athlete.headshot;
+    bp.classList.toggle("nophoto", !photo);
+    img.onerror = function () { bp.classList.add("nophoto"); };
+    img.src = photo || "";
+    $("bpMark").src = logo || "";
+    bp.classList.remove("on"); void bp.offsetWidth; bp.classList.add("on");
+    setTimeout(function () { bp.classList.remove("on"); setTimeout(done, 450); }, 5200);
   }
 
   // Builds the two-line alert: player name, then "{yards} Yd {play}".
