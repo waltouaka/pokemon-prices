@@ -72,6 +72,16 @@
   .presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .preset{border:0;border-radius:10px;padding:10px;cursor:pointer;font-size:12px;color:#fff;text-align:left}
   .preset i{display:flex;gap:3px;margin-top:6px}.preset i b{width:14px;height:8px;border-radius:2px}
+.stylecards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .sc{border:0;border-radius:12px;padding:12px;background:var(--tile);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:8px}
+  .sc:hover{background:var(--tile2)}
+  .sc.on{box-shadow:inset 0 0 0 2px #fff;background:var(--tile2)}
+  .sc b{font-size:15px;font-weight:900}
+  .sc small{color:var(--muted);font-weight:600;font-size:12px;line-height:1.35}
+  .sc{min-width:0}
+  .mini{height:34px;border-radius:7px;display:flex;overflow:hidden;min-width:0;align-items:stretch;font-weight:900;font-size:15px}
+  .mini span{display:flex;align-items:center;justify-content:center;padding:0 8px}
+  .seg2{display:flex;gap:6px;margin-bottom:12px}.seg2 .btn{flex:1}.seg2 .btn.on{background:#fff;color:#000}
   .prevbox{background:rgba(0,0,0,.25);border-radius:16px;padding:12px;position:sticky;top:12px}
   .prevhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .prevhead .lbl{color:var(--muted);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;margin-right:auto}
@@ -101,7 +111,7 @@
 
   <div class="grid">
     <div class="panel">
-      <div class="tabs"><button data-t="games" class="on">Games</button><button data-t="custom">Customize</button><button data-t="theme">Theme</button></div>
+      <div class="tabs"><button data-t="games" class="on">Games</button><button data-t="styles">Styles</button><button data-t="custom">Customize</button><button data-t="theme">Theme</button></div>
 
       <div class="pane" id="p-games">
         <div class="cur" id="cur"></div>
@@ -110,6 +120,7 @@
         <div class="games" id="games"><div class="empty">Loading…</div></div>
       </div>
 
+      <div class="pane" id="p-styles" hidden></div>
       <div class="pane" id="p-custom" hidden></div>
       <div class="pane" id="p-theme" hidden></div>
     </div>
@@ -145,7 +156,7 @@ const CUSTOM = [
     ['hideWhenNoGame', 'Hide overlay when there\'s no game', 'bool', true],
     ['refresh', 'Refresh every (seconds)', 'num', 8, 5, 120],
     ['liveClock', 'Approximate tick between refreshes', 'bool', false, 'Smoother clock, may jump when corrected'],
-    ['showNote', 'Playoff / series note above the bar', 'bool', true],
+    ['showNote', 'Playoff / series note above the bar', 'bool', false],
   ]],
   ['Alerts', [
     ['enableAlerts', 'Alerts for scores & big plays', 'bool', true],
@@ -155,13 +166,13 @@ const CUSTOM = [
     ['alertDuration', 'Scoring alert stays up (seconds)', 'num', 7, 3, 20],
   ]],
   ['Layout', [
-    ['layout', 'Layout', 'sel', 'full', { full: 'Full (bar + field)', minimal: 'Minimal (slim bar)' }],
+    ['layout', 'Layout', 'sel', 'minimal', { minimal: 'Minimal (slim bar)', full: 'Full (bar + football field)' }],
     ['width', 'Width (px)', 'num', 700, 380, 1400],
     ['minWidth', 'Minimal layout width (px)', 'num', 460, 300, 800],
     ['scale', 'Scale', 'range', 1, 0.4, 2, 0.05],
     ['useTeamColors', 'Team colors on the bar & end zones', 'bool', true],
     ['showTimeouts', 'Show timeouts', 'bool', true],
-    ['showField', 'Show the field strip (football)', 'bool', true],
+    ['showField', 'Football field strip (Full layout)', 'bool', true],
     ['fieldOnlyLive', 'Field only while the game is live', 'bool', false],
   ]],
   ['Test', [
@@ -169,6 +180,25 @@ const CUSTOM = [
     ['testDriveSpeed', 'Test drive seconds per play', 'num', 4, 1, 15],
   ]],
 ];
+const STYLES = [
+  ['block', 'Block', 'Solid team-color blocks, flat broadcast look.', '<span style="background:#fec524;color:#000">DEN</span><span style="background:#b38a19;color:#000">118</span><span style="background:#0b0b10;flex:1;color:#fff">Q4</span><span style="background:#36005f;color:#fff">107</span><span style="background:#4e008e;color:#fff">UTA</span>'],
+  ['jumbo', 'Jumbo', 'Giant scores, white clock plate in the middle.', '<span style="background:#0b0b10;color:#fff">DEN</span><span style="background:#fec524;color:#000;font-size:20px">118</span><span style="background:#fff;color:#000;flex:1">Q4</span><span style="background:#4e008e;color:#fff;font-size:20px">107</span><span style="background:#0b0b10;color:#fff">UTA</span>'],
+  ['slant', 'Slant', 'TV-network angles and italic numbers.', '<span style="background:#fec524;color:#000;font-style:italic">DEN</span><span style="background:#fff;color:#000;font-style:italic;transform:skewX(-12deg)">118</span><span style="background:#0b0b10;flex:1;color:#fff">Q4</span><span style="background:#fff;color:#000;font-style:italic;transform:skewX(-12deg)">107</span><span style="background:#4e008e;color:#fff;font-style:italic">UTA</span>'],
+  ['neon', 'Neon', 'Dark with glowing team-color scores.', '<span style="background:#06060a;color:#fff;flex:1">DEN</span><span style="background:#06060a;color:#fff;box-shadow:inset 0 0 0 2px #fec524,0 0 10px #fec524">118</span><span style="background:#06060a;color:#fff;flex:1">Q4</span><span style="background:#06060a;color:#fff;box-shadow:inset 0 0 0 2px #8f4bd6,0 0 10px #8f4bd6">107</span><span style="background:#06060a;color:#fff;flex:1">UTA</span>'],
+  ['glass', 'Glass', 'See-through pill, team color under each score.', '<span style="background:#1c1a26;color:#fff;flex:1;border-radius:20px 0 0 20px">DEN</span><span style="background:#1c1a26;color:#fff;box-shadow:inset 0 -3px 0 #fec524">118</span><span style="background:#1c1a26;color:#fff;flex:1">Q4</span><span style="background:#1c1a26;color:#fff;box-shadow:inset 0 -3px 0 #4e008e">107</span><span style="background:#1c1a26;color:#fff;flex:1;border-radius:0 20px 20px 0">UTA</span>'],
+  ['stack', 'Stack', 'Two rows like a sports app, clock on the right.', '<span style="background:#111117;color:#fff;flex:1;flex-direction:column;font-size:11px;line-height:1.2;box-shadow:inset 4px 0 0 #fec524">DEN 118<br>UTA 107</span><span style="background:#000;color:#fff">Q4</span>'],
+  ['classic', 'Classic', 'Your original NFL widget look.', '<span style="background:#111117;color:#fff;flex:1">DEN</span><span style="background:#111117"><i style="background:#fec524;color:#000;padding:0 6px;border-radius:4px;font-style:normal">118</i></span><span style="background:#111117;color:#fff;flex:1">Q4</span><span style="background:#111117"><i style="background:#4e008e;color:#fff;padding:0 6px;border-radius:4px;font-style:normal">107</i></span><span style="background:#111117;color:#fff;flex:1">UTA</span>'],
+];
+function buildStyles() {
+  $('p-styles').innerHTML = `<div class="sec"><h4>Layout</h4><div class="seg2"><button class="btn ${C.layout !== 'full' ? 'on' : ''}" data-lay="minimal">Minimal bar</button><button class="btn ${C.layout === 'full' ? 'on' : ''}" data-lay="full">Full + football field</button></div></div>
+    <div class="sec"><h4>Style</h4><div class="stylecards">${STYLES.map(([k, n, d, m]) => `<button class="sc ${(C.skin || 'block') === k ? 'on' : ''}" data-skin="${k}"><div class="mini">${m}</div><b>${n}</b><small>${d}</small></button>`).join('')}</div></div>
+    <div class="hint">Colors, font and corners for any style are in <b>Theme</b>.</div>`;
+}
+$('p-styles').onclick = e => {
+  const sk = e.target.closest('[data-skin]'), ly = e.target.closest('[data-lay]');
+  if (sk) C.skin = sk.dataset.skin; else if (ly) C.layout = ly.dataset.lay; else return;
+  buildStyles(); buildCustom(); publish();
+};
 const THEME = [
   ['font', 'Font', 'sel', 'Barlow Condensed', { 'Barlow Condensed': 'Barlow Condensed', 'Oswald': 'Oswald', 'Bebas Neue': 'Bebas Neue', 'Teko': 'Teko', 'Anton': 'Anton', 'Roboto Condensed': 'Roboto Condensed', 'Archivo Narrow': 'Archivo Narrow', 'Saira Condensed': 'Saira Condensed', 'Arial Black': 'Arial Black' }],
   ['radius', 'Corner radius', 'range', 10, 0, 24, 1],
@@ -188,8 +218,9 @@ const PRESETS = {
 };
 
 let S = Object.assign({ league: 'nfl', teamId: '', team: '', eventId: '', label: '', show: true }, ls.get('sb_state', {}));
-let C = Object.assign({}, ...CUSTOM.flatMap(([, rows]) => rows.map(r => ({ [r[0]]: r[3] }))), ls.get('sb_custom', {}));
+let C = Object.assign({ skin: 'block' }, ...CUSTOM.flatMap(([, rows]) => rows.map(r => ({ [r[0]]: r[3] }))), ls.get('sb_custom', {}));
 let T = Object.assign({}, ls.get('sb_theme', {}));
+if (!ls.get('sb_v2', false)) { C.layout = 'minimal'; ls.set('sb_v2', true); }   // minimal is the new default
 let KEY = ls.get('sb_key', '');
 const makeKey = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return [...crypto.getRandomValues(new Uint8Array(8))].map(b => a[b % a.length]).join(''); };
 if (!KEY) { KEY = makeKey(); ls.set('sb_key', KEY); }
@@ -225,7 +256,7 @@ $('hideBtn').onclick = () => { S.show = false; publish(); };
 // ---- tabs ----
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['games', 'custom', 'theme'].forEach(t => $('p-' + t).hidden = t !== b.dataset.t);
+  ['games', 'styles', 'custom', 'theme'].forEach(t => $('p-' + t).hidden = t !== b.dataset.t);
 });
 
 // ---- Games panel ----
@@ -316,7 +347,7 @@ $('p-theme').addEventListener('click', e => { const b = e.target.closest('.sw');
 $('p-theme').addEventListener('input', e => { const el = e.target, k = el.dataset.k; if (!k) return; T[k] = el.dataset.type === 'range' ? +el.value : el.value;
   const out = $('p-theme').querySelector(`[data-out="${k}"]`); if (out) out.textContent = el.value; publish(); });
 
-buildCustom(); buildTheme(); drawCur(); syncVis(); loadGames(); publish();
+buildStyles(); buildCustom(); buildTheme(); drawCur(); syncVis(); loadGames(); publish();
 </script>
 </body>
 </html>

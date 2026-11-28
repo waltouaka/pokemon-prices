@@ -11,7 +11,7 @@
     refresh: 8,               // seconds between polls while live (min 5)
     width: 700,
     scale: 1,
-    layout: "full",           // "full" (bar + field) or "minimal" (slim bar only)
+    layout: "minimal",           // "full" (bar + field) or "minimal" (slim bar only)
     showField: true,
     fieldOnlyLive: false,
     hideWhenNoGame: true,
@@ -28,7 +28,8 @@
     teamId: "",               // set by the control room (exact ESPN team id)
     eventId: "",              // set by the control room when showing one specific game
     show: true,               // Show / Hide from the control room
-    showNote: true            // playoff / series note above the bar
+    showNote: false,          // playoff / series note above the bar
+    skin: "block"             // overall style: classic, block, slant, glass, stack
   };
   var DEFAULTS = JSON.parse(JSON.stringify(cfg));
 
@@ -131,6 +132,9 @@
     $("testTag").classList.toggle("on", cfg.testDrive);
     cfg.minimal = String(cfg.layout).toLowerCase() === "minimal";
     $("sb").classList.toggle("sb--min", cfg.minimal);
+    var sbEl = $("sb");
+    sbEl.className.split(" ").forEach(function (c) { if (c.indexOf("skin-") === 0) sbEl.classList.remove(c); });
+    if (cfg.skin && cfg.skin !== "classic") sbEl.classList.add("skin-" + String(cfg.skin).replace(/[^a-z]/g, ""));
     root.style.setProperty("--w-min", (parseInt(cfg.minWidth, 10) || 460) + "px");
 
     if (!truthy(cfg.show)) { $("sb").classList.add("sb--hidden"); return; }
@@ -356,6 +360,7 @@
       name: t.displayName || "",
       nickname: nickname,
       logo: t.logo || (t.logos && t.logos[0] && t.logos[0].href) || "",
+      logoDark: t.logoDark || "",
       color: "#" + (t.color || "444444"),
       alt: t.alternateColor ? "#" + t.alternateColor : "",
       record: (c.records && c.records[0] && c.records[0].summary) || "",
@@ -383,16 +388,17 @@
     setEndzoneText($("ezHomeTxt"), g.home.nickname || g.home.abbr);
 
     var turfLogo = $("turfLogo");
-    if (turfLogo.getAttribute("src") !== g.home.logo) turfLogo.src = g.home.logo || "";
+    setLogo(turfLogo, g.home);
 
     timeouts($("awayTos"), g.situation ? g.situation.awayTos : null);
     timeouts($("homeTos"), g.situation ? g.situation.homeTos : null);
 
     var nt = $("gameNote");
-    if (nt) { var nx = cfg.showNote !== false && truthy(cfg.showNote === undefined ? true : cfg.showNote) ? (g.note || "") : ""; nt.textContent = nx; nt.classList.toggle("on", !!nx); }
+    if (nt) { var nx = truthy(cfg.showNote) ? (g.note || "") : ""; nt.textContent = nx; nt.classList.toggle("on", !!nx); }
     drawStatus(g);
     drawField(g);
     if (sport() === "football") detectEvents(g); else detectScores(g);
+    basketballExtras(g);
 
     prev.away = g.away.score;
     prev.home = g.home.score;
@@ -470,8 +476,18 @@
     root.style.setProperty("--home-ink", inkFor(h));
   }
 
+  // dark logos (Jazz, Raiders, Nets...) vanish on a dark panel: use ESPN's dark-background version there
+  function panelIsDark() { return lum(getComputedStyle(root).getPropertyValue("--panel").trim() || "#111117") < 0.25; }
+  function logoFor(t) { return (panelIsDark() && t.logoDark) ? t.logoDark : (t.logo || ""); }
+  function setLogo(el, t) {
+    var want = logoFor(t);
+    if (el.getAttribute("src") === want) return;
+    el.onerror = function () { if (t.logo && el.getAttribute("src") !== t.logo) el.src = t.logo; };
+    el.src = want;
+  }
   function fill(logoEl, abbrEl, recEl, scoreEl, t, key) {
-    if (logoEl.getAttribute("src") !== t.logo) logoEl.src = t.logo || "";
+    setLogo(logoEl, t);
+    scoreEl.classList.toggle("wide", String(t.score).length >= 3);
     abbrEl.textContent = t.abbr;
     recEl.textContent = t.record;
     if (scoreEl.textContent !== t.score) {
@@ -519,10 +535,10 @@
     document.fonts.ready.then(function () { ezDirty = true; fitEndzones(); });
   }
 
-  function timeouts(el, n) {
+  function timeouts(el, n, max) {
     if (!cfg.showTimeouts || n === undefined || n === null) { el.innerHTML = ""; return; }
     var html = "";
-    for (var i = 0; i < 3; i++) html += '<b class="' + (i < n ? "on" : "") + '"></b>';
+    for (var i = 0; i < (max || 3); i++) html += '<b class="' + (i < n ? "on" : "") + '"></b>';
     el.innerHTML = html;
   }
 
@@ -594,7 +610,8 @@
     if (sp === "basketball") lbl = g.period > 4 ? (g.period === 5 ? "OT" : (g.period - 4) + "OT") : "Q" + g.period;
     setPeriod(lbl);
     syncClock(g.clock);
-    setClockDisplay(fmtClock());
+    // under a minute basketball/hockey send "45.6" instead of "0:45"; show that as-is
+    setClockDisplay(fmtClock() || (/^\d+(\.\d+)?$/.test(String(g.clock || "")) ? String(g.clock) : ""));
     clk.live = true;
 
     dd.textContent = sp === "football" ? ((g.situation && g.situation.dd) || "") : "";
@@ -648,7 +665,7 @@
   }
   function syncClock(raw) {
     var s = parseClock(raw);
-    if (s === null) { clk.secs = null; clk.raw = null; return; }
+    if (s === null) { clk.secs = null; clk.raw = raw || null; return; }
     if (clk.raw !== null) clk.running = (clk.raw !== raw);
     clk.raw = raw;
     if (clk.secs === null || Math.abs(clk.secs - s) > 2) clk.secs = s;
@@ -848,6 +865,44 @@
     }
   }
 
+  // basketball: timeouts left + team fouls this period, counted from ESPN's play-by-play
+  var bball = { id: null, t: 0, data: null, busy: false };
+  function basketballExtras(g) {
+    var sp = sport();
+    if ((sp !== "basketball" && sp !== "ncaab") || g.state !== "in") { drawBB(null, g); return; }
+    drawBB(bball.id === g.eventId ? bball.data : null, g);
+    if (bball.busy || (bball.id === g.eventId && Date.now() - bball.t < 7000)) return;
+    bball.busy = true;
+    fetch(summaryEndpoint(g.eventId), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+      var plays = d.plays || [], per = g.period, out = {};
+      var college = sp === "ncaab";
+      var otPeriods = Math.max(0, per - (college ? 2 : 4));
+      [g.away, g.home].forEach(function (t) {
+        var used = 0, fouls = 0;
+        plays.forEach(function (p) {
+          var tid = p.team && String(p.team.id), txt = ((p.type && p.type.text) || "") + " " + (p.text || "");
+          if (tid !== String(t.id)) return;
+          if (/timeout/i.test(txt) && !/official|tv timeout|media/i.test(txt)) used++;
+          var pp = p.period && (p.period.number || p.period);
+          if (pp === per && /foul/i.test(txt) && !/offensive|technical|flagrant|delay/i.test(txt)) fouls++;
+        });
+        var total = college ? 0 : 7 + otPeriods * 2;
+        out[t.id] = { to: total ? Math.max(0, total - used) : null, fouls: fouls, bonus: fouls >= (college ? 7 : (per > 4 ? 4 : 5)) };
+      });
+      bball = { id: g.eventId, t: Date.now(), data: out, busy: false };
+      if (current && current.eventId === g.eventId) drawBB(out, current);
+    }).catch(function () { bball.busy = false; });
+  }
+  function drawBB(data, g) {
+    [["away", g.away], ["home", g.home]].forEach(function (x) {
+      var el = $(x[0] + "Fouls"); if (!el) return;
+      var d = data && data[x[1].id];
+      if (!d) { el.innerHTML = ""; if (sport() === "basketball" || sport() === "ncaab") timeouts($(x[0] + "Tos"), null); return; }
+      if (d.to !== null) timeouts($(x[0] + "Tos"), d.to, 7);
+      el.innerHTML = d.bonus ? '<b class="bonus">BONUS</b>' : 'FOULS <b>' + d.fouls + "</b>";
+    });
+  }
+
   // hockey / soccer / baseball: an alert whenever a team's score goes up
   var lastScoreAlert = 0;
   function detectScores(g) {
@@ -1030,7 +1085,7 @@
     // comment on fetchScoringAthletes). Missed kicks, plain turnovers, or a
     // photo that fails to load show the team logo on the backdrop instead.
     var heads = $("alertHeads"), mark = $("alertMark");
-    var teamLogo = (team && team.logo) || "";
+    var teamLogo = team ? logoFor(team) : "";
     $("alertLogo").src = teamLogo;
 
     var showLogoInstead = function () {

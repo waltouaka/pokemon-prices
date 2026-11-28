@@ -65,7 +65,7 @@
 body{background:transparent;overflow:hidden}
 
 .sb{
-  width:var(--w);
+  width:var(--w);min-width:max-content;
   transform:scale(var(--scale));
   transform-origin:top left;
   font-family:var(--font);
@@ -113,7 +113,7 @@ body{background:transparent;overflow:hidden}
    ============================================================ */
 .bar{
   display:grid;
-  grid-template-columns:1fr 78px minmax(160px,1.1fr) 78px 1fr;
+  grid-template-columns:minmax(max-content,1fr) minmax(78px,auto) minmax(150px,max-content) minmax(78px,auto) minmax(max-content,1fr);
   align-items:center;
   gap:8px;
   padding:14px 18px;
@@ -144,27 +144,34 @@ body{background:transparent;overflow:hidden}
 .side--home::after{background:var(--home);transform-origin:right}
 .side.has-ball::after{transform:scaleX(1)}
 
-.logo{width:50px;height:50px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.logo{width:58px;height:58px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 .logo[src=""]{visibility:hidden}
 
 .ident{min-width:0;position:relative}
 .ident--r{text-align:right}
 
 .abbr{
-  font-size:38px;font-weight:900;letter-spacing:.01em;line-height:.95;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;
+  font-size:42px;font-weight:900;letter-spacing:.01em;line-height:.95;
+  white-space:nowrap;
 }
 .meta{display:flex;align-items:center;gap:10px;margin-top:5px}
 .meta--r{justify-content:flex-end}
-.rec{font-size:15px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.rec{font-size:17px;color:var(--muted);font-weight:700;letter-spacing:.02em}
 
 /* timeout dashes */
 .tos{display:inline-flex;gap:3px}
 .tos b{
-  display:block;width:12px;height:3px;border-radius:1px;
-  background:rgba(244,244,247,.18);transition:background var(--t-fast);
+  display:block;width:14px;height:5px;border-radius:2px;
+  background:rgba(244,244,247,.16);transition:background var(--t-fast);
 }
-.tos b.on{background:rgba(244,244,247,.8)}
+.tos b.on{background:var(--fd);box-shadow:0 0 6px color-mix(in srgb,var(--fd) 60%,transparent)}
+/* basketball: 7 timeouts → slimmer dashes */
+.tos:has(b:nth-child(4)) b{width:8px}
+/* basketball team fouls / bonus */
+.fouls{font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.fouls:empty{display:none}
+.fouls b{color:var(--ink)}
+.fouls b.bonus{background:var(--redzone);color:#fff;padding:1px 6px;border-radius:4px;letter-spacing:.08em}
 
 /* little football beside the team that has possession */
 .poss{
@@ -187,7 +194,9 @@ body{background:transparent;overflow:hidden}
   padding:4px 0 2px;border-radius:8px;
   box-shadow:inset 0 -4px 0 rgba(0,0,0,.25), inset 0 2px 0 rgba(255,255,255,.15);
   font-variant-numeric:tabular-nums;
+  padding-left:10px;padding-right:10px;white-space:nowrap;
 }
+.score.wide{font-size:48px}
 .score--away{background:var(--away);color:var(--away-ink)}
 .score--home{background:var(--home);color:var(--home-ink)}
 .score.bump{animation:scoreBump .7s ease-out}
@@ -424,27 +433,30 @@ body{background:transparent;overflow:hidden}
    No field, records or timeouts. Everything here only overrides the
    full layout, so delete this block and nothing else changes.
    ============================================================ */
-.sb--min{width:var(--w-min,460px)}   /* minimal width: set by the "Minimal width" setting */
+.sb--min{width:max-content;min-width:var(--w-min,460px)}   /* grows to fit; never narrower than the "Minimal width" setting */
 .sb--min .card{overflow:visible}
 .sb--min .bar{
   position:relative;overflow:hidden;
-  grid-template-columns:auto 46px 1fr 46px auto;   /* scores hug the team names */
+  grid-template-columns:var(--min-cols);   /* scores hug the team names */
   padding:8px 12px;gap:8px;
   border:0;border-radius:var(--radius);
 }
 .sb--min .bar::before{height:3px}
-.sb--min .logo{width:36px;height:36px}
-.sb--min .abbr{font-size:24px;max-width:none;overflow:visible}
-.sb--min .rz,.sb--min .rec{display:none}
+.sb--min .logo{width:50px;height:50px}
+.sb--min .abbr{font-size:34px;max-width:none;overflow:visible}
+.sb--min .rz{display:none}
+.sb--min .rec{font-size:15px;font-weight:700}
 .sb--min .meta{margin-top:3px}   /* timeouts stay, shown as small dashes under the name */
-.sb--min .tos b{width:10px;height:3px}
-.sb--min .score{font-size:30px;padding:3px 0 2px;border-radius:5px}
-/* nudge the scores toward the middle; raise the number to move them further in */
-.sb--min .score--away{translate:22px 0}
-.sb--min .score--home{translate:-22px 0}
+.sb--min .tos b{width:12px;height:4px}
+.sb--min .score{font-size:34px;padding:3px 10px 2px;border-radius:6px}
+.sb--min .score.wide{font-size:30px}
+.sb--min{--min-cols:max-content minmax(52px,max-content) minmax(110px,1fr) minmax(52px,max-content) max-content}
+/* scores sit right next to the team names (no overlap with the clock) */
+.sb--min .bar{column-gap:12px}
 /* pre-game / final have a long label and no clock, so the scores stay put */
 .sb--min.sb--noclock .score--away,.sb--min.sb--noclock .score--home{translate:0 0}
-.sb--min .clock{font-size:20px}
+.sb--min .clock{font-size:22px}
+.sb--min .center{padding:0 6px}
 .sb--min .time{margin-left:6px}
 .sb--min .dd{font-size:14px;margin-top:2px;min-height:16px}
 .sb--min .side{gap:7px}
@@ -501,3 +513,113 @@ body.preview{background:repeating-conic-gradient(#2a2a34 0 25%,#1d1d25 0 50%) 0 
   font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border-radius:6px 6px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gnote.on{display:block}
 .sb--min .gnote{margin:0 0 0 14px}
+
+/* ============================================================
+   STYLES (Theme → Style). The class skin-<name> goes on .sb.
+   "classic" = everything above, untouched.
+   ============================================================ */
+
+/* ---- BLOCK: broadcast look. Solid team-color blocks, flat, full height ---- */
+.skin-block .card{border:0;background:#0b0b10}
+.skin-block .bar{padding:0;gap:0;border:0;min-height:66px;align-items:stretch;
+  grid-template-columns:max-content max-content minmax(130px,max-content) max-content max-content}
+.skin-block .bar::before{display:none}
+.skin-block .side{padding:0 18px;align-self:stretch}
+.skin-block .side--away{background:var(--away);color:var(--away-ink)}
+.skin-block .side--home{background:var(--home);color:var(--home-ink)}
+.skin-block .rec{color:inherit;opacity:.85}
+.skin-block .tos b{background:currentColor;opacity:.25}.skin-block .tos b.on{opacity:.9}
+.skin-block .score{border-radius:0;box-shadow:none;display:flex;align-items:center;justify-content:center;padding:0 16px;min-width:84px;align-self:stretch}
+.skin-block .score--away{background:color-mix(in srgb,var(--away) 72%,#000)}
+.skin-block .score--home{background:color-mix(in srgb,var(--home) 72%,#000)}
+.skin-block .center{display:flex;flex-direction:column;justify-content:center;padding:0 18px;background:#0b0b10}
+.skin-block .side::after{bottom:0;height:5px;background:#fff}
+.skin-block .poss{display:none}
+.skin-block .logo{filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))}
+.skin-block.sb--min .bar{min-height:54px;padding:0}
+.skin-block.sb--min .side{padding:0 12px}
+.skin-block.sb--min .score{min-width:60px;padding:0 12px}
+
+/* ---- SLANT: TV-network angles, italic heavy numbers ---- */
+.skin-slant .card{border:0;background:transparent;overflow:visible;box-shadow:none}
+.skin-slant .bar{padding:0;gap:0;border:0;min-height:64px;align-items:stretch;background:transparent;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5));
+  grid-template-columns:max-content max-content minmax(130px,max-content) max-content max-content}
+.skin-slant .bar::before{display:none}
+.skin-slant .side{padding:0 26px 0 18px;clip-path:polygon(0 0,100% 0,calc(100% - 16px) 100%,0 100%);align-self:stretch}
+.skin-slant .side--away{background:var(--away);color:var(--away-ink);border-radius:var(--radius) 0 0 var(--radius)}
+.skin-slant .side--home{background:var(--home);color:var(--home-ink);padding:0 18px 0 26px;clip-path:polygon(16px 0,100% 0,100% 100%,0 100%);border-radius:0 var(--radius) var(--radius) 0}
+.skin-slant .score{border-radius:0;box-shadow:none;margin:0 -8px;padding:0 26px;display:flex;align-items:center;justify-content:center;align-self:stretch;
+  clip-path:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%);font-style:italic;background:#fff;color:#0b0b10}
+.skin-slant .score--away,.skin-slant .score--home{background:#fff;color:#0b0b10}
+.skin-slant .center{background:#0b0b10;display:flex;flex-direction:column;justify-content:center;padding:0 26px;margin:0 -8px;clip-path:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%)}
+.skin-slant .abbr{font-style:italic}
+.skin-slant .rec{color:inherit;opacity:.85}
+.skin-slant .side::after,.skin-slant .poss{display:none}
+.skin-slant .field{margin-top:6px;border-radius:var(--radius);border:1px solid var(--panel-edge)}
+.skin-slant.sb--min .bar{min-height:52px}
+
+/* ---- GLASS: modern pill, see-through, team color under each score ---- */
+.skin-glass .card{background:rgba(12,12,18,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14)}
+.skin-glass.sb--min .card,.skin-glass.sb--min .bar,.skin-glass.sb--min .alert{border-radius:999px}
+.skin-glass .bar{background:transparent;border-bottom:0}
+.skin-glass .bar::before{display:none}
+.skin-glass .score{background:transparent;color:var(--ink);box-shadow:none;border-radius:0;border-bottom:5px solid var(--away);padding-bottom:0}
+.skin-glass .score--home{border-bottom-color:var(--home)}
+.skin-glass .logo{background:rgba(255,255,255,.1);border-radius:50%;padding:5px}
+.skin-glass .side::after{display:none}
+.skin-glass.sb--min .bar{padding:6px 22px 6px 8px}
+.skin-glass.sb--min .side--home{padding-right:0}
+
+/* ---- STACK: two rows like a sports app, clock on the right ---- */
+.skin-stack .bar{grid-template-columns:max-content max-content minmax(96px,max-content);grid-template-areas:"aw as c" "hw hs c";gap:0;padding:0;border:0}
+.skin-stack .bar::before{display:none}
+.skin-stack .side--away{grid-area:aw}.skin-stack .score--away{grid-area:as}
+.skin-stack .side--home{grid-area:hw;flex-direction:row-reverse;justify-content:flex-end}
+.skin-stack .score--home{grid-area:hs}.skin-stack .center{grid-area:c}
+.skin-stack .side{padding:6px 18px 6px 12px;border-left:6px solid var(--away);gap:10px}
+.skin-stack .side--home{border-left-color:var(--home);border-top:1px solid var(--panel-edge)}
+.skin-stack .ident--r{text-align:left}.skin-stack .meta--r{justify-content:flex-start;flex-direction:row-reverse}
+.skin-stack .score{background:transparent;color:var(--ink);box-shadow:none;border-radius:0;padding:0 18px;display:flex;align-items:center;justify-content:flex-end;min-width:70px}
+.skin-stack .score--home{border-top:1px solid var(--panel-edge)}
+.skin-stack .center{background:rgba(0,0,0,.35);display:flex;flex-direction:column;justify-content:center;padding:0 16px;border-left:1px solid var(--panel-edge);align-self:stretch}
+.skin-stack .side::after,.skin-stack .poss{display:none}
+.skin-stack .abbr{font-size:28px}.skin-stack .logo{width:34px;height:34px}
+.skin-stack .score{font-size:36px}
+.skin-stack .clock{font-size:22px;display:flex;flex-direction:column;align-items:center}
+.skin-stack .time{margin-left:0}
+.skin-stack.sb--min{padding-top:var(--chip-room,34px)}
+.skin-stack.sb--min .bar{grid-template-columns:max-content max-content minmax(96px,max-content);padding:0}
+.skin-stack.sb--min .score--away,.skin-stack.sb--min .score--home{translate:0 0}
+.skin-stack.sb--min .abbr{font-size:24px}.skin-stack.sb--min .score{font-size:30px}
+
+.skin-stack.sb--min{min-width:0}
+.skin-stack .logo,.skin-stack.sb--min .logo{width:40px;height:40px}
+.skin-stack .rec{font-size:14px}
+
+/* ---- JUMBO: oversized scores in team-color blocks, white center plate ---- */
+.skin-jumbo .card{border:0;background:#0b0b10}
+.skin-jumbo .bar{padding:0;gap:0;border:0;min-height:76px;align-items:stretch;
+  grid-template-columns:max-content max-content minmax(120px,max-content) max-content max-content}
+.skin-jumbo .bar::before{display:none}
+.skin-jumbo .side{padding:0 16px;align-self:stretch;background:#0b0b10}
+.skin-jumbo .score{border-radius:0;box-shadow:inset 0 -6px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;
+  padding:0 20px;min-width:110px;align-self:stretch;font-size:72px;font-weight:900;letter-spacing:-.02em}
+.skin-jumbo .score.wide{font-size:62px}
+.skin-jumbo .center{background:#fff;color:#0b0b10;display:flex;flex-direction:column;justify-content:center;padding:0 18px}
+.skin-jumbo .center .dd,.skin-jumbo .center .clock{color:#0b0b10}
+.skin-jumbo .side::after{bottom:0;height:5px}
+.skin-jumbo .poss{display:none}
+.skin-jumbo.sb--min .bar{min-height:62px}
+.skin-jumbo.sb--min .score{font-size:52px;min-width:84px}
+.skin-jumbo.sb--min .score.wide{font-size:44px}
+
+/* ---- NEON: dark, team colors glow around the scores and names ---- */
+.skin-neon .card{background:#06060a;border:1px solid #1c1c28}
+.skin-neon .bar{background:#06060a;border-bottom:0}
+.skin-neon .bar::before{height:3px;filter:blur(1px);box-shadow:0 0 14px 2px rgba(255,255,255,.15)}
+.skin-neon .score{background:transparent !important;color:#fff !important;box-shadow:none;border:3px solid var(--away);
+  text-shadow:0 0 14px var(--away);box-shadow:0 0 18px -2px var(--away), inset 0 0 14px -4px var(--away)}
+.skin-neon .score--home{border-color:var(--home);text-shadow:0 0 14px var(--home);box-shadow:0 0 18px -2px var(--home), inset 0 0 14px -4px var(--home)}
+.skin-neon .side--away .abbr{text-shadow:0 0 12px var(--away)}
+.skin-neon .side--home .abbr{text-shadow:0 0 12px var(--home)}
+.skin-neon .clock{text-shadow:0 0 10px rgba(255,255,255,.35)}
