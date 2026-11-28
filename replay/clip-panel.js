@@ -18,6 +18,7 @@
   sec.innerHTML = `<summary>Clips</summary><div class="inner">
     <div><label>Clip tools</label><div class="seg" id="olClipToggle"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
     <div id="olClipBody" hidden>
+      <div style="margin-top:12px"><label>Replay style for clips</label><div class="seg" id="olClipStyle"></div></div>
       <div class="field"><span>Twitch clip link</span><input type="text" id="olClipUrl" placeholder="https://clips.twitch.tv/…  or  twitch.tv/name/clip/…"></div>
       <div class="ol-row"><button class="ol-btn" id="olClipLoad">Load clip</button></div>
       <label class="ol-file">…or upload a clip (MP4 / WebM / MOV, up to 24 MB)<input type="file" id="olClipFile" accept="video/mp4,video/webm,video/quicktime"></label>
@@ -35,6 +36,33 @@
   sheet.insertBefore(sec, log || null);
 
   let clipSrc = null;
+  // --- style: mirror the panel's own Theme buttons, so picking here = picking in the panel
+  const THEMES = ['Elite', 'MW2', 'Flashback', 'Standard'];
+  const themeBtns = () => [...document.querySelectorAll('button')].filter(b => THEMES.includes(b.textContent.trim()) && !b.closest('#olClips'));
+  function buildStyles() {
+    const box = $('olClipStyle'); box.innerHTML = '';
+    themeBtns().forEach(src => {
+      const b = document.createElement('button'); b.textContent = src.textContent.trim();
+      b.classList.toggle('on', src.classList.contains('on') || src.getAttribute('aria-pressed') === 'true');
+      b.onclick = () => { src.click(); setTimeout(syncStyles, 50); };
+      box.appendChild(b);
+    });
+  }
+  function syncStyles() {
+    const srcs = themeBtns(); const mine = [...$('olClipStyle').children];
+    mine.forEach(b => { const s = srcs.find(x => x.textContent.trim() === b.textContent); b.classList.toggle('on', !!s && (s.classList.contains('on') || s.getAttribute('aria-pressed') === 'true')); });
+  }
+  // --- the panel's current Speed / Sound / Slow-mo ending, so clips play the same way replays do
+  function replayOpts() {
+    const o = {};
+    const snd = document.querySelector('#sounds button.on'); if (snd) o.sound = snd.dataset.s !== '0';
+    const sp = [...document.querySelectorAll('.seg button.on')].map(b => b.textContent.trim()).find(t => /^\.?\d*\.?\d+x$/.test(t));
+    if (sp) o.speed = parseFloat(sp.replace('x', ''));
+    const lab = [...document.querySelectorAll('label,span,div')].find(e => e.children.length <= 2 && /^Slow-mo ending/i.test(e.textContent.trim()));
+    const rng = lab && (lab.parentElement.querySelector('input[type=range]') || lab.parentElement.parentElement.querySelector('input[type=range]'));
+    if (rng) o.slowLast = parseFloat(rng.value) || 0;
+    return o;
+  }
   const info = t => { $('olClipInfo').textContent = t; };
   function setOn(on) {
     try { localStorage.setItem('ol_clips', on ? '1' : '0'); } catch (_) {}
@@ -43,6 +71,8 @@
   }
   let saved = '0'; try { saved = localStorage.getItem('ol_clips') || '0'; } catch (_) {}
   setOn(saved === '1');
+  buildStyles();
+  document.addEventListener('click', e => { if (themeBtns().includes(e.target.closest('button'))) setTimeout(syncStyles, 50); }, true);
   $('olClipToggle').onclick = e => { const b = e.target.closest('button'); if (b) setOn(b.dataset.v === '1'); };
 
   function ready(src, dl, label) {
@@ -76,7 +106,7 @@
   const send = msg => fetch('https://ntfy.sh/' + TOPIC, { method: 'POST', body: JSON.stringify({ ...msg, ts: Date.now() }) });
   $('olClipSend').onclick = async () => {
     if (!clipSrc) return;
-    try { await send({ t: 'clip', src: clipSrc }); info('Sent to stream ✓'); } catch (_) { info("Couldn't reach the overlay"); }
+    try { await send({ t: 'clip', src: clipSrc, ...replayOpts() }); info('Sent to stream ✓'); } catch (_) { info("Couldn't reach the overlay"); }
   };
   $('olClipStop').onclick = () => send({ t: 'stop' }).then(() => info('Stopped'));
 })();
