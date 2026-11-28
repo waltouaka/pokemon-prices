@@ -29,7 +29,7 @@
     eventId: "",              // set by the control room when showing one specific game
     show: true,               // Show / Hide from the control room
     showNote: false,          // playoff / series note above the bar
-    skin: "block"             // overall style: classic, block, slant, glass, stack
+    skin: "block"             // overall style: block, jumbo, slant, neon, glass, stack, classic
   };
   var DEFAULTS = JSON.parse(JSON.stringify(cfg));
 

@@ -416,7 +416,9 @@ export async function onRequest({ request, env, next }) {
   } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
     return next();
   } else if (path === '/sports-overlay' || path === '/sports-overlay.html' || path === '/sports-overlay.css' || path === '/sports-engine.js') {
-    return next();   // the scoreboard OBS overlay is public; its key picks the settings
+    // the scoreboard OBS overlay is public; its key picks the settings. Never let OBS/browsers keep an old copy.
+    const r = await next(); const h = new Headers(r.headers); h.set('cache-control', 'no-cache');
+    return new Response(r.body, { status: r.status, headers: h });
   } else if (path.startsWith('/espn/') && request.method === 'GET') {
     return espnProxy(url);
   } else if (path.startsWith('/sbcfg/') && request.method === 'GET') {

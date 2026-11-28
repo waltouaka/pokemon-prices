@@ -240,7 +240,7 @@ function publish() {
   clearTimeout(kvT); kvT = setTimeout(() => fetch('/api/sb-config?key=' + KEY, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload()) }).catch(() => {}), 2500);
   drawCur(); syncVis();
 }
-$('prev').src = '/sports-overlay?preview=1';
+$('prev').src = '/sports-overlay?preview=1&v=1795841826';
 addEventListener('message', e => { if (e.origin === location.origin && e.data?.sbReady) $('prev').contentWindow.postMessage({ sb: payload() }, location.origin); });
 
 $('copyUrl').onclick = async () => { try { await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied. Paste it into an OBS Browser source'); } catch (_) { prompt('Copy this URL', overlayUrl()); } };
