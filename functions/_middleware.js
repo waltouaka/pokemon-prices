@@ -103,7 +103,7 @@ const publicUrl = (id) => `https://${ROOT}/i/${id}`;
 async function serveImage(request, url, env) {
   if (!env.IMAGES) return new Response('Image host not connected', { status: 502 });
   const id = url.pathname.slice(3);
-  if (!/^[a-z0-9]{8}\.[a-z]{3,4}$/.test(id)) return new Response('Not found', { status: 404 });
+  if (!/^[a-z0-9]{8}\.[a-z0-9]{3,4}$/.test(id)) return new Response('Not found', { status: 404 });
   const isVideo = /\.(mp4|webm|mov)$/.test(id);
   const { value, metadata } = await env.IMAGES.getWithMetadata('img:' + id, { type: isVideo ? 'arrayBuffer' : 'stream', cacheTtl: 300 });
   if (!value) return new Response('Not found', { status: 404 });
@@ -148,7 +148,7 @@ async function imageApi(request, url, env, path, me) {
     items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     return json({ items, total: items.reduce((s, i) => s + (i.size || 0), 0), admin: !!me.admin });
   }
-  const del = path.match(/^\/api\/img\/([a-z0-9]{8}\.[a-z]{3,4})$/);
+  const del = path.match(/^\/api\/img\/([a-z0-9]{8}\.[a-z0-9]{3,4})$/);
   if (del && request.method === 'DELETE') {
     const { metadata } = await env.IMAGES.getWithMetadata('img:' + del[1], { type: 'stream' });
     if (!me.admin && metadata?.owner !== me.id) return json({ error: "That's not your file" }, 403);
