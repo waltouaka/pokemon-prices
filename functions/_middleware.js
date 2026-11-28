@@ -413,9 +413,9 @@ export async function onRequest({ request, env, next }) {
     const ours_ = path === '/api/clip' || path.startsWith('/api/clip/') || path === '/api/upload' || path === '/__me/settings';
     const locked = ours_ || (!isProxy && (path === '/' || path === '/panel' || path === '/panel/' || path === '/panel.html'));
     if (!locked) return toReplay(request, env, null);
-  } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/')) {
+  } else if (path === '/overlay' || path === '/overlay.html' || path.startsWith('/logos/') || path === '/relay.js') {
     return next();
-  } else if (path === '/sports-overlay' || path === '/sports-overlay.html' || path === '/sports-overlay.css' || path === '/sports-engine.js' || path === '/sports-bugs.css' || path === '/sports-bugs.js') {
+  } else if (path === '/sports-overlay' || path === '/sports-overlay.html' || path === '/sports-overlay.css' || path === '/sports-engine.js' || path === '/sports-bugs.css' || path === '/sports-bugs.js' || path === '/relay.js') {
     // the scoreboard OBS overlay is public; its key picks the settings. Never let OBS/browsers keep an old copy.
     const r = await next(); const h = new Headers(r.headers); h.set('cache-control', 'no-cache');
     return new Response(r.body, { status: r.status, headers: h });

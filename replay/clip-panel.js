@@ -107,7 +107,10 @@
     } catch (err) { info('Upload failed: ' + err.message); }
     e.target.value = '';
   };
-  const send = async msg => { if (!(await topicReady)) throw new Error('no replay key yet'); return fetch('https://ntfy.sh/' + TOPIC, { method: 'POST', body: JSON.stringify({ ...msg, ts: Date.now() }) }); };
+  const loadRelay = () => window.Relay ? Promise.resolve() : new Promise(r => { const s = document.createElement('script'); s.src = 'https://outlawswitchmyshit.com/relay.js'; s.onload = r; s.onerror = r; document.head.appendChild(s); });
+  const send = async msg => { if (!(await topicReady)) throw new Error('no replay key yet'); const m = { ...msg, ts: Date.now() };
+    fetch('https://ntfy.sh/' + TOPIC, { method: 'POST', body: JSON.stringify(m) }).catch(() => {});
+    await loadRelay(); if (!window.Relay) throw new Error('relay offline'); return Relay.pub('akaoutlaw/clip/' + TOPIC, m); };
   $('olClipSend').onclick = async () => {
     if (!clipSrc) return;
     try { await send({ t: 'clip', src: clipSrc, ...replayOpts() }); info('Sent to stream ✓'); } catch (_) { info("Couldn't reach the overlay"); }

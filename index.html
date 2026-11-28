@@ -253,6 +253,7 @@
   .seg button.on{background:#fff;color:#000}
   .viewsw{display:flex;gap:6px}
 </style>
+<script src="/relay.js"></script>
 </head>
 <body>
 <script>
@@ -512,7 +513,8 @@ if(IS_OVERLAY){
   // same-browser channels (OBS custom dock shares storage with browser sources)
   bc && (bc.onmessage = e => render(e.data));
   window.addEventListener('storage', e => { if(e.key==='pkmn_state_'+ROOM && e.newValue) render(JSON.parse(e.newValue)); });
-  // cross-device relay
+  // cross-device relay (MQTT, keeps the last state; ntfy below as a backup)
+  window.Relay && Relay.sub('akaoutlaw/pkmn/'+ROOM, m => render(m));
   function connect(){
     const es = new EventSource(`https://ntfy.sh/${TOPIC}/sse`);
     es.onmessage = e => { try{ const m = JSON.parse(e.data); if(m.message) render(JSON.parse(m.message)); }catch(_){} };
@@ -626,14 +628,15 @@ else {
   $('#newRoom').onclick = ()=>{ if(confirm('Make a new key? You will need to paste the new overlay URL into OBS.')){ localStorage.removeItem('pkmn_room'); location.href=location.href.split('?')[0]; } };
 
   // relay check
-  fetch(`https://ntfy.sh/${TOPIC}/json?poll=1&since=1m`).then(()=>$('#dot').classList.add('on')).catch(()=>{});
+  Relay.pub('akaoutlaw/pkmn-ping', {t:Date.now()}).then(()=>$('#dot').classList.add('on')).catch(()=>{});
 
   async function send(){
     const state = {cardId: current?.id || null, visible, settings:{...S}, psa10: current ? (psaMap[current.id] ?? null) : null, ts: Date.now()};
     const json = JSON.stringify(state);
     localStorage.setItem('pkmn_state_'+ROOM, json);
     bc && bc.postMessage(state);
-    try{ await fetch(`https://ntfy.sh/${TOPIC}`, {method:'POST', body: json}); $('#dot').classList.add('on'); }
+    fetch(`https://ntfy.sh/${TOPIC}`, {method:'POST', body: json}).catch(()=>{});
+    try{ await Relay.pub('akaoutlaw/pkmn/'+ROOM, state, {retain:true}); $('#dot').classList.add('on'); }
     catch(e){ $('#dot').classList.remove('on'); toast('Relay offline — only same-browser overlay updated'); }
   }
 

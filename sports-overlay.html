@@ -79,8 +79,9 @@ const Q = new URLSearchParams(location.search), KEY = (Q.get('key') || '').toUpp
 window.SB_REMOTE = !!(KEY || PREVIEW);
 if (PREVIEW) document.body.classList.add('preview');
 </script>
+<script src="/relay.js"></script>
 <script src="/sports-bugs.js?v=1795850138"></script>
-<script src="/sports-engine.js?v=1795850780"></script>
+<script src="/sports-engine.js?v=1795851175"></script>
 <script>
 (() => {
   let lastTs = 0;
@@ -90,6 +91,7 @@ if (PREVIEW) document.body.classList.add('preview');
   const topic = 'akaoutlaw-sb-' + KEY;
   // saved settings first (survive restarts), then live changes over ntfy
   fetch('/sbcfg/' + KEY, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(c => { if (c && c.ts) apply(c); }).catch(() => {});
+  Relay.sub('akaoutlaw/sb/' + KEY, m => apply(m));
   (function connect() {
     const es = new EventSource(`https://ntfy.sh/${topic}/sse`);
     es.onmessage = e => { try { apply(JSON.parse(JSON.parse(e.data).message)); } catch (_) {} };

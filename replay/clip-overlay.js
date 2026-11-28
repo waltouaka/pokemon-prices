@@ -85,6 +85,10 @@
 
   async function connect() {
     if (!(await topicReady)) return; // no key in the OBS link
+    // MQTT relay (no daily cap); ntfy below stays as a backup
+    const onMsg = m => { if (!m || !m.ts || m.ts <= seen || Date.now() - m.ts > 60000) return; seen = m.ts; if (m.t === 'clip' && m.src) playClipMsg(m); else if (m.t === 'stop') { plainStop(); try { if (clipRun) player.stop(); } catch (_) {} } };
+    if (!window.Relay) await new Promise(r => { const s = document.createElement('script'); s.src = 'https://outlawswitchmyshit.com/relay.js'; s.onload = r; s.onerror = r; document.head.appendChild(s); });
+    if (window.Relay && !connect.done) { connect.done = 1; Relay.sub('akaoutlaw/clip/' + TOPIC, onMsg); }
     const es = new EventSource('https://ntfy.sh/' + TOPIC + '/sse');
     es.onmessage = e => {
       try {
