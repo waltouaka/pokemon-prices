@@ -341,14 +341,14 @@ export async function onRequest({ request, env, next }) {
   if (TW && path.startsWith('/__auth/')) { const r = await authRoutes(request, env, url, path); if (r) return r; }
 
   // password log in (only while Twitch sign-in isn't set up)
-  if (!TW && path === '/__login' && request.method === 'POST' && pw) {
+  if (path === '/__login' && request.method === 'POST' && pw) {
     const nxt = safeNext(url.searchParams.get('next'));
     const form = await request.formData();
     const good = await tokenFor(pw);
     if (same(await tokenFor(String(form.get('password') || '')), good)) {
       return new Response(null, { status: 303, headers: { Location: nxt, 'Set-Cookie': `${COOKIE}=${good}; ${cookieAttrs(host, MONTH)}` } });
     }
-    return html(loginPage(true, nxt, env), 401);
+    return html(loginPage(true, nxt, null), 401);
   }
   if (path === '/__logout') {
     const h = new Headers({ Location: `https://${ROOT}/` });
@@ -389,7 +389,13 @@ export async function onRequest({ request, env, next }) {
   }
 
   // who is this?
+  const pwOk = async () => { if (!pw) return true; const c = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)cp_auth=([a-f0-9]{64})/); return !!c && same(c[1], await tokenFor(pw)); };
   if (TW) {
+    // step 1: site password, step 2: Twitch
+    if (!(await pwOk())) {
+      if (path.startsWith('/api/') || path.startsWith('/__me/')) return json({ error: 'Signed out. Reload the page and sign in.' }, 401);
+      return html(loginPage(false, url.pathname + url.search, null), 401);
+    }
     const u = await readSession(request, env);
     if (u) return pass({ ...u, admin: u.login.toLowerCase() === ADMIN(env) });
     if (path.startsWith('/api/') || path.startsWith('/__me/')) return json({ error: 'Signed out. Reload the page and sign in.' }, 401);
