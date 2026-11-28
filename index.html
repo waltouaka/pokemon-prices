@@ -42,6 +42,9 @@
   /* header */
   header{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:26px}
   .brand{display:flex;align-items:center;gap:14px}
+  .backhome{display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 14px;border-radius:10px;background:rgba(255,255,255,.08);color:#fff;text-decoration:none;font-weight:800;font-size:14px;transition:background .15s}
+  .backhome:hover{background:rgba(255,255,255,.16)}
+  @media(max-width:700px){.backhome span{display:none}}
   .pfpwrap{width:62px;height:62px;flex:0 0 62px}
   .pfp{width:62px;height:62px;border-radius:50%;object-fit:cover;display:block;border:2px solid #fff;background:#1a1426}
   .mark{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:26px;background:#fff;color:#000}
@@ -540,6 +543,7 @@ else {
   <div class="wrap">
     <header>
       <div class="brand">
+        <a class="backhome" href="https://outlawswitchmyshit.com/" title="Back to home">←<span> Home</span></a>
         <div class="pfpwrap"><img class="pfp" alt="akaoutlaw" src="logos/pfp.png"
           onerror="if(!this.dataset.t){this.dataset.t=1;this.src='https://unavatar.io/twitch/akaoutlaw?fallback=false'}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'mark',textContent:'A'}))}"></div>
         <div><div class="bn">akaoutlaw</div><div class="bs">Card Prices <span class="ver">v20</span></div></div>

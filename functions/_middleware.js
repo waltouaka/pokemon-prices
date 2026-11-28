@@ -71,7 +71,8 @@ async function toReplay(request, env) {
     try {
       const r = await env.ASSETS.fetch(new Request(`https://assets.local/replay/${which}.js`));
       if (r.ok) {
-        const js = (await r.text()).replace('__TOPIC__', await clipTopic(env));
+        let js = (await r.text()).replace('__TOPIC__', await clipTopic(env));
+        if (which === 'clip-panel') { const b = await env.ASSETS.fetch(new Request('https://assets.local/replay/back-button.js')); if (b.ok) js += '\n' + await b.text(); }
         const tag = `<script>${js.replace(/<\/script/gi, '<\\/script')}</script>`;
         html = html.includes('</body>') ? html.replace('</body>', tag + '</body>') : html + tag;
       }
