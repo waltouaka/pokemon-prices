@@ -71,8 +71,20 @@
   /* ---------------- settings come from the Scoreboard control room ----------------
      window.SBApply(settings) restarts the overlay with new settings (any time). */
   var timers = [];
+  // one-off test alerts from the control room (Customize → Test)
+  var lastFire = 0;
+  window.SBFire = function (kind) {
+    if (kind !== "goal") return;
+    var edm = { id: "edm", name: "Edmonton Oilers", abbr: "EDM", logo: "https://a.espncdn.com/i/teamlogos/nhl/500/edm.png", color: "#041e42", alt: "#ff4c00", accent: "#ff4c00" };
+    var sb = $("sb"), wasHidden = sb.classList.contains("sb--hidden");
+    if (wasHidden) sb.classList.remove("sb--hidden");
+    enqueue({ kind: "score", category: "GOAL", made: true, team: edm, name: "Connor McDavid", line: "Power Play Goal · Draisaitl, Hyman",
+      play: { text: "", yards: NaN, scoring: true, athletes: [{ name: "Connor McDavid", headshot: "https://a.espncdn.com/i/headshots/nhl/players/full/3895074.png" }] } });
+    if (wasHidden) setTimeout(function () { if (!current) sb.classList.add("sb--hidden"); }, (parseInt(cfg.alertDuration, 10) || 7) * 1000 + 800);
+  };
   window.SBApply = function (o) {
     o = o || {};
+    if (o.fire && o.fireTs && o.fireTs !== lastFire && Date.now() - o.fireTs < 20000) { lastFire = o.fireTs; setTimeout(function () { window.SBFire(o.fire); }, 700); }
     var keep = { league: cfg.league, teamId: cfg.teamId, eventId: cfg.eventId };
     cfg = JSON.parse(JSON.stringify(DEFAULTS));
     Object.keys(o).forEach(function (k) { if (k in cfg && o[k] !== undefined && o[k] !== "") cfg[k] = o[k]; });

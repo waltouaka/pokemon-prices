@@ -178,6 +178,7 @@ const CUSTOM = [
   ['Test', [
     ['testDrive', 'TEST DRIVE: simulated Vikings @ Packers', 'bool', false, 'Shows a TEST DRIVE tag. Turn off before going live.'],
     ['testDriveSpeed', 'Test drive seconds per play', 'num', 4, 1, 15],
+    ['fireGoal', 'Goal test: Connor McDavid (Oilers)', 'btn', 'goal', 'Plays an NHL goal alert with his headshot on your overlay'],
   ]],
 ];
 const STYLES = [
@@ -322,6 +323,7 @@ setInterval(() => { if (!$('p-games').hidden && ymd(day) === ymd(new Date())) lo
 function field(store, [k, label, type, def, a, b, step], onchange) {
   const v = store[k] ?? def, sub = typeof a === 'string' && type === 'bool' ? `<small>${esc(a)}</small>` : '';
   let input = '';
+  if (type === 'btn') return `<div class="row"><div>${esc(label)}${a ? `<small>${esc(a)}</small>` : ''}</div><button class="btn white" data-fire="${esc(def)}">Play</button></div>`;
   if (type === 'bool') input = `<button class="sw ${v ? 'on' : ''}" data-k="${k}" data-type="bool"></button>`;
   else if (type === 'num') input = `<input type="number" data-k="${k}" data-type="num" min="${a}" max="${b}" value="${esc(v)}">`;
   else if (type === 'range') input = `<input type="range" data-k="${k}" data-type="range" min="${a}" max="${b}" step="${step}" value="${esc(v)}">`;
@@ -330,7 +332,10 @@ function field(store, [k, label, type, def, a, b, step], onchange) {
   return `<div class="row"><div>${esc(label)}${type === 'range' ? ` <span style="color:var(--muted)" data-out="${k}">${esc(v)}</span>` : ''}${sub}</div>${input}</div>`;
 }
 function wire(pane, store) {
-  pane.onclick = e => { const b = e.target.closest('.sw'); if (!b) return; store[b.dataset.k] = !b.classList.contains('on'); b.classList.toggle('on'); if (b.dataset.k === 'testDrive' && store.testDrive) S.show = true; publish(); };
+  pane.onclick = e => {
+    const f = e.target.closest('[data-fire]');
+    if (f) { S.fire = f.dataset.fire; S.fireTs = Date.now(); publish(); delete S.fire; delete S.fireTs; ls.set('sb_state', S); toast('Goal test sent'); return; }
+    const b = e.target.closest('.sw'); if (!b) return; store[b.dataset.k] = !b.classList.contains('on'); b.classList.toggle('on'); if (b.dataset.k === 'testDrive' && store.testDrive) S.show = true; publish(); };
   pane.oninput = e => { const el = e.target, k = el.dataset.k; if (!k) return;
     store[k] = el.dataset.type === 'num' || el.dataset.type === 'range' ? +el.value : el.value;
     const out = pane.querySelector(`[data-out="${k}"]`); if (out) out.textContent = el.value; publish(); };
