@@ -51,24 +51,6 @@
 .b-fox .ck b{font-size:34px;font-variant-numeric:tabular-nums}
 .b-fox .ck span{font-size:22px;margin-top:2px}
 
-/* ---------------- Prime Video TNF ---------------- */
-.b-prime{height:56px;font-family:"Archivo",sans-serif;clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);filter:none;box-shadow:none}
-.b-prime .tm{display:flex;align-items:stretch}
-.b-prime .lgc{width:150px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(115deg,color-mix(in srgb,var(--c) 85%,#fff) 0 72%,#e9edf2 72% 76%,var(--c) 76% 100%)}
-.b-prime .tm.h .lgc{background:linear-gradient(115deg,var(--c) 0 24%,#e9edf2 24% 28%,color-mix(in srgb,var(--c) 85%,#fff) 28% 100%)}
-.b-prime .lg{width:110px;height:54px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
-.b-prime .sc-c{width:120px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1b3a70,#0c2147)}
-.b-prime .sc{font-size:44px;font-weight:800}
-.b-prime .mid{position:relative;width:300px;display:flex;flex-direction:column;background:#070f22;border-left:3px solid #dfe6f0;border-right:3px solid #dfe6f0;transform:skewX(-14deg)}
-.b-prime .mid > div{transform:skewX(14deg)}
-.b-prime .top{flex:1;display:flex;align-items:stretch}
-.b-prime .net{width:86px;display:flex;align-items:center;justify-content:center;font-weight:900;font-style:italic;font-size:22px;letter-spacing:-.02em}
-.b-prime .bdd{flex:1;display:flex;align-items:center;justify-content:center;margin:3px 6px 0 0;background:linear-gradient(180deg,#f3f6fa,#b9c4d3);color:#0b1630;font-weight:800;font-size:20px}
-.b-prime .bot{flex:1;display:flex;align-items:center;justify-content:center;gap:26px;font-weight:800}
-.b-prime .top:not(:has(.bdd)){justify-content:center}
-.b-prime .pd{font-size:16px;opacity:.9}.b-prime .ck{font-size:24px;font-variant-numeric:tabular-nums}
-
 /* ---------------- ESPN / NFL Network ---------------- */
 .b-espn{height:70px;font-family:"Roboto Condensed",sans-serif;border-radius:6px;overflow:hidden;
   background:linear-gradient(180deg,#3c3c3e 0%,#1d1d1f 48%,#0b0b0c 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
@@ -112,22 +94,3 @@
 .b-netflix .row{display:flex;align-items:baseline;gap:12px}
 .b-netflix .pd{font-size:24px;font-weight:800;color:#c9ccd2}.b-netflix .ck{font-size:38px;font-weight:900;font-variant-numeric:tabular-nums}
 
-/* ---------------- NFL World Feed ---------------- */
-.b-world{height:50px;font-family:"Roboto Condensed",sans-serif;border-radius:3px;overflow:hidden;filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))}
-.b-world .lgl{width:96px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1f3f86,#0f2557)}
-.b-world .lgl .lg{width:44px;height:44px}
-.b-world .tm{display:flex;align-items:stretch;background:var(--c);color:var(--ink)}
-.b-world .lgc{width:120px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 85%,#fff)}
-.b-world .lgc .lg{width:150px;height:150px;object-fit:cover;opacity:.95}
-.b-world .tm.h .lgc{background:#e6e6e6}
-.b-world .id{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;padding:0 12px 0 52px;position:relative;min-width:150px}
-.b-world .id b{font-size:34px;font-weight:800;line-height:1}
-.b-world .id small{position:absolute;left:10px;top:14px;font-size:15px;font-weight:700}
-.b-world .id .to{position:absolute;left:10px;bottom:5px;gap:5px}.b-world .id .to b{width:16px;height:3px;background:color-mix(in srgb,var(--ink) 25%,transparent)}.b-world .id .to b.on{background:var(--ink)}
-.b-world .sc-c{width:84px;display:flex;align-items:center;justify-content:center;gap:4px;background:color-mix(in srgb,var(--c) 82%,#000);border-left:2px solid rgba(255,255,255,.35)}
-.b-world .sc-c em{font-style:normal;font-size:20px}
-.b-world .sc{font-size:42px;font-weight:800}
-.b-world .clk{width:230px;display:flex;align-items:center;gap:30px;padding:0 18px;background:linear-gradient(180deg,#ffffff,#dedede);color:#111;font-weight:800}
-.b-world .pd{font-size:30px}.b-world .ck{font-size:36px;font-variant-numeric:tabular-nums}
-.b-world .wk{width:180px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1f3f86,#0f2557);font-size:30px;font-weight:700;letter-spacing:.02em}
-.b-world .wk:empty{display:none}
