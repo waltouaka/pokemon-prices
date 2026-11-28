@@ -193,3 +193,11 @@
 .bug .ck:empty,.bug .sep:has(+ .ck:empty){display:none}
 .b-netflix .row:not(:has(.ck:not(:empty))) .pd{font-size:24px;color:#fff;letter-spacing:.04em}
 .b-espn .bdd.empty{display:none}.b-espn .mid{justify-content:center}.b-espn .mid:not(:has(.bdd:not(.empty))) .pill{margin-top:0;padding:4px 22px}
+/* FOX fixes: scores sit level with each other and with the clock box, 3 digits fit, no squashed "1ST& 10" */
+.b-fox{grid-template-columns:130px minmax(104px,max-content) 128px minmax(104px,max-content) 130px}
+.b-fox .sc-wrap{justify-content:center;gap:8px;padding-top:6px}
+.b-fox .sc,.b-fox .sc.wide{font-size:64px;line-height:.95}
+.b-fox .sc.wide{letter-spacing:-.04em}
+.b-fox .ck{align-self:start;margin-top:10px}
+.b-fox .tofx{min-height:12px}
+.bug .bdd small,.bug .pd small,.bug .bddrow small{margin-right:.18em}

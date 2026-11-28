@@ -117,6 +117,7 @@
       <div class="pill">Key <b id="keyTxt"></b></div>
       <button class="btn white" id="copyUrl">Copy overlay URL</button>
       <button class="btn" id="newKey">New key</button>
+      <button class="btn" id="sepBtn" title="One OBS link for all sports, or a separate one per sport"></button>
     </div>
   </header>
 
@@ -275,9 +276,13 @@ if (CAT !== 'football') { C.layout = 'minimal'; C.testDrive = false; }
 if (!ls.get(ck('v3'), false)) { C.enableAlerts = false; ls.set(ck('v3'), true); }   // alerts start off (turn on in Customize)
 let T = Object.assign({}, ls.get(ck('theme'), {}));
 if (!ls.get('sb_v2', false)) { C.layout = 'minimal'; ls.set('sb_v2', true); }   // minimal is the new default
-let KEY = ls.get(ck('key'), '');
+// one OBS link for every sport (default): whichever sport you send last shows on it.
+// "Separate OBS link per sport" switches each sport to its own key.
+const SEPARATE = ls.get('sb_separate', false);
+let KEY = SEPARATE ? ls.get(ck('key'), '') : ls.get('sb_shared_key', '') || ls.get('sb_football_key', '') || ls.get(ck('key'), '');
 const makeKey = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return [...crypto.getRandomValues(new Uint8Array(8))].map(b => a[b % a.length]).join(''); };
-if (!KEY) { KEY = makeKey(); ls.set(ck('key'), KEY); }
+if (!KEY) KEY = makeKey();
+ls.set(SEPARATE ? ck('key') : 'sb_shared_key', KEY);
 $('keyTxt').textContent = KEY;
 const overlayUrl = () => `${location.origin}/sports-overlay?key=${KEY}`;
 document.title = `akaoutlaw · ${CATS[CAT].n} scoreboard`;
@@ -287,10 +292,12 @@ $('sportName').textContent = `${CATS[CAT].n} scoreboard`;
 let bc; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
 const payload = () => ({ ts: Date.now(), ...C, ...S, theme: T });
 let ntfyT = 0, kvT = 0;
-function publish() {
+let live = false;   // becomes true on the first real change (game picked, Show/Hide, any setting)
+function publish(previewOnly) {
   ls.set(ck('state'), S); ls.set(ck('custom'), C); ls.set(ck('theme'), T);
   const p = payload();
   $('prev').contentWindow?.postMessage({ sb: p }, location.origin);
+  if (previewOnly === true && !SEPARATE) { drawCur(); syncVis(); return; }
   try { bc && bc.postMessage(p); } catch (_) {}
   clearTimeout(ntfyT); ntfyT = setTimeout(() => { const p = payload(); Relay.pub('akaoutlaw/sb/' + KEY, p, { retain: true }).catch(() => {}); fetch('https://ntfy.sh/akaoutlaw-sb-' + KEY, { method: 'POST', body: JSON.stringify(p) }).catch(() => {}); }, 250);
   clearTimeout(kvT); kvT = setTimeout(() => fetch('/api/sb-config?key=' + KEY, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload()) }).catch(() => {}), 2500);
@@ -303,9 +310,11 @@ addEventListener('message', e => { if (e.origin === location.origin && e.data?.s
 $('copyUrl').onclick = async () => { try { await navigator.clipboard.writeText(overlayUrl()); toast('Overlay URL copied. Paste it into an OBS Browser source'); } catch (_) { prompt('Copy this URL', overlayUrl()); } };
 $('newKey').onclick = () => {
   if ($('newKey').dataset.armed !== '1') { $('newKey').dataset.armed = '1'; $('newKey').textContent = 'Sure? Old OBS link stops'; setTimeout(() => { $('newKey').dataset.armed = ''; $('newKey').textContent = 'New key'; }, 3000); return; }
-  KEY = makeKey(); ls.set(ck('key'), KEY); $('keyTxt').textContent = KEY; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
+  KEY = makeKey(); ls.set(SEPARATE ? ck('key') : 'sb_shared_key', KEY); $('keyTxt').textContent = KEY; try { bc = new BroadcastChannel('sb-' + KEY); } catch (_) {}
   $('newKey').dataset.armed = ''; $('newKey').textContent = 'New key'; publish(); toast('New key. Copy the new overlay URL into OBS');
 };
+$('sepBtn').textContent = SEPARATE ? 'Separate link per sport' : 'One link for all sports';
+$('sepBtn').onclick = () => { ls.set('sb_separate', !SEPARATE); location.reload(); };
 function syncVis() { $('showBtn').classList.toggle('on', S.show !== false); $('hideBtn').classList.toggle('on', S.show === false); }
 $('showBtn').onclick = () => { S.show = true; publish(); };
 $('hideBtn').onclick = () => { S.show = false; publish(); };
@@ -427,7 +436,7 @@ $('prev').addEventListener('load', () => {
 function showBug() { try { const w = $('prev'); w.contentWindow.scrollTo({ left: Math.max(0, C.posX - 60), top: Math.max(0, C.posY - 90), behavior: 'smooth' }); } catch (_) {} }
 $('posX').addEventListener('change', showBug); $('posY').addEventListener('change', showBug); $('posReset').addEventListener('click', () => setTimeout(showBug, 50));
 syncPos();
-buildStyles(); buildCustom(); buildTheme(); drawCur(); syncVis(); loadGames(); publish();
+buildStyles(); buildCustom(); buildTheme(); drawCur(); syncVis(); loadGames(); publish(true);
 </script>
 </body>
 </html>
