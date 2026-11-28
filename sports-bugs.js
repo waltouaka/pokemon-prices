@@ -33,7 +33,7 @@ window.SBBugs = (() => {
 
     netflix: v => `<div class="bug b-netflix">
       ${tm(v.a, 'a', `${img(v.a.logo)}<div class="nums"><span class="rc">${esc(v.a.rec)}</span>${sco(v.a, 'a')}${tos(v.a.to)}</div>`)}
-      <div class="mid"><div class="top">${v.dd ? `<span class="bdd">${sc(v.dd)}</span>` : '<span class="nflx">NETFLIX</span>'}</div>
+      <div class="mid${v.dd ? '' : ' nodd'}">${v.dd ? `<div class="top"><span class="bdd">${sc(v.dd)}</span></div>` : ''}
         <div class="row"><span class="pd">${sc(v.period)}</span><span class="ck">${esc(v.clock)}</span></div></div>
       ${tm(v.h, 'h', `<div class="nums">${sco(v.h, 'h')}<span class="rc">${esc(v.h.rec)}</span>${tos(v.h.to)}</div>${img(v.h.logo)}`)}
     </div>`,

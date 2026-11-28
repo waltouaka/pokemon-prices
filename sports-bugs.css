@@ -89,8 +89,14 @@
 .b-netflix .mid{width:250px;margin:-5px 2px 0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
   background:linear-gradient(180deg,#2e3036 0%,#1c1d21 60%,#141518 100%);clip-path:polygon(0 0,100% 0,97% 100%,3% 100%);border-top:1px solid rgba(255,255,255,.18)}
 .b-netflix .top{height:34px;display:flex;align-items:center}
-.b-netflix .nflx{font-family:"Bebas Neue","Oswald",sans-serif;font-size:36px;color:#e50914;letter-spacing:.02em;line-height:1}
 .b-netflix .bdd{font-size:24px;font-weight:800}
 .b-netflix .row{display:flex;align-items:baseline;gap:12px}
 .b-netflix .pd{font-size:24px;font-weight:800;color:#c9ccd2}.b-netflix .ck{font-size:38px;font-weight:900;font-variant-numeric:tabular-nums}
 
+/* Netflix with no down & distance: period + clock alone, centered and bigger */
+.b-netflix .mid.nodd .row{gap:14px}
+.b-netflix .mid.nodd .pd{font-size:28px}
+.b-netflix .mid.nodd .ck{font-size:48px}
+.b-netflix .top{height:30px}
+.b-netflix .bdd{font-size:22px;color:#e8eaee}
+.b-netflix .rc:empty{display:none}
