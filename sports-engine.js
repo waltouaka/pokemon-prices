@@ -28,6 +28,7 @@
     teamId: "",               // set by the control room (exact ESPN team id)
     eventId: "",              // set by the control room when showing one specific game
     show: true,               // Show / Hide from the control room
+    bigLook: "chip",          // BIG PLAY look: chip (original pop-up), clean, tab, takeover
     showNote: false,          // playoff / series note above the bar
     skin: "block"             // overall style: tv, espn, fox, cbs, snf, nhl, block, jumbo, slant, neon, glass, stack, classic
   };
@@ -1118,7 +1119,9 @@
     img.onerror = function () { bp.classList.add("nophoto"); };
     img.src = photo || "";
     $("bpMark").src = logo || "";
-    bp.classList.remove("on"); void bp.offsetWidth; bp.classList.add("on");
+    bp.className = "bp bp--" + (["chip", "clean", "tab", "takeover"].indexOf(cfg.bigLook) > -1 ? cfg.bigLook : "chip") + (photo ? "" : " nophoto");
+    $("bpTag").textContent = String(item.tag || "BIG PLAY");
+    void bp.offsetWidth; bp.classList.add("on");
     setTimeout(function () { bp.classList.remove("on"); setTimeout(done, 450); }, 5200);
   }
 

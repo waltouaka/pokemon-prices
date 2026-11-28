@@ -180,3 +180,4 @@
 .b-netflix .ck{min-width:4.3ch;text-align:center}
 .b-fox .bdd{grid-area:1/2/2/5 !important;justify-self:center !important;margin:0 !important;min-width:240px;justify-content:center}
 .sb--bug .bp{top:calc(100% + 12px)}
+.sb--bug .bp--chip{top:calc(100% - 3px)}
